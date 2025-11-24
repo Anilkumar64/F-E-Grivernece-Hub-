@@ -1,0 +1,34 @@
+{
+  "name": "backend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "~1.4.4",
+    "cors": "^2.8.5",
+    "debug": "~2.6.9",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "expresss": "^0.0.0",
+    "helmet": "^8.1.0",
+    "http-errors": "~1.6.3",
+    "jade": "^0.29.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.3",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.10",
+    "path": "^0.12.7",
+    "recharts": "^3.4.1"
+  },
+  "main": "server.js",
+  "author": "",
+  "license": "ISC",
+  "description": "its a egriverence",
+  "devDependencies": {}
+}

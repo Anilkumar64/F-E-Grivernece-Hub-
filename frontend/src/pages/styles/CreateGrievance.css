@@ -1,0 +1,234 @@
+/* ===== PAGE BACKGROUND ===== */
+.grievance-page {
+    min-height: 100vh;
+    padding: 32px 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    background: radial-gradient(circle at top left, #e0f2fe, #f9fafb 45%, #e5e7eb);
+}
+
+/* ===== CARD WRAPPER ===== */
+.grievance-card {
+    width: 100%;
+    max-width: 760px;
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 24px 24px 26px;
+    box-shadow:
+        0 18px 40px rgba(15, 23, 42, 0.18),
+        0 0 0 1px rgba(148, 163, 184, 0.28);
+    animation: grievanceFloatIn 0.35s ease-out;
+}
+
+/* ===== TITLE + SUBTITLE ===== */
+.grievance-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 22px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.grievance-icon {
+    font-size: 22px;
+}
+
+.grievance-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 18px;
+}
+
+/* ===== FORM LAYOUT ===== */
+.grievance-form {
+    margin-top: 6px;
+}
+
+/* Form group */
+.form-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Label */
+.form-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.required {
+    color: #ef4444;
+}
+
+/* Inputs / Select / Textarea base */
+.form-input,
+.form-select,
+.form-textarea {
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    padding: 10px 11px;
+    font-size: 14px;
+    outline: none;
+    background-color: #f9fafb;
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        background-color 0.18s ease,
+        transform 0.06s ease;
+}
+
+/* textarea */
+.form-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* focus state */
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: #2563eb;
+    background-color: #ffffff;
+    box-shadow:
+        0 0 0 1px rgba(37, 99, 235, 0.4),
+        0 0 0 4px rgba(191, 219, 254, 0.9);
+    transform: translateY(-0.5px);
+}
+
+/* select dropdown arrow */
+.form-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: linear-gradient(45deg,
+            transparent 50%,
+            #6b7280 50%),
+        linear-gradient(135deg, #6b7280 50%, transparent 50%);
+    background-position:
+        calc(100% - 16px) 50%,
+        calc(100% - 11px) 50%;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+}
+
+/* ===== CHECKBOX & HELPER TEXT ===== */
+.form-group-inline {
+    gap: 6px;
+}
+
+.form-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #111827;
+    margin-bottom: 2px;
+}
+
+.form-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: #2563eb;
+    cursor: pointer;
+}
+
+.helper-text {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+/* ===== FILE INPUT ===== */
+.form-file-input {
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.file-count-text {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* ===== SUBMIT BUTTON ===== */
+.btn-primary {
+    margin-top: 10px;
+    border: none;
+    outline: none;
+    border-radius: 999px;
+    padding: 11px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.36);
+    transition:
+        transform 0.14s ease,
+        box-shadow 0.14s ease,
+        filter 0.14s ease;
+}
+
+.btn-primary:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 18px 36px rgba(37, 99, 235, 0.45);
+}
+
+.btn-primary:active {
+    transform: translateY(0) scale(0.99);
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.36);
+}
+
+/* ===== LOADING STATE ===== */
+.grievance-loading-wrapper {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.grievance-loading-card {
+    padding: 12px 18px;
+    border-radius: 999px;
+    background-color: #ffffff;
+    box-shadow:
+        0 10px 22px rgba(15, 23, 42, 0.18),
+        0 0 0 1px rgba(209, 213, 219, 0.9);
+    font-size: 14px;
+    color: #4b5563;
+}
+
+/* ===== ANIMATION ===== */
+@keyframes grievanceFloatIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 720px) {
+    .grievance-card {
+        padding: 20px 16px 22px;
+        border-radius: 18px;
+    }
+
+    .grievance-title {
+        font-size: 20px;
+    }
+}

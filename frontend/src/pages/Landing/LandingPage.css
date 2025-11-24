@@ -1,0 +1,728 @@
+/* ================================
+   1. ROOT TOKENS & GLOBAL RESET
+   ================================ */
+
+:root {
+    /* Brand Colors */
+    --color-primary: #3b82f6;
+    /* Blue 500 */
+    --color-primary-dark: #2563eb;
+    /* Blue 600 */
+    --color-secondary: #10b981;
+    /* Emerald 500 */
+
+    /* Text & Surfaces */
+    --color-text-main: #111827;
+    /* Gray 900 */
+    --color-text-light: #4b5563;
+    /* Gray 600 */
+    --color-bg-light: #f9fafb;
+    /* Gray 50 */
+    --color-surface: #ffffff;
+    /* White */
+    --color-border: #e5e7eb;
+    /* Gray 200 */
+
+    /* Effects */
+    --color-shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.08);
+    --color-shadow-strong: 0 20px 40px rgba(15, 23, 42, 0.16);
+
+    /* Layout */
+    --space-md: 1.5rem;
+    --space-lg: 3rem;
+    --max-width: 1200px;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --transition-fast: 0.2s ease;
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--color-text-main);
+    background: radial-gradient(circle at top left, #dbeafe 0%, transparent 50%),
+        radial-gradient(circle at bottom right, #bbf7d0 0%, transparent 50%),
+        var(--color-bg-light);
+}
+
+/* Layout base */
+.landing-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.landing-main {
+    flex-grow: 1;
+}
+
+/* Container utility */
+.container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+}
+
+/* ================================
+   2. BUTTONS & LINKS
+   ================================ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        transform 0.08s ease;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+/* Primary */
+.btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    box-shadow: 0 6px 14px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.45);
+}
+
+/* Outline primary */
+.btn-outline {
+    background-color: var(--color-surface);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-outline:hover {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+}
+
+/* Neutral outline (for dark backgrounds override later) */
+.btn-outline-dark {
+    background-color: var(--color-surface);
+    color: var(--color-text-main);
+    border-color: var(--color-border);
+}
+
+.btn-outline-dark:hover {
+    background-color: var(--color-bg-light);
+}
+
+/* Small variant */
+.btn-small {
+    padding: 0.5rem 1.1rem;
+    font-size: 0.85rem;
+}
+
+/* Role-specific quick actions */
+.btn-student {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+}
+
+.btn-admin {
+    background-color: var(--color-secondary);
+    color: var(--color-surface);
+}
+
+.btn-superadmin {
+    background-color: #9333ea;
+    /* Violet-600 */
+    color: var(--color-surface);
+}
+
+/* ================================
+   3. SECTIONS & TITLES
+   ================================ */
+
+.section {
+    padding: 5rem 0;
+}
+
+.section-why {
+    background-color: var(--color-surface);
+}
+
+.section-roles {
+    background-color: var(--color-surface);
+}
+
+.section-header {
+    margin-bottom: var(--space-lg);
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.section-header.center {
+    text-align: center;
+}
+
+.section-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    color: var(--color-text-main);
+}
+
+.section-subtitle {
+    font-size: 1.05rem;
+    color: var(--color-text-light);
+}
+
+.small-bottom {
+    margin-bottom: 1.5rem;
+}
+
+/* ================================
+   4. HERO SECTION
+   ================================ */
+
+.hero-section {
+    padding: 5rem 0 6rem;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.85) 0%,
+            var(--color-surface) 100%);
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+@media (min-width: 1024px) {
+    .hero-grid {
+        grid-template-columns: 1.2fr 1fr;
+    }
+}
+
+/* Left – text */
+.hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.9rem;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-primary-dark);
+    background-color: #dbeafe;
+    border-radius: 999px;
+}
+
+.hero-title {
+    font-size: 2.7rem;
+    line-height: 1.1;
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+}
+
+.hero-title-highlight {
+    color: var(--color-primary);
+}
+
+@media (min-width: 768px) {
+    .hero-title {
+        font-size: 3.4rem;
+    }
+}
+
+.hero-subtitle {
+    font-size: 1.05rem;
+    color: var(--color-text-light);
+    margin-bottom: 2rem;
+    max-width: 600px;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+}
+
+.hero-highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem 2.2rem;
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+}
+
+.hero-highlight-item span {
+    font-weight: 500;
+}
+
+/* Right – card “system snapshot” */
+
+.hero-card-wrapper {
+    position: relative;
+    padding: 2rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-card-glow {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 80%;
+    height: 80%;
+    background: radial-gradient(circle at center,
+            rgba(59, 130, 246, 0.35) 0%,
+            transparent 65%);
+    filter: blur(40px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.hero-card {
+    position: relative;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--color-shadow-soft);
+    border: 1px solid rgba(209, 213, 219, 0.8);
+    max-width: 450px;
+    width: 100%;
+    z-index: 1;
+}
+
+/* Hero card header */
+.hero-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.4rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.hero-card-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.3rem;
+}
+
+.hero-card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.status-badge {
+    padding: 0.28rem 0.75rem;
+    background-color: #d1fae5;
+    color: #065f46;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Card stats */
+.hero-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-box {
+    padding: 0.9rem 0.7rem;
+    border-radius: 0.85rem;
+    text-align: center;
+    color: #f9fafb;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 500;
+    opacity: 0.95;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+/* Stat colors */
+.stat-box-blue {
+    background-color: #3b82f6;
+}
+
+.stat-box-green {
+    background-color: #10b981;
+}
+
+.stat-box-amber {
+    background-color: #f59e0b;
+}
+
+/* Card footer */
+.hero-card-footer {
+    padding-top: 1rem;
+    border-top: 1px dashed var(--color-border);
+}
+
+.hero-card-footer-label {
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+    margin-bottom: 0.8rem;
+}
+
+.hero-card-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+/* Tag “chips” */
+.chip-link {
+    display: inline-block;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color var(--transition-fast), transform 0.08s ease;
+    background-color: #e0f2f1;
+    /* greenish */
+    color: #0f766e;
+}
+
+.chip-link:hover {
+    transform: translateY(-1px);
+}
+
+/* Variants */
+.chip-link-purple {
+    background-color: #f3e8ff;
+    color: #7c3aed;
+}
+
+.chip-link-green {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+/* ================================
+   5. WHY SECTION / FEATURES
+   ================================ */
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.8rem;
+}
+
+.feature-card {
+    padding: 1.6rem 1.7rem;
+    background-color: var(--color-bg-light);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    transition:
+        box-shadow 0.22s ease,
+        transform 0.22s ease,
+        border-color 0.22s ease;
+}
+
+.feature-card:hover {
+    box-shadow: var(--color-shadow-soft);
+    transform: translateY(-4px);
+    border-color: rgba(59, 130, 246, 0.35);
+}
+
+.feature-emoji {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+}
+
+.feature-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+}
+
+.feature-text {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
+/* ================================
+   6. HOW IT WORKS / STEPS
+   ================================ */
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.8rem;
+}
+
+.step-card {
+    padding: 1.8rem 1.7rem;
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    margin: 0 auto 0.9rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    background-color: #eff6ff;
+    border-radius: 50%;
+    border: 2px solid var(--color-primary);
+}
+
+.step-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+}
+
+.step-text {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
+/* ================================
+   7. ROLES SECTION
+   ================================ */
+
+.roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.8rem;
+}
+
+.role-card {
+    padding: 1.8rem 1.7rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-light);
+}
+
+.role-student {
+    border-left: 5px solid var(--color-primary);
+}
+
+.role-admin {
+    border-left: 5px solid var(--color-secondary);
+}
+
+.role-superadmin {
+    border-left: 5px solid #9333ea;
+}
+
+.role-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 0.4rem;
+}
+
+.role-tagline {
+    font-style: italic;
+    color: var(--color-text-light);
+    margin-bottom: 1.3rem;
+    font-size: 0.95rem;
+}
+
+.role-list {
+    list-style: none;
+    margin-bottom: 1.6rem;
+}
+
+.role-list li {
+    margin-bottom: 0.5rem;
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
+/* ================================
+   8. FAQ + CTA SECTION
+   ================================ */
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    align-items: flex-start;
+}
+
+@media (min-width: 1024px) {
+    .faq-grid {
+        grid-template-columns: 1.5fr 1fr;
+    }
+}
+
+/* FAQ list */
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+}
+
+.faq-item {
+    padding-bottom: 1.4rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.faq-question {
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: var(--color-text-main);
+}
+
+.faq-answer {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
+/* CTA card */
+.cta-card {
+    padding: 1.8rem 1.7rem;
+    border-radius: var(--radius-lg);
+    background-color: #111827;
+    color: var(--color-surface);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: var(--color-shadow-strong);
+}
+
+.cta-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 0.8rem;
+}
+
+.cta-text {
+    font-size: 0.95rem;
+    margin-bottom: 1.6rem;
+    color: #d1d5db;
+}
+
+.cta-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cta-actions .btn {
+    width: 100%;
+}
+
+/* Adjust outline for dark background */
+.cta-actions .btn-outline-dark {
+    background-color: transparent;
+    border-color: #4b5563;
+    color: var(--color-surface);
+}
+
+.cta-actions .btn-outline-dark:hover {
+    background-color: #374151;
+}
+
+/* ================================
+   9. NAVBAR & FOOTER PLACEHOLDERS
+   (If you have separate components)
+   ================================ */
+
+.navbar {
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+}
+
+/* Simple footer base – tweak in Footer.css if separate */
+.footer {
+    padding: 2rem 0;
+    background-color: #111827;
+    color: var(--color-surface);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* ================================
+   10. RESPONSIVE TWEAKS
+   ================================ */
+
+@media (max-width: 768px) {
+    .section {
+        padding: 4rem 0;
+    }
+
+    .hero-title {
+        font-size: 2.3rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.98rem;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-card {
+        padding: 1.2rem;
+    }
+
+    .feature-card,
+    .step-card,
+    .role-card,
+    .cta-card {
+        padding: 1.4rem;
+    }
+}

@@ -1,0 +1,223 @@
+/* --- 1. Variable Consistency & Base Styles --- */
+:root {
+    /* SuperAdmin specific primary color (Deep Violet) */
+    --color-sa-primary: #9333ea;
+    /* Violet-600 */
+    --color-sa-primary-dark: #7c3aed;
+    /* Violet-700 */
+    --color-sa-light-bg: #f3e8ff;
+    /* Violet-50 */
+
+    /* General Colors */
+    --color-text-main: #1f2937;
+    /* Gray-800 */
+    --color-text-light: #4b5563;
+    /* Gray-600 */
+    --color-bg-light: #f9fafb;
+    /* Light Background */
+    --color-white: #ffffff;
+    --color-border: #e5e7eb;
+    /* Gray-200 */
+    --sidebar-width: 260px;
+}
+
+/* Base layout using CSS Grid for Desktop */
+.sa-layout {
+    display: grid;
+    /* On large screens, grid has 2 columns: fixed sidebar + flexible main area */
+    grid-template-columns: var(--sidebar-width) 1fr;
+    min-height: 100vh;
+    background-color: var(--color-bg-light);
+}
+
+/* --- 2. Sidebar Styles (Desktop) --- */
+
+.sa-sidebar {
+    position: fixed;
+    /* Fixes sidebar position */
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background-color: var(--color-text-main);
+    /* Dark background */
+    color: var(--color-white);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 0;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 20;
+}
+
+.sa-sidebar-header {
+    padding: 0 1.5rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.sa-sidebar-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--color-sa-primary);
+    /* Use SA accent color */
+    letter-spacing: 0.05em;
+}
+
+.sa-sidebar-nav {
+    flex-grow: 1;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sa-sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0.5rem;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.sa-sidebar-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--color-white);
+}
+
+/* Active link style placeholder */
+.sa-sidebar-link.active {
+    background-color: var(--color-sa-primary);
+    color: var(--color-white);
+    box-shadow: 0 2px 4px rgba(147, 51, 234, 0.3);
+}
+
+.sa-sidebar-footer {
+    padding: 1.5rem 1rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 1.5rem;
+}
+
+.sa-btn-logout-full {
+    width: 100%;
+    background-color: #ef4444;
+    /* Red for emphasis on logout */
+    color: var(--color-white);
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.sa-btn-logout-full:hover {
+    background-color: #dc2626;
+    /* Darker red */
+}
+
+/* --- 3. Main Content Area --- */
+
+.sa-main {
+    /* Main area needs to start after the sidebar space on desktop */
+    grid-column: 2 / 3;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* --- 4. Header Bar --- */
+
+.sa-header {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background-color: var(--color-white);
+    border-bottom: 1px solid var(--color-sa-primary);
+    /* Primary color highlight border */
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    z-index: 10;
+}
+
+.sa-header-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-sa-primary);
+    /* Use SA accent color */
+}
+
+.sa-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* Header Logout Button (Desktop only) */
+.sa-btn-logout {
+    background-color: var(--color-white);
+    color: var(--color-text-light);
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.sa-btn-logout:hover {
+    background-color: var(--color-sa-light-bg);
+    color: var(--color-sa-primary-dark);
+    border-color: var(--color-sa-primary);
+}
+
+/* --- 5. Content Wrapper --- */
+
+.sa-content {
+    flex-grow: 1;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- 6. Responsiveness (Mobile & Tablet) --- */
+
+@media (max-width: 1023px) {
+
+    /* Mobile/Tablet Layout: Single column, sidebar hidden */
+    .sa-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .sa-sidebar {
+        /* Hide the sidebar completely on smaller screens */
+        display: none;
+    }
+
+    .sa-main {
+        /* Main content takes full width */
+        grid-column: 1 / 2;
+    }
+
+    .sa-header {
+        padding: 1rem;
+    }
+
+    .sa-header-title {
+        font-size: 1.25rem;
+    }
+
+    /* Hide the primary logout button in the header on mobile */
+    .sa-header-right .sa-btn-logout {
+        display: none;
+    }
+
+    .sa-content {
+        padding: 1rem;
+    }
+}

@@ -1,0 +1,206 @@
+/* --- 1. Variable Consistency & Base Styles --- */
+:root {
+    --color-sa-primary: #9333ea;
+    /* Violet-600 */
+    --color-sa-primary-dark: #7c3aed;
+    /* Violet-700 */
+    --color-text-main: #1f2937;
+    /* Gray-800 */
+    --color-text-light: #4b5563;
+    /* Gray-600 */
+    --color-bg-light: #f9fafb;
+    /* Light Background */
+    --color-white: #ffffff;
+    --color-border: #e5e7eb;
+    /* Gray-200 */
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.pa-container h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+    margin-bottom: 1.5rem;
+}
+
+/* --- 2. State Messages (Loading/Empty) --- */
+
+.pa-loading,
+.pa-empty {
+    padding: 3rem;
+    text-align: center;
+    font-size: 1.125rem;
+    color: var(--color-sa-primary);
+    font-weight: 600;
+    background-color: var(--color-white);
+    border: 1px dashed var(--color-border);
+    border-radius: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+/* --- 3. Cards Grid --- */
+
+.pa-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.pa-card {
+    background-color: var(--color-white);
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: border-color 0.2s;
+    border-left: 5px solid var(--color-sa-primary);
+}
+
+.pa-card:hover {
+    border-color: var(--color-sa-primary-dark);
+}
+
+/* --- 4. Card Content and Actions --- */
+
+.pa-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.pa-card h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+    margin-bottom: 0.25rem;
+}
+
+.pa-meta {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    margin-top: 0.25rem;
+}
+
+.pa-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 100px;
+    /* Gives buttons space */
+}
+
+.pa-footer {
+    padding-top: 1rem;
+    border-top: 1px dashed var(--color-border);
+}
+
+.pa-footer small {
+    color: var(--color-text-light);
+    font-size: 0.8rem;
+}
+
+/* --- 5. Action Buttons --- */
+
+.btn {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s;
+    font-size: 0.875rem;
+}
+
+.btn.small {
+    background-color: var(--color-bg-light);
+    color: var(--color-text-light);
+    border: 1px solid var(--color-border);
+}
+
+.btn.small:hover {
+    background-color: var(--color-border);
+}
+
+.btn.approve {
+    background-color: #10b981;
+    /* Green */
+    color: var(--color-white);
+}
+
+.btn.approve:hover {
+    background-color: #059669;
+}
+
+.btn.reject {
+    background-color: #ef4444;
+    /* Red */
+    color: var(--color-white);
+}
+
+.btn.reject:hover {
+    background-color: #dc2626;
+}
+
+/* --- 6. Modal (ID Card Preview) --- */
+
+.pa-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.pa-modal-inner {
+    background-color: var(--color-white);
+    border-radius: 0.75rem;
+    max-width: 90%;
+    max-height: 90%;
+    width: 700px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.pa-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 1rem;
+}
+
+.pa-modal-header h4 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-sa-primary);
+}
+
+.pa-modal-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    text-align: center;
+}
+
+.pa-modal-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-md);
+}
+
+.pa-modal-body iframe {
+    /* Styles applied inline in component, ensuring fill width/height */
+    display: block;
+}

@@ -1,0 +1,215 @@
+/* --- 1. Variable Consistency & Base Styles --- */
+:root {
+    --color-primary: #3b82f6;
+    /* Blue-500 (Friendly accent) */
+    --color-primary-dark: #2563eb;
+    /* Blue-600 */
+    --color-text-main: #1f2937;
+    /* Gray-800 */
+    --color-text-light: #4b5563;
+    /* Gray-600 */
+    --color-bg-light: #f9fafb;
+    /* Light Background for main content */
+    --color-white: #ffffff;
+    --color-border: #e5e7eb;
+    /* Gray-200 */
+    --sidebar-width: 240px;
+    /* Slightly narrower sidebar for user view */
+}
+
+/* Base layout using CSS Grid for Desktop */
+.ul-layout {
+    display: grid;
+    /* On large screens, grid has 2 columns: fixed sidebar + flexible main area */
+    grid-template-columns: var(--sidebar-width) 1fr;
+    min-height: 100vh;
+    background-color: var(--color-bg-light);
+}
+
+/* --- 2. Sidebar Styles (Desktop) --- */
+
+.ul-sidebar {
+    position: fixed;
+    /* Fixes sidebar position */
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background-color: var(--color-white);
+    /* Light background for user sidebar */
+    color: var(--color-text-main);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 0;
+    box-shadow: 1px 0 3px rgba(0, 0, 0, 0.05);
+    border-right: 1px solid var(--color-border);
+    z-index: 20;
+}
+
+.ul-sidebar-header {
+    padding: 0 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 1.5rem;
+}
+
+.ul-sidebar-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+.ul-sidebar-nav {
+    flex-grow: 1;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.ul-sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0.75rem;
+    text-decoration: none;
+    color: var(--color-text-light);
+    font-weight: 600;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.ul-sidebar-link:hover {
+    background-color: #eff6ff;
+    /* Blue-50 */
+    color: var(--color-primary-dark);
+}
+
+/* Active link style placeholder (requires logic in the React component) */
+.ul-sidebar-link.active {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.ul-sidebar-footer {
+    padding: 1.5rem 1rem 0;
+    border-top: 1px solid var(--color-border);
+    margin-top: 1.5rem;
+}
+
+.ul-btn-logout-full {
+    width: 100%;
+    background-color: var(--color-white);
+    color: #ef4444;
+    /* Red for logout */
+    border: 1px solid #ef4444;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.ul-btn-logout-full:hover {
+    background-color: #fee2e2;
+    /* Red-100 */
+}
+
+/* --- 3. Main Content Area --- */
+
+.ul-main {
+    /* Main area needs to start after the sidebar space on desktop */
+    grid-column: 2 / 3;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* --- 4. Header Bar --- */
+
+.ul-header {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background-color: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    z-index: 10;
+}
+
+.ul-header-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.ul-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* Header Logout Button (Desktop only) */
+.ul-btn-logout {
+    background-color: var(--color-white);
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.ul-btn-logout:hover {
+    background-color: #fee2e2;
+}
+
+/* --- 5. Content Wrapper --- */
+
+.ul-content {
+    flex-grow: 1;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- 6. Responsiveness (Mobile & Tablet) --- */
+
+@media (max-width: 1023px) {
+
+    /* Mobile/Tablet Layout: Single column, sidebar hidden */
+    .ul-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ul-sidebar {
+        /* Hide the sidebar completely on smaller screens */
+        display: none;
+    }
+
+    .ul-main {
+        /* Main content takes full width */
+        grid-column: 1 / 2;
+    }
+
+    .ul-header {
+        padding: 1rem;
+    }
+
+    .ul-header-title {
+        font-size: 1.25rem;
+    }
+
+    /* Hide the primary logout button in the header on mobile */
+    .ul-header-right .ul-btn-logout {
+        display: none;
+    }
+
+    .ul-content {
+        padding: 1rem;
+    }
+}
