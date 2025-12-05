@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import BackButton from "../../components/common/BackButton";
 import api from "../../api/axiosInstance";
 import Timeline from "../../components/grievance/Timeline";
-import { toast } from "react-toastify";
-import "../styles/AdminGrievanceDetails.css"; // CSS will come next
+import { toast } from "react-toastify"; // CSS will come next
+import "../../styles/AdminStyles/AdminGrievanceDetails.css";
 
 export default function AdminGrievanceDetails() {
     const { id } = useParams();
@@ -29,7 +30,7 @@ export default function AdminGrievanceDetails() {
     const fetchGrievance = async () => {
         setLoading(true);
         try {
-            const res = await api.get(`/grievances/${id}`);
+            const res = await api.get(`/grievances/admin/grievance/${id}`);
             const data = res.data.grievance || res.data || {};
 
             setGrievance(data);
@@ -45,7 +46,7 @@ export default function AdminGrievanceDetails() {
 
     const fetchAdmins = async () => {
         try {
-            const res = await api.get("/admin/list");
+            const res = await api.get("/admin/admins");
             setAdmins(res.data.admins || res.data || []);
         } catch (err) {
             console.warn("Could not load admins list", err);

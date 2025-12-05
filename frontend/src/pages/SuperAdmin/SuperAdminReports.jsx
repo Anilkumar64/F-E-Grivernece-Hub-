@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axiosInstance";
+import "../../styles/SuperAdmin/reports.css";
 import {
     PieChart,
     Pie,
@@ -80,42 +81,37 @@ function SuperAdminReports() {
     }
 
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-6">
-                📊 SuperAdmin Analytics Dashboard
-            </h1>
+        <div className="reports-container">
+            <h1 className="reports-title">📊 SuperAdmin Analytics Dashboard</h1>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="bg-white p-5 shadow rounded-lg">
-                    <h2 className="text-gray-500">Total Grievances</h2>
-                    <h1 className="text-3xl font-semibold">
-                        {summary.totalGrievances ?? 0}
-                    </h1>
+            <div className="reports-summary-grid">
+                <div className="reports-summary-card">
+                    <h2>Total Grievances</h2>
+                    <div className="reports-value">{summary.totalGrievances ?? 0}</div>
                 </div>
 
-                <div className="bg-white p-5 shadow rounded-lg">
-                    <h2 className="text-gray-500">Resolved</h2>
-                    <h1 className="text-3xl font-semibold text-green-600">
+                <div className="reports-summary-card">
+                    <h2>Resolved</h2>
+                    <div className="reports-value reports-value-green">
                         {summary.resolved ?? 0}
-                    </h1>
+                    </div>
                 </div>
 
-                <div className="bg-white p-5 shadow rounded-lg">
-                    <h2 className="text-gray-500">Avg Resolution Time</h2>
-                    <h1 className="text-3xl font-semibold">
+                <div className="reports-summary-card">
+                    <h2>Avg Resolution Time</h2>
+                    <div className="reports-value">
                         {summary.avgResolutionTime ?? 0} hrs
-                    </h1>
+                    </div>
                 </div>
             </div>
 
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Status Pie Chart */}
-                <div className="bg-white p-6 shadow rounded-lg">
-                    <h2 className="text-lg font-semibold mb-4">
-                        Grievance Status Breakdown
-                    </h2>
+            {/* Charts */}
+            <div className="reports-chart-grid">
+
+                {/* Pie Chart */}
+                <div className="reports-chart-card">
+                    <h2 className="reports-chart-title">Grievance Status Breakdown</h2>
 
                     {statusData.length ? (
                         <PieChart width={400} height={300}>
@@ -128,10 +124,8 @@ function SuperAdminReports() {
                             >
                                 {statusData.map((entry, index) => (
                                     <Cell
-                                        key={`cell-${index}`}
-                                        fill={
-                                            COLORS[index % COLORS.length]
-                                        }
+                                        key={index}
+                                        fill={COLORS[index % COLORS.length]}
                                     />
                                 ))}
                             </Pie>
@@ -139,38 +133,30 @@ function SuperAdminReports() {
                             <Tooltip />
                         </PieChart>
                     ) : (
-                        <p className="text-sm text-gray-500">
-                            No status data available.
-                        </p>
+                        <p className="reports-empty">No status data available.</p>
                     )}
                 </div>
 
-                {/* Department Bar Chart */}
-                <div className="bg-white p-6 shadow rounded-lg">
-                    <h2 className="text-lg font-semibold mb-4">
-                        Department-wise Grievances
-                    </h2>
+                {/* Bar Chart */}
+                <div className="reports-chart-card">
+                    <h2 className="reports-chart-title">Department-wise Grievances</h2>
 
                     {deptData.length ? (
-                        <BarChart width={500} height={300} data={deptData}>
+                        <BarChart width={480} height={300} data={deptData}>
                             <XAxis dataKey="department" />
                             <YAxis />
                             <Tooltip />
                             <Legend />
-                            <Bar
-                                dataKey="total"
-                                name="Total Grievances"
-                            />
+                            <Bar dataKey="total" name="Total Grievances" />
                         </BarChart>
                     ) : (
-                        <p className="text-sm text-gray-500">
-                            No department data available.
-                        </p>
+                        <p className="reports-empty">No department data available.</p>
                     )}
                 </div>
             </div>
         </div>
     );
+
 }
 
 export default SuperAdminReports;

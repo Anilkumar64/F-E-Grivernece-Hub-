@@ -1,0 +1,109 @@
+/* ===== SIMPLE & CUTE FOOTER ===== */
+
+:root {
+    --bg: #f9fafb;
+    --border: #e5e7eb;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --primary: #6366f1;
+    --accent: #a78bfa;
+}
+
+.footer {
+    width: 100%;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 2rem 1.5rem;
+    font-family: "Candara", "Segoe UI", sans-serif;
+}
+
+.footer-inner {
+    max-width: 1100px;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Brand */
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.footer-logo {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.footer-title {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--text);
+    font-weight: 700;
+}
+
+.footer-description {
+    margin: 0.2rem 0 0 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+/* Meta */
+.footer-meta {
+    text-align: right;
+}
+
+.footer-meta-copy {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.footer-meta-line {
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+/* Cute Heart */
+.footer-heart {
+    color: #ef4444;
+    animation: tinyBeat 1.8s infinite ease-in-out;
+}
+
+@keyframes tinyBeat {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .footer-inner {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: left;
+    }
+
+    .footer-meta {
+        text-align: left;
+        width: 100%;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+    }
+}

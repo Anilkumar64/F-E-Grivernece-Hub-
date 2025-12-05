@@ -14,6 +14,11 @@ import departmentRoutes from "./src/routes/departmentRoutes.js";
 import notificationRoutes from "./src/routes/notificationRoutes.js";
 import superAdminRoutes from "./src/routes/superAdminRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
+import siteRoutes from "./src/routes/siteRoutes.js";
+
+// import superAdminRoutes from "./routes/superAdminRoutes.js";
+
+
 
 
 
@@ -28,7 +33,6 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 
 if (process.env.NODE_ENV !== "production") {
@@ -36,20 +40,26 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 const __dirname = path.resolve();
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "src", "uploads")));
+app.use("/api/site", siteRoutes);
 
 // ---------- Routes ----------
 app.use("/api/auth", authRoutes);   // ADMIN auth
 app.use("/api/users", userRoutes); // USER auth (registerUser, loginUser)
 
 app.use("/api/superadmin", superAdminRoutes);
+// app.use("/api/superadmin", superAdminRoutes);
 app.use("/api/departments", departmentRoutes);
+
 app.use("/api/complaint-types", complaintTypeRoutes);
+// legacy alias to satisfy old frontend path: /api/complaints/type/all
+app.use("/api/complaints/type", complaintTypeRoutes);
+
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/grievances", grievanceRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/superadmin", superAdminRoutes);
+
 
 app.get("/", (req, res) => {
     res.json({

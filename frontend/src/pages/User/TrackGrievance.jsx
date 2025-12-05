@@ -1,11 +1,13 @@
+// frontend/src/pages/User/TrackGrievance.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axiosInstance";
 import Timeline from "../../components/grievance/Timeline";
 import { toast } from "react-toastify";
+import "../../styles/UserStyles/TrackGrievance.css";
 
 export default function TrackGrievance() {
-    const { id } = useParams(); // id may be _id or trackingId depending on route
+    const { id } = useParams();          // trackingId comes here
     const navigate = useNavigate();
 
     const [grievance, setGrievance] = useState(null);
@@ -13,104 +15,109 @@ export default function TrackGrievance() {
     const [commentText, setCommentText] = useState("");
     const [sendingComment, setSendingComment] = useState(false);
 
-    useEffect(() => {
-        fetchGrievance();
-        // eslint-disable-next-line
-    }, [id]);
-
+    // ----------------- LOAD DATA -----------------
     const fetchGrievance = async () => {
         setLoading(true);
         try {
-            // First try: /grievances/:id
-            const res = await api.get(`/grievances/${id}`);
-            const data = res.data?.grievance || res.data || {};
+            // This matches router.get("/track/:trackingId", ...)
+            const res = await api.get(`/grievances/track/${id}`);
+            const data = res.data?.grievance || res.data || null;
             setGrievance(data);
         } catch (err) {
-            console.error("Fetch grievance error:", err);
-            toast.error(
-                err?.response?.data?.message || "Failed to load grievance, trying alternate..."
-            );
-
-            // Optional fallback: /grievances/track/:trackingId
-            try {
-                const res2 = await api.get(`/grievances/track/${id}`);
-                const data2 = res2.data?.grievance || res2.data || {};
-                setGrievance(data2);
-            } catch (err2) {
-                console.error("Fallback track fetch failed:", err2);
-                toast.error(
-                    err2?.response?.data?.message || "Could not find this grievance"
-                );
-            }
+            console.error("Track grievance error:", err);
+            toast.error(err?.response?.data?.message || "Grievance not found");
+            setGrievance(null);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAddComment = async (e) => {
-        e.preventDefault();
-        if (!commentText.trim()) return toast.warn("Write a comment first.");
+    useEffect(() => {
+        fetchGrievance();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
 
-        if (!grievance?._id && !grievance?.trackingId) {
-            toast.error("Invalid grievance reference");
-            return;
-        }
-
-        setSendingComment(true);
-        try {
-            const targetId = grievance._id || grievance.trackingId;
-            await api.post(`/grievances/comment/${targetId}`, {
-                comment: commentText,
-            });
-
-            toast.success("Comment added");
-            setCommentText("");
-            await fetchGrievance();
-        } catch (err) {
-            console.error("Add comment error:", err);
-            toast.error(err?.response?.data?.message || "Failed to add comment");
-        } finally {
-            setSendingComment(false);
-        }
+    // ----------------- HELPERS -----------------
+    const mapStatusToUi = (status) => {
+        const s = (status || "").toLowerCase();
+        if (s === "submitted") return "Pending";
+        if (s === "in_progress") return "In Progress";
+        if (s === "resolved") return "Resolved";
+        if (s === "rejected") return "Rejected";
+        return status || "Unknown";
     };
 
+    // ----------------- ACTIONS -----------------
     const handleRequestClose = async () => {
+        if (!grievance?._id) return;
+
         if (!window.confirm("Request to close this grievance?")) return;
-        if (!grievance?._id) {
-            toast.error("Invalid grievance");
-            return;
-        }
 
         try {
+            // matches router.patch("/update-status/:id", ...)
             await api.patch(`/grievances/update-status/${grievance._id}`, {
-                status: "Resolved",
-                message: "Student requested closure",
+                status: "resolved",
+                adminRemarks: "Student requested closure",
             });
 
             toast.success("Close request submitted");
             fetchGrievance();
         } catch (err) {
             console.error("Request close error:", err);
-            toast.error(err?.response?.data?.message || "Failed to request close");
+            toast.error("Failed to request close");
         }
     };
 
+    const handleAddComment = async (e) => {
+        e.preventDefault();
+        if (!commentText.trim()) {
+            toast.warn("Comment cannot be empty");
+            return;
+        }
+        if (!grievance?._id) return;
+
+        setSendingComment(true);
+        try {
+            // assuming you have POST /grievances/comment/:id in backend
+            await api.post(`/grievances/comment/${grievance._id}`, {
+                comment: commentText,
+            });
+
+            toast.success("Comment added");
+            setCommentText("");
+            fetchGrievance();
+        } catch (err) {
+            console.error("Add comment error:", err);
+            toast.error("Failed to add comment");
+        } finally {
+            setSendingComment(false);
+        }
+    };
+
+    // ----------------- UI STATES -----------------
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-64">
-                <p className="text-gray-500">Loading grievance...</p>
+            <div className="tg-center-state">
+                <p>Loading grievance...</p>
             </div>
         );
     }
 
     if (!grievance) {
         return (
-            <div className="flex justify-center items-center h-64">
-                <p className="text-gray-500">No grievance found.</p>
+            <div className="tg-center-state">
+                <p>No grievance found.</p>
+                <button
+                    className="tg-btn"
+                    onClick={() => navigate("/user/my-grievances")}
+                >
+                    Back to My Grievances
+                </button>
             </div>
         );
     }
 
+    // ----------------- DATA -----------------
     const {
         title,
         description,
@@ -119,209 +126,172 @@ export default function TrackGrievance() {
         priority,
         attachments = [],
         timeline = [],
-        adminAssigned,
-        adminRemarks,
+        comments = [],
         createdAt,
         updatedAt,
         userEmail,
+        assignedTo,
+        adminRemarks,
     } = grievance;
 
-    const safeTimeline = Array.isArray(timeline) ? timeline : [];
-    const comments = Array.isArray(grievance.comments)
-        ? grievance.comments
-        : [];
+    const uiStatus = mapStatusToUi(status);
 
     return (
-        <div className="max-w-6xl mx-auto p-4 space-y-6">
-            {/* Header + meta */}
-            <div className="bg-white shadow rounded-xl p-6 flex flex-col md:flex-row gap-6">
-                <div className="flex-1">
-                    <h1 className="text-2xl font-semibold mb-2">{title}</h1>
+        <div className="tg-page">
+            {/* HEADER CARD */}
+            <div className="tg-header-card">
+                <div className="tg-header-main">
+                    <h1 className="tg-title">{title}</h1>
 
-                    <div className="flex flex-wrap gap-2 mb-3 text-sm">
-                        <span
-                            className={`px-2 py-1 rounded-full text-xs font-semibold ${status === "Resolved"
-                                ? "bg-green-100 text-green-700"
-                                : status === "Pending"
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-blue-100 text-blue-700"
-                                }`}
-                        >
-                            {status || "Status Unknown"}
-                        </span>
-                        <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                    <div className="tg-badges-row">
+                        <span className="tg-badge status">{uiStatus}</span>
+                        <span className="tg-badge">
                             Priority: {priority || "Medium"}
                         </span>
-                        <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                        <span className="tg-badge">
                             Tracking: {trackingId || "N/A"}
                         </span>
                     </div>
 
-                    <p className="text-gray-700 mb-4 whitespace-pre-line">
-                        {description}
-                    </p>
+                    <p className="tg-description">{description}</p>
 
-                    <div className="flex flex-wrap gap-3">
+                    <div className="tg-header-actions">
                         <button
+                            className="tg-btn ghost"
                             onClick={() => navigate("/user/my-grievances")}
-                            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm"
                         >
-                            Back to My Grievances
+                            ← Back
                         </button>
+
                         <button
+                            className="tg-btn outline"
                             onClick={handleRequestClose}
-                            className="px-4 py-2 rounded-lg border border-blue-500 text-blue-600 hover:bg-blue-50 text-sm"
                         >
                             Request Close
                         </button>
                     </div>
                 </div>
 
-                {/* Right side info cards */}
-                <aside className="w-full md:w-72 space-y-3">
-                    <div className="bg-gray-50 rounded-lg p-3">
-                        <h4 className="font-semibold text-sm mb-1">Submitted By</h4>
-                        <p className="text-sm">
-                            {userEmail || "Anonymous"}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                {/* RIGHT INFO PANEL */}
+                <aside className="tg-side-panel">
+                    <div className="tg-side-card">
+                        <h4>Submitted By</h4>
+                        <p>{userEmail || "Anonymous"}</p>
+                        <p className="tg-muted">
                             Submitted:{" "}
                             {createdAt
                                 ? new Date(createdAt).toLocaleString()
-                                : "N/A"}
+                                : "-"}
                         </p>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-3">
-                        <h4 className="font-semibold text-sm mb-1">Assigned Admin</h4>
-                        {adminAssigned ? (
+                    <div className="tg-side-card">
+                        <h4>Assigned Admin</h4>
+                        {assignedTo ? (
                             <>
-                                <p className="text-sm">
-                                    {adminAssigned.name ||
-                                        adminAssigned.username ||
-                                        "Admin"}
-                                </p>
-                                {adminAssigned.email && (
-                                    <p className="text-xs text-gray-600">
-                                        {adminAssigned.email}
-                                    </p>
-                                )}
-                                {adminAssigned.department && (
-                                    <p className="text-xs text-gray-500">
-                                        Dept: {adminAssigned.department}
-                                    </p>
-                                )}
+                                <p>{assignedTo.name || "Admin"}</p>
+                                <p className="tg-muted">{assignedTo.email}</p>
                             </>
                         ) : (
-                            <p className="text-xs text-gray-500">
-                                Not assigned yet
-                            </p>
+                            <p className="tg-muted">Not assigned yet</p>
                         )}
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-3">
-                        <h4 className="font-semibold text-sm mb-1">Attachments</h4>
+                    <div className="tg-side-card">
+                        <h4>Attachments</h4>
                         {attachments.length ? (
-                            <ul className="space-y-1 text-sm">
+                            <ul className="tg-attachments">
                                 {attachments.map((a, idx) => {
-                                    const url = typeof a === "string"
-                                        ? (a.startsWith("http") ? a : `/uploads/${a}`)
-                                        : a.url || "#";
-
+                                    const url =
+                                        a.fileUrl || a.url || a.path || a;
+                                    const label =
+                                        a.fileName ||
+                                        a.name ||
+                                        `Attachment ${idx + 1}`;
                                     return (
                                         <li key={idx}>
                                             <a
                                                 href={url}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="text-blue-600 hover:underline text-xs"
                                             >
-                                                Attachment {idx + 1}
+                                                {label}
                                             </a>
                                         </li>
                                     );
                                 })}
                             </ul>
                         ) : (
-                            <p className="text-xs text-gray-500">No attachments</p>
+                            <p className="tg-muted">No attachments</p>
                         )}
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-3">
-                        <h4 className="font-semibold text-sm mb-1">Admin Remarks</h4>
-                        <p className="text-sm">
-                            {adminRemarks || "—"}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                    <div className="tg-side-card">
+                        <h4>Admin Remarks</h4>
+                        <p>{adminRemarks || "—"}</p>
+                        <p className="tg-muted">
                             Last updated:{" "}
                             {updatedAt
                                 ? new Date(updatedAt).toLocaleString()
-                                : "N/A"}
+                                : "-"}
                         </p>
                     </div>
                 </aside>
             </div>
 
-            {/* Timeline + Comments */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* TIMELINE + COMMENTS */}
+            <div className="tg-main-grid">
                 {/* Timeline */}
-                <div className="bg-white shadow rounded-xl p-4">
-                    <h3 className="text-lg font-semibold mb-3">Timeline</h3>
-                    <Timeline events={safeTimeline} />
+                <div className="tg-block">
+                    <h3 className="tg-block-title">Timeline</h3>
+                    <Timeline events={timeline} />
                 </div>
 
                 {/* Comments */}
-                <div className="bg-white shadow rounded-xl p-4 flex flex-col">
-                    <h3 className="text-lg font-semibold mb-3">Comments</h3>
+                <div className="tg-block">
+                    <h3 className="tg-block-title">Comments</h3>
 
-                    <div className="flex-1 space-y-3 mb-3 overflow-y-auto max-h-80 pr-1">
-                        {comments.length === 0 && (
-                            <p className="text-sm text-gray-500">
-                                No comments yet — be the first to reply.
-                            </p>
+                    <div className="tg-comments-list">
+                        {comments.length === 0 ? (
+                            <p className="tg-muted">No comments yet</p>
+                        ) : (
+                            comments.map((c) => (
+                                <div className="tg-comment" key={c._id}>
+                                    <div className="tg-comment-head">
+                                        <strong>
+                                            {c.authorName ||
+                                                (c.isAdmin ? "Admin" : "User")}
+                                        </strong>
+                                        <span className="tg-muted">
+                                            {new Date(
+                                                c.createdAt
+                                            ).toLocaleString()}
+                                        </span>
+                                    </div>
+                                    <p>{c.text}</p>
+                                </div>
+                            ))
                         )}
-
-                        {comments.map((c) => (
-                            <div
-                                className="border border-gray-100 rounded-lg p-2"
-                                key={c._id || c.createdAt}
-                            >
-                                <div className="flex justify-between items-center mb-1">
-                                    <strong className="text-sm">
-                                        {c.authorName ||
-                                            c.author ||
-                                            (c.isAdmin ? "Admin" : "You")}
-                                    </strong>
-                                    <span className="text-xs text-gray-400">
-                                        {c.createdAt
-                                            ? new Date(c.createdAt).toLocaleString()
-                                            : ""}
-                                    </span>
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                    {c.text || c.comment}
-                                </div>
-                            </div>
-                        ))}
                     </div>
 
-                    <form onSubmit={handleAddComment} className="space-y-2">
+                    <form
+                        onSubmit={handleAddComment}
+                        className="tg-comment-form"
+                    >
                         <textarea
-                            placeholder="Write a comment or reply..."
                             value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
-                            rows={3}
-                            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring focus:ring-blue-300"
+                            onChange={(e) =>
+                                setCommentText(e.target.value)
+                            }
+                            placeholder="Write a comment..."
                         />
-                        <div className="flex justify-end">
-                            <button
-                                type="submit"
-                                disabled={sendingComment}
-                                className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-60"
-                            >
-                                {sendingComment ? "Sending..." : "Send"}
-                            </button>
-                        </div>
+                        <button
+                            type="submit"
+                            disabled={sendingComment}
+                            className="tg-btn"
+                        >
+                            {sendingComment ? "Sending..." : "Send"}
+                        </button>
                     </form>
                 </div>
             </div>

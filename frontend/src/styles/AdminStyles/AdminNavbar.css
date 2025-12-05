@@ -1,0 +1,185 @@
+/* ============================
+   ADMIN NAVBAR - MAIN WRAPPER
+============================ */
+.admin-navbar {
+    width: 100%;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* ============================
+   NAVBAR INNER CONTAINER
+============================ */
+.admin-nav-container {
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 0.9rem 1.5rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* ============================
+   BRAND SECTION
+============================ */
+.admin-brand {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 0.6rem;
+}
+
+.admin-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6d28d9, #7c3aed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
+    transition: 0.25s ease;
+}
+
+.admin-logo:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(124, 58, 237, 0.35);
+}
+
+.admin-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* ============================
+   DESKTOP MENU
+============================ */
+.admin-menu-desktop {
+    display: flex;
+    align-items: center;
+    gap: 1.8rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-link {
+    font-size: 0.97rem;
+    font-weight: 500;
+    color: #4b5563;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.admin-link:hover {
+    color: #6d28d9;
+}
+
+/* Primary Button */
+.admin-btn-primary {
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #6d28d9, #7c3aed);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.admin-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.35);
+}
+
+/* ============================
+   MOBILE MENU BUTTON
+============================ */
+.admin-nav-toggle {
+    display: none;
+    font-size: 1.6rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* ============================
+   MOBILE MENU PANEL
+============================ */
+.admin-menu-mobile {
+    width: 100%;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    padding: 1rem 0;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.admin-menu-mobile-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 1.5rem;
+}
+
+.admin-mobile-link {
+    font-size: 1rem;
+    color: #4b5563;
+    text-decoration: none;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.admin-mobile-link:hover {
+    color: #6d28d9;
+}
+
+/* Mobile button */
+.admin-btn-mobile {
+    margin-top: 1rem;
+    background: linear-gradient(135deg, #6d28d9, #7c3aed);
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ============================
+   RESPONSIVE
+============================ */
+@media (max-width: 900px) {
+
+    .admin-menu-desktop {
+        display: none;
+    }
+
+    .admin-nav-toggle {
+        display: block;
+    }
+}

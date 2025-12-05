@@ -1,102 +1,112 @@
 import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4400";
-
-// Final API base (includes /api prefix for all routes)
 const API_BASE = `${BASE_URL}/api`;
 
-const axiosInstance = axios.create({
+const api = axios.create({
     baseURL: API_BASE,
     withCredentials: true,
 });
 
-// Attach access token on every request
-axiosInstance.interceptors.request.use(
-    (config) => {
-        // Support both "accessToken" and "token" keys
-        const accessToken =
-            localStorage.getItem("accessToken") ||
-            localStorage.getItem("token");
+// -------------------------------
+// GET TOKEN + USER ROLE
+// -------------------------------
+const getAuth = () => {
+    const superadmin = JSON.parse(localStorage.getItem("superadmin") || "null");
+    const admin = JSON.parse(localStorage.getItem("admin") || "null");
 
-        if (accessToken) {
-            config.headers["Authorization"] = `Bearer ${accessToken}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
+    const accessToken =
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("token");
 
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-    failedQueue.forEach((promise) => {
-        if (error) promise.reject(error);
-        else promise.resolve(token);
-    });
-    failedQueue = [];
+    return { superadmin, admin, accessToken };
 };
 
-const refreshAccessToken = async () => {
-    try {
-        // Call refresh endpoint: POST /api/admin/refresh
-        const response = await axios.post(
-            `${API_BASE}/admin/refresh`,
-            {},
-            { withCredentials: true }
-        );
-        return response.data.accessToken;
-    } catch (err) {
-        throw err;
+// -------------------------------
+// ATTACH TOKEN
+// -------------------------------
+api.interceptors.request.use((config) => {
+    const { accessToken } = getAuth();
+
+    if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
     }
+
+    return config;
+});
+
+// -------------------------------
+// REFRESH LOGIC
+// -------------------------------
+let refreshing = false;
+let queue = [];
+
+const handleQueue = (error, token = null) => {
+    queue.forEach((p) => {
+        if (error) p.reject(error);
+        else p.resolve(token);
+    });
+    queue = [];
 };
 
-axiosInstance.interceptors.response.use(
-    (res) => res,
-    async (error) => {
-        const originalRequest = error.config;
+// -------------------------------
+// REFRESH ACCESS TOKEN FUNCTION
+// -------------------------------
+const refreshToken = async () => {
+    const { superadmin, admin } = getAuth();
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            if (isRefreshing) {
+    // Decide which refresh API to call
+    let refreshUrl = null;
+
+    if (superadmin) refreshUrl = `${API_BASE}/superadmin/refresh`;
+    if (admin) refreshUrl = `${API_BASE}/admin/refresh`;
+
+    if (!refreshUrl) throw new Error("No user found for refresh");
+
+    const res = await axios.post(refreshUrl, {}, { withCredentials: true });
+    return res.data.accessToken;
+};
+
+// -------------------------------
+// RESPONSE INTERCEPTOR
+// -------------------------------
+api.interceptors.response.use(
+    (response) => response,
+
+    async (error) => {
+        const original = error.config;
+
+        if (error?.response?.status === 401 && !original._retry) {
+            if (refreshing) {
                 return new Promise((resolve, reject) => {
-                    failedQueue.push({ resolve, reject });
-                })
-                    .then((token) => {
-                        originalRequest.headers["Authorization"] = `Bearer ${token}`;
-                        return axiosInstance(originalRequest);
-                    })
-                    .catch((err) => Promise.reject(err));
+                    queue.push({ resolve, reject });
+                }).then((token) => {
+                    original.headers.Authorization = `Bearer ${token}`;
+                    return api(original);
+                });
             }
 
-            originalRequest._retry = true;
-            isRefreshing = true;
+            original._retry = true;
+            refreshing = true;
 
             try {
-                const newAccessToken = await refreshAccessToken();
+                const newToken = await refreshToken();
 
-                // Store under both keys to keep everything in sync
-                localStorage.setItem("accessToken", newAccessToken);
-                localStorage.setItem("token", newAccessToken);
+                localStorage.setItem("accessToken", newToken);
+                localStorage.setItem("token", newToken);
 
-                axiosInstance.defaults.headers.common["Authorization"] =
-                    "Bearer " + newAccessToken;
+                api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+                handleQueue(null, newToken);
 
-                processQueue(null, newAccessToken);
-
-                return axiosInstance(originalRequest);
+                return api(original);
             } catch (err) {
-                processQueue(err, null);
+                handleQueue(err, null);
 
-                // Clear both possible keys
-                localStorage.removeItem("accessToken");
-                localStorage.removeItem("token");
-                localStorage.removeItem("authUser");
-                localStorage.removeItem("user");
-
-                window.location.href = "/login";
+                localStorage.clear();
+                window.location.href = "/superadmin/login";
                 return Promise.reject(err);
             } finally {
-                isRefreshing = false;
+                refreshing = false;
             }
         }
 
@@ -104,4 +114,4 @@ axiosInstance.interceptors.response.use(
     }
 );
 
-export default axiosInstance;
+export default api;

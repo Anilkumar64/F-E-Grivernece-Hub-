@@ -1,0 +1,253 @@
+/* ============= PAGE WRAPPER ============= */
+.tg-page {
+    padding: 20px;
+    max-width: 1250px;
+    margin: auto;
+    font-family: "Inter", sans-serif;
+    color: #222;
+}
+
+/* ============= CENTER STATE (LOADING / EMPTY) ============= */
+.tg-center-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 280px;
+    color: #666;
+    font-size: 15px;
+}
+
+.tg-center-state .tg-btn {
+    margin-top: 10px;
+}
+
+/* ============= HEADER CARD ============= */
+.tg-header-card {
+    display: flex;
+    gap: 25px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+}
+
+.tg-header-main {
+    flex: 1;
+}
+
+.tg-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.tg-description {
+    margin-top: 10px;
+    color: #444;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ============= BADGES ============= */
+.tg-badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tg-badge {
+    background: #f1f5f9;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #444;
+    border: 1px solid #e2e8f0;
+}
+
+.tg-badge.status {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+/* ============= BUTTONS ============= */
+.tg-btn {
+    background: #2563eb;
+    color: #fff;
+    padding: 8px 18px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.tg-btn:hover {
+    background: #1d4ed8;
+}
+
+.tg-btn.ghost {
+    background: #f3f4f6;
+    color: #111;
+    border: 1px solid #d1d5db;
+}
+
+.tg-btn.ghost:hover {
+    background: #e5e7eb;
+}
+
+.tg-btn.outline {
+    background: transparent;
+    border: 1px solid #2563eb;
+    color: #2563eb;
+}
+
+.tg-btn.outline:hover {
+    background: #2563eb;
+    color: #fff;
+}
+
+.tg-header-actions {
+    margin-top: 18px;
+    display: flex;
+    gap: 10px;
+}
+
+/* ============= RIGHT SIDE PANEL ============= */
+.tg-side-panel {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.tg-side-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 12px 14px;
+    border-radius: 10px;
+}
+
+.tg-side-card h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.tg-side-card p {
+    font-size: 13px;
+    color: #333;
+}
+
+.tg-muted {
+    font-size: 12px;
+    color: #777;
+}
+
+/* ============= ATTACHMENTS ============= */
+.tg-attachments {
+    list-style: none;
+    padding-left: 0;
+}
+
+.tg-attachments li {
+    font-size: 13px;
+}
+
+.tg-attachments a {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+/* ============= MAIN GRID (Timeline + Comments) ============= */
+.tg-main-grid {
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+/* ============= BLOCKS ============= */
+.tg-block {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.tg-block-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+/* ============= COMMENTS LIST ============= */
+.tg-comments-list {
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 5px;
+    margin-bottom: 15px;
+}
+
+.tg-comment {
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.tg-comment-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.tg-comment-head strong {
+    font-size: 14px;
+}
+
+.tg-comment p {
+    font-size: 14px;
+}
+
+/* ============= COMMENT FORM ============= */
+.tg-comment-form textarea {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.tg-comment-form button {
+    margin-top: 10px;
+    width: 120px;
+}
+
+/* ============= RESPONSIVE ============= */
+@media (max-width: 980px) {
+    .tg-header-card {
+        flex-direction: column;
+    }
+
+    .tg-side-panel {
+        width: 100%;
+    }
+}
+
+@media (max-width: 850px) {
+    .tg-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 500px) {
+    .tg-title {
+        font-size: 20px;
+    }
+}

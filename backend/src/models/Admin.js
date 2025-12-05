@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+// const ALLOWED_DEPARTMENTS = ["IT", "CSE", "ECE", "EEE", "MECH", "CIVIL"];
 
 const adminSchema = new mongoose.Schema(
     {
@@ -31,6 +32,7 @@ const adminSchema = new mongoose.Schema(
         },
         department: {
             type: String,
+            ref: "Department",
             required: [true, "Department is required"],
         },
         role: {

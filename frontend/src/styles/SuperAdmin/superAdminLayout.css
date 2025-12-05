@@ -1,0 +1,112 @@
+/* ROOT WRAPPER */
+.sa-layout-root {
+    display: flex;
+    min-height: 100vh;
+    background: #f6f7fb;
+    font-family: "Inter", sans-serif;
+}
+
+/* ========== SIDEBAR ========== */
+.sa-sidebar {
+    width: 250px;
+    background: #1e1f2f;
+    color: #fff;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+}
+
+/* Logo Section */
+.sa-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.sa-logo-circle {
+    width: 42px;
+    height: 42px;
+    background: #4f46e5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 20px;
+}
+
+.sa-logo-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.sa-logo-sub {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* Nav */
+.sa-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sa-nav-section {
+    margin: 12px 0 6px;
+    font-size: 12px;
+    opacity: 0.6;
+    letter-spacing: 1px;
+}
+
+.sa-nav-item {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: transparent;
+    color: #f1f1f1;
+    text-align: left;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    transition: 0.25s;
+}
+
+.sa-nav-item:hover {
+    background: #34354a;
+}
+
+.sa-nav-item.active {
+    background: #4f46e5;
+    font-weight: 600;
+}
+
+/* Logout */
+.sa-logout-btn {
+    margin-top: auto;
+    padding: 10px 14px;
+    background: #ef4444;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.sa-logout-btn:hover {
+    background: #dc2626;
+}
+
+/* ========== MAIN CONTENT ========== */
+.sa-content {
+    flex-grow: 1;
+    margin-left: 250px;
+    padding: 28px 34px;
+    min-height: 100vh;
+    overflow-y: auto;
+}

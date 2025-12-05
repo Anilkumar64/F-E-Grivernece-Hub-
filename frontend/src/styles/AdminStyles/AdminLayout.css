@@ -1,0 +1,21 @@
+/* ================================
+   ADMIN LAYOUT STRUCTURE
+=================================*/
+
+.admin-layout {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    background: #f9faff;
+    overflow: hidden;
+}
+
+/* Main content area */
+.admin-main {
+    flex: 1;
+    padding: 2rem;
+    height: 100vh;
+    overflow-y: auto;
+    transition: margin-left 0.25s ease;
+    background: #f9faff;
+}

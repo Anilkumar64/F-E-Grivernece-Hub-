@@ -1,14 +1,29 @@
+// backend/src/routes/complaintTypeRoutes.js
 import express from "express";
-import { verifySuperAdmin } from "../middleware/authMiddleware.js";
-
-import { createType } from "../controllers/complaintType/createType.js";
-import { getTypes } from "../controllers/complaintType/getTypes.js";
-import { deleteType } from "../controllers/complaintType/deleteType.js";
+import {
+    getTypes,
+    createType,
+    deleteType,
+} from "../controllers/complaintTypeRoutes.js";
 
 const router = express.Router();
 
-router.post("/", verifySuperAdmin, createType);
+/**
+ * GET /api/complaint-types
+ * GET /api/complaint-types/all
+ * GET /api/complaints/type/all   (via server alias)
+ */
+
+// main – list all complaint types
 router.get("/", getTypes);
-router.delete("/:id", verifySuperAdmin, deleteType);
+
+// alias – for "/all"
+router.get("/all", getTypes);
+
+// create new type
+router.post("/", createType);
+
+// delete type
+router.delete("/:id", deleteType);
 
 export default router;

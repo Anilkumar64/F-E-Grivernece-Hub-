@@ -1,15 +1,18 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
-export default function SuperAdminProtected({ children }) {
+export default function SuperAdminProtected() {
+    let superadmin = null;
+
     try {
-        const superadmin = JSON.parse(localStorage.getItem("superadmin"));
-        if (!superadmin) return <Navigate to="/superadmin/login" />;
-        if (superadmin?.role?.toLowerCase() !== "superadmin")
-            return <Navigate to="/superadmin/login" />;
-    } catch {
-        return <Navigate to="/superadmin/login" />;
+        superadmin = JSON.parse(localStorage.getItem("superadmin"));
+    } catch (e) {
+        return <Navigate to="/superadmin/login" replace />;
     }
 
-    return children;
+    if (!superadmin || superadmin?.role !== "superadmin") {
+        return <Navigate to="/superadmin/login" replace />;
+    }
+
+    return <Outlet />;
 }

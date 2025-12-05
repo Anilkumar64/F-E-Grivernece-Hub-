@@ -1,0 +1,178 @@
+/* =============================================================
+   ADMIN GRIEVANCES PAGE — Premium Dashboard UI
+   Clean • Sharp • Modern • Clickable Rows
+=============================================================== */
+
+/* Page wrapper */
+.admin-grievances-page {
+    padding: 25px;
+    background: #f9faff;
+    min-height: 100vh;
+}
+
+.admin-grievances-page h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 18px;
+}
+
+/* ---------------- FILTER BAR ---------------- */
+
+.ag-filters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    margin-bottom: 20px;
+}
+
+.ag-filters input,
+.ag-filters select {
+    padding: 10px 13px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: white;
+    font-size: 14px;
+    min-width: 180px;
+}
+
+.ag-filters input:focus,
+.ag-filters select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+/* ---------------- TABLE ---------------- */
+
+.ag-table-wrapper {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.ag-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ag-table thead tr {
+    background: #f1f3ff;
+}
+
+.ag-table th {
+    padding: 14px 12px;
+    font-size: 14px;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.ag-table tbody tr {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.ag-table tbody tr:hover {
+    background: #f9fafc;
+}
+
+.ag-table td {
+    padding: 12px 12px;
+    font-size: 14px;
+    color: #374151;
+    border-bottom: 1px solid #f2f3f5;
+}
+
+/* Empty Row */
+.ag-empty {
+    text-align: center;
+    padding: 18px 0;
+    font-size: 15px;
+    color: #6b7280;
+}
+
+/* ---------------- BADGES ---------------- */
+
+.ag-badge {
+    padding: 5px 10px;
+    border-radius: 18px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Status */
+.status-pending {
+    background: #fff3cd;
+    color: #8a6d3b;
+}
+
+.status-inprogress,
+.status-inprogress,
+.status-in-progress {
+    background: #dbeafe;
+    color: #1e3a8a;
+}
+
+.status-resolved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Priority */
+.pri-low {
+    background: #f0f9ff;
+    color: #0369a1;
+}
+
+.pri-medium {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.pri-high {
+    background: #ffe4e6;
+    color: #be123c;
+}
+
+.pri-critical {
+    background: #f87171;
+    color: white;
+}
+
+/* ---------------- LOADING ---------------- */
+
+.ag-loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    color: #6b7280;
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+
+@media (max-width: 720px) {
+
+    .ag-table th,
+    .ag-table td {
+        font-size: 13px;
+        padding: 10px 8px;
+    }
+}
+
+@media (max-width: 520px) {
+    .ag-filters {
+        flex-direction: column;
+    }
+}

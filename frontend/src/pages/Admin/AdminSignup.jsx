@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../../api/axiosInstance";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import "../styles/AdminSignup.css";
+import AdminNavbar from "../../components/landing/AdminLandingNavbar";
+import "../../styles/AdminStyles/AdminSignup.css";
 
 function AdminSignup() {
     const navigate = useNavigate();
@@ -16,6 +17,22 @@ function AdminSignup() {
 
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [departments, setDepartments] = useState([]);
+
+    // 👇 FETCH DEPARTMENTS FROM BACKEND
+    useEffect(() => {
+        const loadDepartments = async () => {
+            try {
+                const res = await api.get("/departments");
+                setDepartments(res.data.departments || []);
+            } catch (err) {
+                console.error("Failed to load departments:", err);
+                toast.error("Unable to load departments");
+            }
+        };
+
+        loadDepartments();
+    }, []);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -29,11 +46,16 @@ function AdminSignup() {
             return;
         }
 
+        if (!form.department) {
+            toast.error("Please select a department");
+            return;
+        }
+
         const data = new FormData();
-        data.append("name", form.name.trim());
-        data.append("email", form.email.trim());
-        data.append("staffId", form.staffId.trim());
-        data.append("department", form.department.trim());
+        data.append("name", form.name);
+        data.append("email", form.email);
+        data.append("staffId", form.staffId);
+        data.append("department", form.department); // department = ObjectId
         data.append("password", form.password);
 
         if (file) data.append("idCardFile", file);
@@ -53,37 +75,8 @@ function AdminSignup() {
 
     return (
         <div className="admin-signup-wrapper">
-
-            {/* TOP HEADER */}
-            <div className="admin-signup-header">
-                <div className="ash-logo">EG</div>
-                <h2 className="ash-title">E-Grievance Hub</h2>
-            </div>
-
-            {/* MAIN TWO-COLUMN LAYOUT */}
+            <AdminNavbar />
             <div className="admin-signup-container">
-
-                {/* LEFT SECTION */}
-                <div className="admin-signup-left">
-                    <h1>Become a Campus Admin</h1>
-                    <p>
-                        Admin accounts require verification by SuperAdmin.
-                        Register using your official college email and upload your ID card.
-                    </p>
-
-                    <ul className="admin-signup-points">
-                        <li>✔ Approve and manage student grievances</li>
-                        <li>✔ Assign issues to departments</li>
-                        <li>✔ Track resolution workflow</li>
-                        <li>✔ Maintain campus transparency</li>
-                    </ul>
-
-                    {/* <div className="admin-illustration">
-                        <img src="/admin-signup-illustration.png" alt="Admin Signup" />
-                    </div> */}
-                </div>
-
-                {/* RIGHT FORM */}
                 <div className="admin-signup-right">
                     <form onSubmit={handleSignup} className="admin-signup-form">
                         <h1 className="admin-signup-title">Admin Signup</h1>
@@ -116,14 +109,21 @@ function AdminSignup() {
                             required
                         />
 
-                        <input
+                        {/* 🔥 NEW DROPDOWN */}
+                        <select
                             className="admin-input"
                             name="department"
-                            placeholder="Department"
                             value={form.department}
                             onChange={handleChange}
                             required
-                        />
+                        >
+                            <option value="">Select Department</option>
+                            {departments.map((dept) => (
+                                <option key={dept._id} value={dept._id}>
+                                    {dept.name} ({dept.code})
+                                </option>
+                            ))}
+                        </select>
 
                         <input
                             className="admin-input"
@@ -147,7 +147,6 @@ function AdminSignup() {
                         </button>
                     </form>
                 </div>
-
             </div>
         </div>
     );

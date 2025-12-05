@@ -1,0 +1,102 @@
+/* =======================================
+   PAGE WRAPPER
+======================================= */
+.about-page {
+    background: #f7f8fc;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* =======================================
+   HERO SECTION
+======================================= */
+.about-hero {
+    padding: 4rem 1.5rem;
+    background: linear-gradient(135deg, #6d28d9, #7c3aed);
+    color: white;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(109, 40, 217, 0.35);
+}
+
+.about-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.about-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* =======================================
+   MAIN CONTENT SECTION
+======================================= */
+.about-section {
+    padding: 3rem 1.5rem;
+}
+
+.container {
+    max-width: 1150px;
+    margin: 0 auto;
+}
+
+/* =======================================
+   GRID OF CARDS
+======================================= */
+.about-grid {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    margin-top: 2rem;
+}
+
+.about-card {
+    background: #ffffff;
+    padding: 1.8rem;
+    border-radius: 16px;
+
+    /* Premium shadow */
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
+
+    border: 1px solid #ececf4;
+    transition: 0.25s ease;
+}
+
+.about-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(109, 40, 217, 0.18);
+}
+
+/* =======================================
+   CARD CONTENT
+======================================= */
+.about-card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1f1f28;
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.about-card-text {
+    font-size: 0.98rem;
+    color: #4b5563;
+    line-height: 1.55rem;
+}
+
+/* =======================================
+   RESPONSIVE FIXES
+======================================= */
+@media (max-width: 768px) {
+    .about-title {
+        font-size: 2rem;
+    }
+
+    .about-subtitle {
+        font-size: 1rem;
+    }
+}

@@ -1,22 +1,8 @@
-// src/pages/SuperAdmin/ManageDepartments.jsx
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import api from "../../api/axiosInstance";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-
-/**
- * SuperAdmin - Manage Departments
- *
- * Expected backend endpoints (adjust if different):
- * GET    /superadmin/departments
- *        -> [{ _id, name, code, description, createdAt }, ...]
- *
- * POST   /superadmin/departments
- *        body: { name, code?, description? }
- *
- * DELETE /superadmin/departments/:id
- */
+import "../../styles/SuperAdmin/ManageDepartment.css";
 
 export default function ManageDepartments() {
     const [departments, setDepartments] = useState([]);
@@ -27,7 +13,15 @@ export default function ManageDepartments() {
     const [code, setCode] = useState("");
     const [description, setDescription] = useState("");
 
+    const [confirmDelete, setConfirmDelete] = useState(null);
+
     const navigate = useNavigate();
+    const nameRef = useRef(null);
+
+    useEffect(() => {
+        nameRef.current?.focus();
+        fetchDepartments();
+    }, []);
 
     const fetchDepartments = async () => {
         try {
@@ -37,10 +31,8 @@ export default function ManageDepartments() {
             setDepartments(data);
         } catch (err) {
             console.error("fetchDepartments:", err);
-            toast.error(
-                err?.response?.data?.message ||
-                "Failed to load departments"
-            );
+            toast.error(err?.response?.data?.message || "Failed to load departments");
+
             if (err?.response?.status === 401) {
                 navigate("/superadmin/login");
             }
@@ -52,173 +44,195 @@ export default function ManageDepartments() {
     const handleCreate = async () => {
         if (!name.trim()) {
             toast.warn("Department name is required");
+            nameRef.current?.focus();
+            return;
+        }
+
+        // prevent duplicates
+        if (departments.some((d) => d.name.toLowerCase() === name.trim().toLowerCase())) {
+            toast.error("Department already exists");
             return;
         }
 
         try {
             setSaving(true);
+
             await api.post("/superadmin/departments", {
                 name: name.trim(),
                 code: code.trim() || undefined,
                 description: description.trim() || undefined,
             });
 
-            toast.success("Department added");
+            toast.success("Department added successfully 🎉");
+
             setName("");
             setCode("");
             setDescription("");
+            nameRef.current?.focus();
+
             fetchDepartments();
         } catch (err) {
             console.error("create dept:", err);
-            toast.error(
-                err?.response?.data?.message ||
-                "Failed to add department"
-            );
+            toast.error(err?.response?.data?.message || "Failed to add department");
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Delete this department?")) return;
-
         try {
             setSaving(true);
+
             await api.delete(`/superadmin/departments/${id}`);
+
             toast.success("Department deleted");
+            setConfirmDelete(null);
             fetchDepartments();
         } catch (err) {
             console.error("delete dept:", err);
-            toast.error(
-                err?.response?.data?.message ||
-                "Failed to delete department"
-            );
+            toast.error(err?.response?.data?.message || "Failed to delete department");
         } finally {
             setSaving(false);
         }
     };
 
-    useEffect(() => {
-        fetchDepartments();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     if (loading) {
-        return (
-            <div className="p-6">
-                <p>Loading departments...</p>
-            </div>
-        );
+        return <div className="md-loading">Loading departments...</div>;
     }
 
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">
-                Manage Departments
+        <div className="md-container">
+            <h1 className="md-title">
+                Manage Departments <span className="md-count">({departments.length})</span>
             </h1>
 
             {/* Add Department */}
-            <div className="mb-6 border rounded-lg bg-white p-4 shadow-sm">
-                <h2 className="text-lg font-semibold mb-3">
-                    Add New Department
-                </h2>
+            <div className="md-card">
+                <h2 className="md-card-title">Add New Department</h2>
 
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className="md-grid">
                     <input
-                        className="border p-2 rounded w-full"
+                        ref={nameRef}
+                        className="md-input"
                         placeholder="Department name *"
                         value={name}
-                        onChange={(e) =>
-                            setName(e.target.value)
-                        }
+                        onChange={(e) => setName(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                     />
+
                     <input
-                        className="border p-2 rounded w-full"
+                        className="md-input"
                         placeholder="Department code (optional)"
                         value={code}
-                        onChange={(e) =>
-                            setCode(e.target.value)
-                        }
+                        onChange={(e) => setCode(e.target.value)}
                     />
+
                     <input
-                        className="border p-2 rounded w-full md:col-span-1"
+                        className="md-input"
                         placeholder="Description (optional)"
                         value={description}
-                        onChange={(e) =>
-                            setDescription(e.target.value)
-                        }
+                        onChange={(e) => setDescription(e.target.value)}
                     />
                 </div>
 
-                <button
-                    onClick={handleCreate}
-                    disabled={saving}
-                    className="mt-3 bg-emerald-600 text-white px-4 py-2 rounded disabled:opacity-60"
-                >
-                    {saving ? "Saving..." : "Add Department"}
-                </button>
+                <div className="md-actions">
+                    <button
+                        onClick={handleCreate}
+                        disabled={saving}
+                        className="md-btn md-btn-green"
+                    >
+                        {saving ? "Saving..." : "Add Department"}
+                    </button>
+
+                    <button
+                        className="md-btn md-btn-gray"
+                        type="button"
+                        onClick={() => {
+                            setName("");
+                            setCode("");
+                            setDescription("");
+                            nameRef.current?.focus();
+                        }}
+                    >
+                        Reset
+                    </button>
+                </div>
             </div>
 
             {/* List Departments */}
-            <div className="border rounded-lg bg-white p-4 shadow-sm">
-                <h2 className="text-lg font-semibold mb-3">
-                    Existing Departments
-                </h2>
+            <div className="md-card">
+                <h2 className="md-card-title">Existing Departments</h2>
 
-                {departments.length === 0 && (
-                    <p className="text-sm text-gray-500">
-                        No departments found.
-                    </p>
-                )}
+                {departments.length === 0 ? (
+                    <p className="md-empty">No departments found.</p>
+                ) : (
+                    <div className="md-list">
+                        {departments.map((dept) => {
+                            const createdText = dept.createdAt
+                                ? new Date(dept.createdAt).toLocaleString()
+                                : "-";
 
-                <div className="space-y-2">
-                    {departments.map((dept) => {
-                        const createdText = dept.createdAt
-                            ? new Date(
-                                dept.createdAt
-                            ).toLocaleString()
-                            : "-";
-
-                        return (
-                            <div
-                                key={dept._id}
-                                className="flex flex-col md:flex-row md:items-center justify-between border-b last:border-b-0 py-2 gap-2"
-                            >
-                                <div>
-                                    <p className="font-semibold">
-                                        {dept.name}{" "}
-                                        {dept.code && (
-                                            <span className="text-xs text-gray-500">
-                                                ({dept.code})
-                                            </span>
-                                        )}
-                                    </p>
-                                    {dept.description && (
-                                        <p className="text-sm text-gray-600">
-                                            {dept.description}
+                            return (
+                                <div key={dept._id} className="md-item">
+                                    <div className="md-item-info">
+                                        <p className="md-name">
+                                            {dept.name}
+                                            {dept.code && (
+                                                <span className="md-code"> ({dept.code})</span>
+                                            )}
                                         </p>
-                                    )}
-                                    <p className="text-xs text-gray-400">
-                                        Created: {createdText}
-                                    </p>
-                                </div>
 
-                                <div className="flex gap-2">
+                                        {dept.description && (
+                                            <p className="md-desc">{dept.description}</p>
+                                        )}
+
+                                        <p className="md-date">Created: {createdText}</p>
+                                    </div>
+
                                     <button
-                                        onClick={() =>
-                                            handleDelete(dept._id)
-                                        }
+                                        className="md-btn md-btn-red"
                                         disabled={saving}
-                                        className="text-red-600 text-sm font-semibold disabled:opacity-60"
+                                        onClick={() => setConfirmDelete(dept)}
                                     >
                                         Delete
                                     </button>
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
+
+            {/* DELETE CONFIRMATION MODAL */}
+            {confirmDelete && (
+                <div className="md-modal">
+                    <div className="md-modal-inner">
+                        <h3>Delete Department?</h3>
+                        <p>
+                            Are you sure you want to delete{" "}
+                            <strong>{confirmDelete.name}</strong>?
+                            This action cannot be undone.
+                        </p>
+
+                        <div className="md-modal-actions">
+                            <button
+                                className="md-btn md-btn-red"
+                                disabled={saving}
+                                onClick={() => handleDelete(confirmDelete._id)}
+                            >
+                                Confirm Delete
+                            </button>
+
+                            <button
+                                className="md-btn md-btn-gray"
+                                onClick={() => setConfirmDelete(null)}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

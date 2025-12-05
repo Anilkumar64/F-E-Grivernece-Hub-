@@ -2,19 +2,22 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../api/axiosInstance";
-import "../styles/AdminLogin.css";
+import AdminNavbar from "../../components/landing/AdminLandingNavbar";
+import "../../styles/AdminStyles/AdminLogin.css";
 
-function AdminLogin() {
+export default function AdminLogin() {
     const navigate = useNavigate();
     const [form, setForm] = useState({
-        // change to "email" if your backend expects email instead of username
-        username: "",
+        email: "",
         password: "",
     });
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        setForm((prev) => ({
+            ...prev,
+            [e.target.name]: e.target.value,
+        }));
     };
 
     const handleLogin = async (e) => {
@@ -23,15 +26,18 @@ function AdminLogin() {
 
         try {
             // axiosInstance baseURL already includes /api
-            const res = await api.post("/admin/login", form);
+            const res = await api.post("/admin/login", {
+                email: form.email,
+                password: form.password,
+            });
 
             const accessToken = res?.data?.accessToken;
             const admin = res?.data?.admin;
 
             if (accessToken) {
-                // store in keys used by axiosInstance
                 localStorage.setItem("accessToken", accessToken);
-                localStorage.setItem("token", accessToken); // optional but keeps everything in sync
+                // if the rest of your app reads "token", keep them in sync
+                localStorage.setItem("token", accessToken);
             }
 
             if (admin) {
@@ -44,7 +50,7 @@ function AdminLogin() {
             console.error("Admin login error:", err);
             toast.error(
                 err?.response?.data?.message ||
-                "Admin login failed. Check credentials."
+                "Admin login failed. Check your credentials."
             );
         } finally {
             setLoading(false);
@@ -54,22 +60,13 @@ function AdminLogin() {
     return (
         <div className="admin-login-page">
             {/* Top Bar */}
-            <header className="admin-login-header">
-                <div className="admin-login-header-inner">
-                    <div className="admin-logo-circle">EG</div>
-                    <div className="admin-header-text">
-                        <span className="admin-header-title">E-Grievance Hub</span>
-                        <span className="admin-header-subtitle">
-                            Secure Administrator Console
-                        </span>
-                    </div>
-                </div>
-            </header>
+            <AdminNavbar />
+
 
             {/* Main Content */}
             <main className="admin-login-main">
                 <div className="admin-login-card">
-                    {/* LEFT: Explanation / Value */}
+                    {/* LEFT: Info */}
                     <section className="admin-login-left">
                         <h2 className="admin-left-title">Welcome, Administrator</h2>
                         <p className="admin-left-text">
@@ -103,11 +100,12 @@ function AdminLogin() {
                             </p>
 
                             <label className="admin-label">
-                                Username
+                                Email
                                 <input
-                                    name="username"
-                                    placeholder="Enter your admin username"
-                                    value={form.username}
+                                    name="email"
+                                    type="email"
+                                    placeholder="Enter your official email"
+                                    value={form.email}
                                     onChange={handleChange}
                                     className="admin-input"
                                     required
@@ -146,5 +144,3 @@ function AdminLogin() {
         </div>
     );
 }
-
-export default AdminLogin;

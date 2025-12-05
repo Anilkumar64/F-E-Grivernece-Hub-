@@ -1,92 +1,70 @@
 import React from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import api from "../api/axiosInstance";
-import { toast } from "react-toastify";
+import { useNavigate, Outlet, useLocation } from "react-router-dom";
+import "../styles/SuperAdmin/superAdminLayout.css";
 
 export default function SuperAdminLayout() {
     const navigate = useNavigate();
+    const location = useLocation();
 
-    let superadmin = null;
-    try {
-        superadmin = JSON.parse(localStorage.getItem("superadmin") || "null");
-    } catch {
-        superadmin = null;
-    }
+    const go = (path) => navigate(path);
 
-    const handleLogout = async () => {
-        try {
-            await api.post("/admin/logout", { id: superadmin?._id });
-        } catch (err) {
-            console.error(err);
-        } finally {
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("token");
-            localStorage.removeItem("superadmin");
-            toast.success("Logged out");
-            navigate("/superadmin/login", { replace: true });
-        }
+    const isActive = (path) =>
+        location.pathname.startsWith(path) ? "sa-nav-item active" : "sa-nav-item";
+
+    const handleLogout = () => {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("superadmin");
+        navigate("/superadmin/login", { replace: true });
     };
 
-    const menuItems = [
-        { label: "Dashboard", to: "/superadmin/dashboard" },
-        { label: "Pending Admins", to: "/superadmin/pending-admins" },
-        { label: "Reports & Analytics", to: "/superadmin/reports" },
-        { label: "Manage Departments", to: "/superadmin/manage-departments" },
-    ];
-
     return (
-        <div className="min-h-screen flex bg-slate-50">
-            {/* SIDEBAR */}
-            <aside className="w-64 bg-slate-900 text-white flex flex-col">
-                <div className="px-4 py-5 border-b border-fuchsia-500">
-                    <h1 className="text-xl font-bold text-fuchsia-400">
-                        SuperAdmin
-                    </h1>
-                    <p className="text-xs text-slate-200 mt-1">
-                        {superadmin?.name || superadmin?.email || "Super Admin"}
-                    </p>
+        <div className="sa-layout-root">
+            {/* ================= SIDE BAR ================= */}
+            <aside className="sa-sidebar">
+                <div className="sa-logo">
+                    <div className="sa-logo-circle">E</div>
+                    <div>
+                        <h3 className="sa-logo-title">E-Grievance Hub</h3>
+                        <p className="sa-logo-sub">SuperAdmin</p>
+                    </div>
                 </div>
 
-                <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-                    {menuItems.map((item) => (
-                        <NavLink
-                            key={item.to}
-                            to={item.to}
-                            className={({ isActive }) =>
-                                `block px-3 py-2 rounded-lg text-sm font-medium transition ${isActive
-                                    ? "bg-slate-800 text-white"
-                                    : "text-slate-200 hover:bg-slate-800/70 hover:text-white"
-                                }`
-                            }
-                        >
-                            {item.label}
-                        </NavLink>
-                    ))}
-                </nav>
-
-                <div className="px-4 py-4 border-t border-slate-700">
-                    <button
-                        onClick={handleLogout}
-                        className="w-full text-sm bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition"
-                    >
-                        Logout
+                <nav className="sa-nav">
+                    <div className="sa-nav-section">MAIN</div>
+                    <button className={isActive("/superadmin/dashboard")} onClick={() => go("/superadmin/dashboard")}>
+                        📊 Dashboard
                     </button>
-                </div>
+
+                    <div className="sa-nav-section">ADMINS</div>
+                    <button className={isActive("/superadmin/pending-admins")} onClick={() => go("/superadmin/pending-admins")}>
+                        ⏳ Pending Admins
+                    </button>
+                    <button className={isActive("/superadmin/admins")} onClick={() => go("/superadmin/admins")}>
+                        👥 All Admins
+                    </button>
+
+                    <div className="sa-nav-section">STRUCTURE</div>
+                    <button className={isActive("/superadmin/manage-departments")} onClick={() => go("/superadmin/manage-departments")}>
+                        🏛 Departments
+                    </button>
+                    <button className={isActive("/superadmin/complaint-types")} onClick={() => go("/superadmin/complaint-types")}>
+                        📝 Complaint Types
+                    </button>
+
+                    <div className="sa-nav-section">ANALYTICS</div>
+                    <button className={isActive("/superadmin/reports")} onClick={() => go("/superadmin/reports")}>
+                        📈 Reports
+                    </button>
+
+                    <button className="sa-logout-btn" onClick={handleLogout}>
+                        🚪 Logout
+                    </button>
+                </nav>
             </aside>
 
-            {/* MAIN AREA */}
-            <div className="flex-1 flex flex-col">
-                <header className="px-6 py-3 border-b border-fuchsia-500 bg-white">
-                    <h2 className="text-xl font-bold text-fuchsia-600">
-                        SuperAdmin Panel
-                    </h2>
-                </header>
-
-                <main className="flex-1 p-6 overflow-y-auto">
-                    {/* CHILD ROUTES RENDER HERE */}
-                    <Outlet />
-                </main>
-            </div>
+            <main className="sa-content">
+                <Outlet />
+            </main>
         </div>
     );
 }

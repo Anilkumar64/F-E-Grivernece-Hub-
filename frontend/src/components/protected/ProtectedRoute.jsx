@@ -1,77 +1,40 @@
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
-const ProtectedRoute = ({ allowedRoles }) => {
+export default function ProtectedRoute({ allowedRoles = [] }) {
     const location = useLocation();
 
+    // Extract roles safely
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    const admin = JSON.parse(localStorage.getItem("admin") || "null");
+    const superadmin = JSON.parse(localStorage.getItem("superadmin") || "null");
+
+    // Determine role
     let role = null;
-    let isAuthenticated = false;
+    if (superadmin?.role === "superadmin") role = "superadmin";
+    else if (admin?.role) role = admin.role;
+    else if (user?.role) role = user.role;
 
-    try {
-        const token =
-            localStorage.getItem("accessToken") ||
-            localStorage.getItem("token");
-
-        if (token) {
-            const superadmin = JSON.parse(
-                localStorage.getItem("superadmin") || "null"
-            );
-            const admin = JSON.parse(
-                localStorage.getItem("admin") || "null"
-            );
-            const user = JSON.parse(
-                localStorage.getItem("user") || "null"
-            );
-
-            if (superadmin) role = "superadmin";
-            else if (admin) role = "admin";
-            else if (user) role = "user";
-
-            isAuthenticated = !!role;
+    // Not logged in
+    if (!role) {
+        // Superadmin area
+        if (allowedRoles.includes("superadmin")) {
+            return <Navigate to="/superadmin/login" state={{ from: location }} replace />;
         }
-    } catch (e) {
-        console.error("ProtectedRoute auth parse error:", e);
+        // Admin area
+        if (allowedRoles.includes("admin")) {
+            return <Navigate to="/admin/login" state={{ from: location }} replace />;
+        }
+        // User area
+        return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    // 1) Not logged in at all
-    if (!isAuthenticated) {
-        // if protecting admin/superadmin routes
-        if (
-            allowedRoles?.includes("admin") ||
-            allowedRoles?.includes("superadmin")
-        ) {
-            return (
-                <Navigate
-                    to="/admin/login"
-                    state={{ from: location }}
-                    replace
-                />
-            );
-        }
-
-        // default: user routes
-        return (
-            <Navigate
-                to="/login"
-                state={{ from: location }}
-                replace
-            />
-        );
+    // If logged in but not allowed
+    if (allowedRoles.length && !allowedRoles.includes(role)) {
+        if (role === "superadmin") return <Navigate to="/superadmin/dashboard" replace />;
+        if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
+        if (role === "user") return <Navigate to="/user/dashboard" replace />;
     }
 
-    // 2) Logged in but role not allowed
-    if (allowedRoles && !allowedRoles.includes(role)) {
-        if (role === "admin" || role === "superadmin") {
-            return <Navigate to="/admin/dashboard" replace />;
-        }
-        if (role === "user") {
-            return <Navigate to="/user/dashboard" replace />;
-        }
-        return <Navigate to="/" replace />;
-    }
-
-    // 3) All good – render nested routes
     return <Outlet />;
-};
-
-export default ProtectedRoute;
+}

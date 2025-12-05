@@ -1,0 +1,233 @@
+/* ===========================================================
+   ADMIN LOGIN PAGE WRAPPER
+=========================================================== */
+.admin-login-page {
+    background: #f5f6fb;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===========================================================
+   HEADER SECTION
+=========================================================== */
+.admin-login-header {
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.admin-login-header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.admin-logo-circle {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+    border-radius: 14px;
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(109, 40, 217, 0.35);
+}
+
+.admin-header-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-header-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.admin-header-subtitle {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+/* ===========================================================
+   MAIN CONTENT AREA
+=========================================================== */
+.admin-login-main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+}
+
+.admin-login-card {
+    display: flex;
+    gap: 3rem;
+
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    padding: 2.5rem;
+    border-radius: 22px;
+
+    width: 100%;
+    max-width: 1150px;
+
+    border: 1px solid rgba(225, 225, 235, 0.7);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* ===========================================================
+   LEFT PANEL — INFO SECTION
+=========================================================== */
+.admin-login-left {
+    flex: 1.2;
+}
+
+.admin-left-title {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #1e1e2e;
+    margin-bottom: 0.8rem;
+}
+
+.admin-left-text {
+    font-size: 1rem;
+    color: #4b5563;
+    margin-bottom: 1.4rem;
+    line-height: 1.6rem;
+}
+
+.admin-left-block {
+    margin-top: 1.5rem;
+}
+
+.admin-left-heading {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.admin-left-list {
+    list-style: none;
+    padding: 0;
+}
+
+.admin-left-list li {
+    padding: 0.4rem 0;
+    font-size: 0.97rem;
+    color: #374151;
+}
+
+/* Warning Note */
+.admin-left-note {
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+    color: #ef4444;
+    background: #fee2e2;
+    padding: 0.6rem;
+    border-radius: 10px;
+}
+
+/* ===========================================================
+   RIGHT PANEL — LOGIN FORM
+=========================================================== */
+.admin-login-right {
+    flex: 1;
+}
+
+.admin-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.admin-login-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e1e2e;
+}
+
+.admin-login-subtitle {
+    color: #6b7280;
+    font-size: 0.95rem;
+    line-height: 1.4rem;
+}
+
+/* LABEL + INPUT STYLING */
+.admin-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.admin-input {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    font-size: 0.95rem;
+    transition: 0.25s;
+}
+
+.admin-input:focus {
+    border-color: #7c3aed;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25);
+    outline: none;
+}
+
+/* LOGIN BUTTON */
+.admin-login-button {
+    padding: 12px;
+    background: linear-gradient(135deg, #6d28d9, #7c3aed);
+    color: white;
+    border-radius: 12px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.admin-login-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(124, 58, 237, 0.35);
+}
+
+.admin-helper-text {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+}
+
+/* ===========================================================
+   RESPONSIVE DESIGN
+=========================================================== */
+@media (max-width: 900px) {
+    .admin-login-card {
+        flex-direction: column;
+        padding: 2rem;
+    }
+
+    .admin-login-left {
+        text-align: left;
+    }
+
+    .admin-login-card {
+        gap: 2rem;
+    }
+
+    .admin-login-title {
+        font-size: 1.7rem;
+    }
+}

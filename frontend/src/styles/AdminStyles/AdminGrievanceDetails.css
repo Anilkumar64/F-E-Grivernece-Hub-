@@ -1,0 +1,275 @@
+/* ============================================================
+   ADMIN GRIEVANCE DETAILS — PREMIUM UI
+   Clean • Elegant • Dashboard-Level Styling
+============================================================ */
+
+.admin-grievance-details {
+    padding: 20px;
+    width: 100%;
+    max-width: 1400px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ------------------- TOP MAIN WRAPPER ------------------- */
+
+.agd-top {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+/* ------------------- LEFT PANEL ------------------- */
+
+.agd-left {
+    flex: 1;
+    background: #ffffff;
+    padding: 22px;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.agd-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #1f2937;
+}
+
+/* ------------------- META BADGES ------------------- */
+
+.agd-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.agd-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* status colors */
+.agd-badge.pending {
+    background: #fff3cd;
+    color: #8a6d3b;
+}
+
+.agd-badge["in progress"],
+.agd-badge.inprogress {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.agd-badge.resolved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.agd-badge.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.agd-meta-item {
+    color: #6b7280;
+}
+
+/* ------------------- DESCRIPTION ------------------- */
+
+.agd-description {
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    white-space: pre-line;
+}
+
+/* ------------------- ACTION BUTTONS ------------------- */
+
+.agd-actions-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+}
+
+.agd-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    background: #4f46e5;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.agd-btn:hover {
+    background: #4338ca;
+}
+
+.agd-btn-outline {
+    background: white;
+    color: #4f46e5;
+    border: 2px solid #4f46e5;
+}
+
+.agd-btn-outline:hover {
+    background: #eef2ff;
+}
+
+.agd-btn-danger {
+    background: #ef4444;
+}
+
+.agd-btn-danger:hover {
+    background: #dc2626;
+}
+
+/* ------------------- SECTIONS ------------------- */
+
+.agd-section {
+    margin-top: 25px;
+}
+
+.agd-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.agd-textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    resize: vertical;
+    min-height: 90px;
+    outline: none;
+}
+
+.agd-textarea:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+.agd-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.agd-select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: white;
+    font-size: 14px;
+}
+
+.agd-remarks {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #4b5563;
+}
+
+/* ------------------- RIGHT SIDEBAR ------------------- */
+
+.agd-right {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.agd-card {
+    background: #fff;
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.agd-card h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.agd-muted {
+    color: #6b7280;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+/* Attachments */
+.agd-attachments {
+    padding-left: 18px;
+    font-size: 14px;
+}
+
+.agd-attachments a {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+/* ------------------- TIMELINE SECTION ------------------- */
+
+.agd-timeline-area {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+}
+
+.agd-timeline-area h3 {
+    font-size: 20px;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+/* ------------------- LOADING + EMPTY STATES ------------------- */
+
+.agd-loading,
+.agd-empty {
+    padding: 40px;
+    text-align: center;
+    font-size: 18px;
+    color: #6b7280;
+}
+
+/* ------------------- RESPONSIVE ------------------- */
+
+@media (max-width: 1024px) {
+    .agd-top {
+        flex-direction: column;
+    }
+
+    .agd-right {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+
+    .agd-right .agd-card {
+        min-width: 250px;
+    }
+}
+
+@media (max-width: 640px) {
+    .agd-left {
+        padding: 16px;
+    }
+
+    .agd-actions-row {
+        flex-direction: column;
+    }
+}

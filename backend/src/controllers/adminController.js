@@ -148,9 +148,23 @@ export const getPendingAdmins = async (req, res) => {
     }
 };
 
-/* ------------------------------------------------------------------
- 🟩 APPROVE ADMIN (SuperAdmin)
------------------------------------------------------------------- */
+// /* ------------------------------------------------------------------
+//  🟩 APPROVE ADMIN (SuperAdmin)
+export const getAllAdmins = async (req, res) => {
+    try {
+        const admins = await Admin.find().populate("department", "name");
+
+        res.status(200).json({
+            success: true,
+            admins,
+        });
+    } catch (err) {
+        console.error("Get all admins error:", err);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+// ------------------------------------------------------------------ */
 export const approveAdmin = async (req, res) => {
     try {
         const { id } = req.params;

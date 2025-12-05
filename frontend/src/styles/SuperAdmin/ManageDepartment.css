@@ -1,0 +1,234 @@
+/* ================================================================= */
+/*                          WRAPPER                                 */
+/* ================================================================= */
+
+.md-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 32px;
+    font-family: "Inter", sans-serif;
+    color: #1f2937;
+    /* gray-800 */
+}
+
+.md-title {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    color: #111827;
+}
+
+.md-count {
+    font-size: 18px;
+    color: #4f46e5;
+    margin-left: 6px;
+}
+
+/* ================================================================= */
+/*                            LOADING                                */
+/* ================================================================= */
+
+.md-loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 16px;
+    color: #6b7280;
+}
+
+/* ================================================================= */
+/*                             CARDS                                 */
+/* ================================================================= */
+
+.md-card {
+    background: #ffffff;
+    padding: 22px 26px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    /* gray-200 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 26px;
+}
+
+.md-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+
+/* ================================================================= */
+/*                      INPUT GRID                                   */
+/* ================================================================= */
+
+.md-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(3, 1fr);
+    margin-bottom: 18px;
+}
+
+.md-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    /* gray-300 */
+    background: white;
+    font-size: 14px;
+    transition: 0.15s ease;
+}
+
+.md-input:focus {
+    border-color: #6366f1;
+    /* indigo-500 */
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* ================================================================= */
+/*                         BUTTON GROUP                              */
+/* ================================================================= */
+
+.md-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 12px;
+}
+
+/* Base button */
+.md-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+    border: none;
+}
+
+/* Green btn */
+.md-btn-green {
+    background: #22c55e;
+    /* green-500 */
+    color: white;
+}
+
+.md-btn-green:hover {
+    background: #16a34a;
+    /* green-600 */
+}
+
+/* Gray btn */
+.md-btn-gray {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+}
+
+.md-btn-gray:hover {
+    background: #e5e7eb;
+}
+
+/* Red btn */
+.md-btn-red {
+    background: #ef4444;
+    color: white;
+}
+
+.md-btn-red:hover {
+    background: #dc2626;
+}
+
+/* ================================================================= */
+/*                         DEPARTMENT LIST                           */
+/* ================================================================= */
+
+.md-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.md-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 18px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.md-item-info {
+    max-width: 70%;
+}
+
+.md-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.md-code {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.md-desc {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.md-date {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* Empty message */
+.md-empty {
+    font-size: 14px;
+    color: #9ca3af;
+    padding: 12px 2px;
+}
+
+/* ================================================================= */
+/*                               MODAL                               */
+/* ================================================================= */
+
+.md-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.md-modal-inner {
+    background: white;
+    width: 380px;
+    padding: 24px 26px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.md-modal-inner h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.md-modal-inner p {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 22px;
+}
+
+.md-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}

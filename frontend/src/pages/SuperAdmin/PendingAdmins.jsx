@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../api/axiosInstance";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import "../styles/PendingAdmins.css";
+
 
 export default function PendingAdmins() {
     const [pending, setPending] = useState([]);

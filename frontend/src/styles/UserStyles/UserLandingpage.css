@@ -1,0 +1,364 @@
+/* =============================
+   GLOBAL
+============================= */
+:root {
+    --text: #1f2937;
+    --muted: #6b7280;
+    --primary: #4f46e5;
+    --border: #e5e7eb;
+    --bg-light: #f9fafb;
+}
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    margin: 0;
+}
+
+/* Layout */
+.landing-page {
+    width: 100%;
+}
+
+.landing-main {
+    padding: 1.5rem 0;
+}
+
+/* Containers */
+.container {
+    width: 92%;
+    max-width: 1100px;
+    margin: auto;
+}
+
+/* =============================
+   HERO SECTION
+============================= */
+
+.hero-section {
+    padding: 1.5rem 0;
+}
+
+.hero-grid {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+/* Left text */
+.hero-content {
+    flex: 1;
+}
+
+.hero-pill {
+    background: var(--bg-light);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+}
+
+.hero-title {
+    margin: 0.5rem 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.hero-title-highlight {
+    color: var(--primary);
+}
+
+.hero-subtitle {
+    margin: 0.3rem 0 1rem 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+/* Buttons */
+.hero-actions {
+    display: flex;
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+}
+
+.btn {
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-outline {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+}
+
+.btn-outline:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* Small checklist */
+.hero-highlights {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.hero-highlight-item {
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+/* =============================
+   RIGHT CARD
+============================= */
+
+.hero-card-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-card {
+    width: 100%;
+    max-width: 300px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    background: white;
+}
+
+.hero-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hero-card-label {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+.hero-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    background: #22c55e22;
+    color: #16a34a;
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
+.hero-stats-grid {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.stat-box {
+    text-align: center;
+    padding: 8px;
+    border-radius: 6px;
+    background: var(--bg-light);
+}
+
+.stat-label {
+    margin: 0;
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+
+.stat-value {
+    margin: 4px 0 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.hero-card-footer {
+    margin-top: 1rem;
+}
+
+.hero-card-footer-hint {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+/* =============================
+   SECTION COMMON
+============================= */
+
+.section {
+    padding: 2rem 0;
+}
+
+.section-header {
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+.section-subtitle {
+    margin: 6px 0 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.center {
+    text-align: center;
+}
+
+/* =============================
+   FEATURES
+============================= */
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.feature-card {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    text-align: center;
+}
+
+.feature-emoji {
+    font-size: 2rem;
+    margin-bottom: 0.3rem;
+}
+
+.feature-title {
+    margin: 0.2rem 0;
+    font-size: 1.1rem;
+}
+
+.feature-text {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+/* =============================
+   HOW IT WORKS
+============================= */
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 1rem;
+}
+
+.step-card {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    text-align: center;
+}
+
+.step-number {
+    width: 36px;
+    height: 36px;
+    margin: auto;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+}
+
+.step-title {
+    margin: 0.5rem 0 0.3rem;
+    font-size: 1rem;
+}
+
+.step-text {
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+/* =============================
+   FAQ + CTA
+============================= */
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.faq-question {
+    margin: 0;
+    font-weight: 600;
+}
+
+.faq-answer {
+    margin: 0.2rem 0 0.8rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+/* CTA Card */
+.cta-card {
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.cta-title {
+    margin-top: 0;
+    font-size: 1.2rem;
+}
+
+.cta-text {
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.cta-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.7rem;
+}
+
+/* =============================
+   RESPONSIVE
+============================= */
+
+@media (max-width: 768px) {
+    .hero-grid {
+        flex-direction: column;
+    }
+
+    .faq-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cta-actions {
+        flex-direction: column;
+    }
+
+    .hero-card-wrapper {
+        justify-content: flex-start;
+    }
+}

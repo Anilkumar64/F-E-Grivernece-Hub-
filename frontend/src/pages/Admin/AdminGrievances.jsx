@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import api from "../../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import "../styles/AdminGrievances.css";
+import "../../styles/AdminStyles/AdminGrievances.css";
+
 
 export default function AdminGrievances() {
     const navigate = useNavigate();

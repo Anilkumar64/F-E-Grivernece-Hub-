@@ -1,0 +1,107 @@
+/* ============================================================= */
+/*                       PAGE WRAPPER                            */
+/* ============================================================= */
+
+.reports-container {
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 28px 32px;
+    font-family: "Inter", sans-serif;
+}
+
+.reports-title {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 26px;
+    color: #111827;
+}
+
+/* ============================================================= */
+/*                        SUMMARY CARDS                           */
+/* ============================================================= */
+
+.reports-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.reports-summary-card {
+    background: white;
+    padding: 20px 22px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.reports-summary-card h2 {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.reports-summary-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.value-green {
+    color: #16a34a;
+}
+
+/* ============================================================= */
+/*                           CHART GRID                           */
+/* ============================================================= */
+
+.reports-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+    margin-bottom: 40px;
+}
+
+.reports-chart-card {
+    background: white;
+    padding: 20px 24px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.reports-chart-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 16px;
+}
+
+.reports-empty {
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+/* ============================================================= */
+/*                        RESPONSIVE                               */
+/* ============================================================= */
+
+@media (max-width: 1024px) {
+    .reports-chart-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .reports-summary-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .reports-container {
+        padding: 20px;
+    }
+
+    .reports-summary-grid {
+        grid-template-columns: 1fr;
+    }
+}

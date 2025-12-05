@@ -1,0 +1,55 @@
+/* ======================================================
+   SUPERADMIN FOOTER — CLEAN MINIMAL UI
+====================================================== */
+
+.superadmin-footer {
+    width: 100%;
+    padding: 1.8rem 1rem;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    margin-top: auto;
+}
+
+/* SOCIAL ICONS */
+.superadmin-footer-icons {
+    display: flex;
+    justify-content: center;
+    gap: 1.2rem;
+    margin-bottom: 0.8rem;
+}
+
+.superadmin-footer-icons a {
+    font-size: 1.25rem;
+    color: #6b7280;
+    transition: 0.2s ease;
+}
+
+.superadmin-footer-icons a:hover {
+    color: #4f46e5;
+    /* Purple highlight */
+    transform: translateY(-3px);
+}
+
+/* COPYRIGHT TEXT */
+.superadmin-footer-copy {
+    font-size: 0.95rem;
+    color: #4b5563;
+    font-weight: 500;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+    .superadmin-footer {
+        padding: 1.4rem 0.5rem;
+    }
+
+    .superadmin-footer-icons a {
+        font-size: 1.1rem;
+    }
+
+    .superadmin-footer-copy {
+        font-size: 0.85rem;
+    }
+}

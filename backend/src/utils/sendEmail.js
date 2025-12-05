@@ -1,31 +1,41 @@
 import nodemailer from "nodemailer";
 
-const sendEmail = async ({ to, subject, html }) => {
-    try {
-        const transporter = nodemailer.createTransport({
-            service: "gmail", // You can change this to Outlook, Yahoo etc.
-            auth: {
-                user: process.env.EMAIL_USER,      // Your email
-                pass: process.env.EMAIL_PASS,      // App password
-            },
-        });
+const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: Number(process.env.EMAIL_PORT) || 587,
+    secure: process.env.EMAIL_SECURE === "true",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
 
-        const mailOptions = {
-            from: `"E-Grievance Hub" <${process.env.EMAIL_USER}>`,
+const EMAIL_ENABLED = process.env.EMAIL_ENABLED !== "false";
+
+export default async function sendEmail(to, subject, text) {
+    if (!EMAIL_ENABLED) {
+        console.log(
+            `📨 [EMAIL DISABLED] Would send to ${to}: "${subject}"`
+        );
+        return;
+    }
+
+    try {
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
             to,
             subject,
-            html,
-        };
-
-        const info = await transporter.sendMail(mailOptions);
-
-        console.log("📨 Email Sent Successfully:", info.messageId);
-        return info;
-
+            text,
+        });
     } catch (error) {
         console.error("❌ Email Sending Failed:", error);
+
+        // In dev, don't kill the flow
+        if (process.env.NODE_ENV !== "production") {
+            return;
+        }
+
+        // In production, you can choose to fail
         throw new Error("Email sending failed");
     }
-};
-
-export default sendEmail;
+}

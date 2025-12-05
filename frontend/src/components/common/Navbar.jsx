@@ -1,55 +1,29 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./Navbar.css"; // ⬅️ import CSS
-import About from "../../pages/About";
+import "../../styles/UserStyles/UserNavbar.css";
 
-export default function Navbar() {
+export default function StudentNavbar() {
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
 
-    const toggleMenu = () => setOpen((prev) => !prev);
+    const toggleMenu = () => setOpen(prev => !prev);
 
     return (
         <nav className="navbar">
             <div className="navbar-inner">
-                {/* Left: Brand */}
-                <div
-                    className="navbar-brand"
-                    onClick={() => navigate("/")}
-                >
-                    <div className="navbar-logo">
-                        EG
-                    </div>
-                    <span className="navbar-brand-text">
-                        E-Grievance Hub
-                    </span>
+
+                {/* Brand */}
+                <div className="navbar-brand" onClick={() => navigate("/")}>
+                    <div className="navbar-logo"></div>
+                    <span className="navbar-brand-text">E-Grievance Hub</span>
                 </div>
 
-                {/* Desktop Links */}
+                {/* Desktop */}
                 <div className="nav-desktop">
-                    <Link to="/" className="nav-link">
-                        Home
-                    </Link>
-
-                    <Link to="/About" className="nav-link">
-                        About
-                    </Link>
-
-                    <Link to="/login" className="nav-link">
-                        User Login
-                    </Link>
-
-                    <Link to="/signup" className="nav-link">
-                        User Signup
-                    </Link>
-
-                    <Link to="/admin/login" className="nav-link">
-                        Admin Login
-                    </Link>
-
-                    <Link to="/superadmin/login" className="nav-link">
-                        SuperAdmin
-                    </Link>
+                    <Link to="/" className="nav-link">Home</Link>
+                    <Link to="/about" className="nav-link">About</Link>
+                    <Link to="/login" className="nav-link">Login</Link>
+                    <Link to="/signup" className="nav-link">Signup</Link>
 
                     <button
                         onClick={() => navigate("/login")}
@@ -59,17 +33,9 @@ export default function Navbar() {
                     </button>
                 </div>
 
-                {/* Mobile menu button */}
-                <button
-                    className="nav-mobile-toggle"
-                    onClick={toggleMenu}
-                >
-                    <span className="sr-only">Open main menu</span>
-                    {open ? (
-                        <span className="nav-toggle-icon">&times;</span>
-                    ) : (
-                        <span className="nav-toggle-icon">&#9776;</span>
-                    )}
+                {/* Mobile Toggle */}
+                <button className="nav-mobile-toggle" onClick={toggleMenu}>
+                    {open ? "✖" : "☰"}
                 </button>
             </div>
 
@@ -77,55 +43,14 @@ export default function Navbar() {
             {open && (
                 <div className="nav-mobile-menu">
                     <div className="nav-mobile-inner">
-                        <Link
-                            to="/"
-                            onClick={() => setOpen(false)}
-                            className="nav-mobile-link"
-                        >
-                            Home
-                        </Link>
-                        <Link
-                            to="/about"
-                            onClick={() => setOpen(false)}
-                            className="nav-mobile-link"
-                        >
-                            About
-                        </Link>
-                        <Link
-                            to="/login"
-                            onClick={() => setOpen(false)}
-                            className="nav-mobile-link"
-                        >
-                            User Login
-                        </Link>
-                        <Link
-                            to="/signup"
-                            onClick={() => setOpen(false)}
-                            className="nav-mobile-link"
-                        >
-                            User Signup
-                        </Link>
-                        <Link
-                            to="/admin/login"
-                            onClick={() => setOpen(false)}
-                            className="nav-mobile-link"
-                        >
-                            Admin Login
-                        </Link>
-                        <Link
-                            to="/superadmin/login"
-                            onClick={() => setOpen(false)}
-                            className="nav-mobile-link"
-                        >
-                            SuperAdmin
-                        </Link>
+                        <Link to="/" className="nav-mobile-link" onClick={() => setOpen(false)}>Home</Link>
+                        <Link to="/about" className="nav-mobile-link" onClick={() => setOpen(false)}>About</Link>
+                        <Link to="/login" className="nav-mobile-link" onClick={() => setOpen(false)}>Login</Link>
+                        <Link to="/signup" className="nav-mobile-link" onClick={() => setOpen(false)}>Signup</Link>
 
                         <button
-                            onClick={() => {
-                                setOpen(false);
-                                navigate("/login");
-                            }}
                             className="nav-mobile-primary-btn"
+                            onClick={() => { setOpen(false); navigate("/login"); }}
                         >
                             File Grievance
                         </button>

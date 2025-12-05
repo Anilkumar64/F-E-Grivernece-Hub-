@@ -108,11 +108,13 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        const token = generateToken(user);
+        // 🔑 Generate JWT
+        const accessToken = generateToken(user);
 
         return res.status(200).json({
             message: "Login successful",
-            token,
+            accessToken,          // ⬅️ frontend AuthContext looks for this
+            token: accessToken,   // ⬅️ keep this if some old code still uses `token`
             user: {
                 id: user._id,
                 name: user.name,
@@ -125,6 +127,7 @@ export const loginUser = async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
 
 //
 // 📴 TEMPORARILY DISABLE FORGOT/RESET/OTP (so they don't pull in buggy email/template code)

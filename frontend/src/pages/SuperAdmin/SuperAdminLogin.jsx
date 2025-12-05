@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify"
+import SuperAdminNavbar from "../../components/landing/SuperAdminLandingNavbar";
+import SuperAdminFooter from "../../components/landing/SuperAdminLandingFooter";
+import "../../styles/SuperAdmin/SuperAdminLogin.css";
 
 export default function SuperAdminLogin() {
     const navigate = useNavigate();
@@ -78,10 +81,14 @@ export default function SuperAdminLogin() {
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-slate-100">
-            <form
-                onSubmit={handleSubmit}
-                className="w-96 bg-white border p-6 rounded-xl shadow"
-            >
+            <SuperAdminNavbar />
+            <div className="w-full p-4 bg-white shadow flex justify-between items-center">
+
+
+
+            </div>
+            <form className="superadmin-login-form" onSubmit={handleSubmit}>
+
                 <h1 className="text-2xl font-bold mb-4 text-center">
                     Super Admin Login
                 </h1>
@@ -114,6 +121,7 @@ export default function SuperAdminLogin() {
                     {loading ? "Logging in..." : "Login"}
                 </button>
             </form>
+            <SuperAdminFooter />
         </div>
     );
 }

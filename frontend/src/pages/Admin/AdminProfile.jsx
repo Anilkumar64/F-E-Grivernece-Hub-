@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../api/axiosInstance";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import "../styles/AdminProfile.css"; // NEW CSS FILE
+import "../../styles/AdminStyles/AdminProfile.css";
 
 function AdminProfile() {
     const navigate = useNavigate();

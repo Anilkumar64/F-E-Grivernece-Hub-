@@ -1,0 +1,143 @@
+/* ============================================================
+   CREATE GRIEVANCE — Clean Card UI
+   Matches UserLayout styling
+============================================================ */
+
+.grievance-page {
+    padding: 2rem;
+    min-height: 100vh;
+    background: #f9faff;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.grievance-card {
+    width: 100%;
+    max-width: 750px;
+    padding: 2rem 2.4rem;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    animation: fadeIn 0.3s ease;
+}
+
+.grievance-title {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* FORM */
+.grievance-form {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+}
+
+/* ========== FORM GROUPS ========== */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #374151;
+}
+
+.form-group-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.2rem;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: white;
+    font-size: 0.95rem;
+    color: #1f2937;
+    transition: 0.2s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px #c7d2fe;
+    outline: none;
+}
+
+.form-textarea {
+    resize: vertical;
+}
+
+/* ========== ATTACHMENTS ========== */
+
+input[type="file"] {
+    margin-top: 0.4rem;
+    font-size: 0.9rem;
+}
+
+/* ========== SUBMIT BUTTON ========== */
+
+.btn-primary {
+    width: 100%;
+    padding: 0.9rem;
+    font-size: 1rem;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.25s ease;
+    box-shadow: 0 6px 15px rgba(79, 70, 229, 0.25);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+}
+
+/* Loading state */
+.loading-screen {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #4b5563;
+    font-size: 1.2rem;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

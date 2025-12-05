@@ -1,0 +1,143 @@
+/* ===========================================================
+   PAGE WRAPPER
+=========================================================== */
+.admin-signup-wrapper {
+    background: #f5f6fb;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===========================================================
+   MAIN CONTAINER
+=========================================================== */
+.admin-signup-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+}
+
+/* ===========================================================
+   FORM CARD
+=========================================================== */
+.admin-signup-right {
+    width: 100%;
+    max-width: 480px;
+}
+
+.admin-signup-form {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(14px);
+    padding: 2.5rem 2rem;
+    border-radius: 20px;
+
+    border: 1px solid rgba(220, 220, 235, 0.7);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+
+    animation: fadeUp 0.5s ease;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===========================================================
+   TITLES
+=========================================================== */
+.admin-signup-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    color: #1f1f2e;
+}
+
+/* ===========================================================
+   INPUT FIELDS
+=========================================================== */
+.admin-input,
+.admin-input-file,
+.admin-signup-form select {
+    width: 100%;
+    padding: 12px;
+
+    background: #f9fafc;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+
+    font-size: 0.95rem;
+    transition: 0.25s ease;
+}
+
+.admin-input:focus,
+.admin-signup-form select:focus {
+    background: white;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25);
+    outline: none;
+}
+
+/* File Input Styling */
+.admin-input-file {
+    padding: 10px;
+    background: #f3f4f6;
+    border-radius: 12px;
+}
+
+.admin-input-file:hover {
+    background: #eef0f2;
+}
+
+/* ===========================================================
+   BUTTON
+=========================================================== */
+.admin-btn {
+    padding: 12px;
+    background: linear-gradient(135deg, #6d28d9, #7c3aed);
+
+    border: none;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.admin-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(124, 58, 237, 0.35);
+}
+
+/* Disabled */
+.admin-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* ===========================================================
+   RESPONSIVE
+=========================================================== */
+@media (max-width: 768px) {
+    .admin-signup-form {
+        padding: 2rem;
+    }
+
+    .admin-signup-title {
+        font-size: 1.7rem;
+    }
+}

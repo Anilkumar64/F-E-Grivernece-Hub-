@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import api from "../../api/axiosInstance";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import "../styles/ManageComplaintTypes.css"; // ✅ new CSS
+import "../../styles/AdminStyles/ManageComplaintTypes.css";
+
 
 function ManageComplaintTypes() {
     const [types, setTypes] = useState([]);

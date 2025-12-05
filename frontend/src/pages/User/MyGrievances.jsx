@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../api/axiosInstance";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import "../../styles/UserStyles/MyGrievances.css";
 
 const PAGE_SIZE = 6;
 
@@ -106,8 +107,8 @@ export default function MyGrievances() {
         page * PAGE_SIZE
     );
 
-    const gotoDetails = (id, trackingId) => {
-        navigate(`/user/track/${id || trackingId}`);
+    const gotoDetails = (trackingId) => {
+        navigate(`/user/track/${trackingId}`);
     };
 
     const getStatusClasses = (status = "") => {
@@ -124,27 +125,24 @@ export default function MyGrievances() {
     };
 
     return (
-        <div className="space-y-4">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <h2 className="text-2xl font-semibold">
-                    My Grievances
-                </h2>
+        <div className="mg-container">
 
-                <div className="flex flex-wrap gap-2 items-center">
+            {/* Header */}
+            <div className="mg-header">
+                <h2 className="mg-title">My Grievances</h2>
+
+                <div className="mg-filters">
                     <input
                         placeholder="Search by title or tracking ID..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="border rounded-lg px-3 py-2 text-sm w-full md:w-64 focus:outline-none focus:ring focus:ring-blue-300"
+                        className="mg-input"
                     />
 
                     <select
                         value={statusFilter}
-                        onChange={(e) =>
-                            setStatusFilter(e.target.value)
-                        }
-                        className="border rounded-lg px-2 py-2 text-sm bg-white focus:outline-none focus:ring focus:ring-blue-300"
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="mg-select"
                     >
                         <option value="all">All Status</option>
                         <option value="Pending">Pending</option>
@@ -155,10 +153,8 @@ export default function MyGrievances() {
 
                     <select
                         value={sortBy}
-                        onChange={(e) =>
-                            setSortBy(e.target.value)
-                        }
-                        className="border rounded-lg px-2 py-2 text-sm bg-white focus:outline-none focus:ring focus:ring-blue-300"
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="mg-select"
                     >
                         <option value="newest">Newest</option>
                         <option value="oldest">Oldest</option>
@@ -168,110 +164,53 @@ export default function MyGrievances() {
             </div>
 
             {/* Body */}
-            <div className="bg-white shadow rounded-xl p-4">
+            <div className="mg-card">
                 {loading ? (
-                    <div className="text-center text-gray-500 text-sm py-6">
-                        Loading...
-                    </div>
+                    <div className="mg-loading">Loading...</div>
                 ) : filtered.length === 0 ? (
-                    <div className="text-center text-gray-500 text-sm py-6">
-                        <p>
-                            No grievances found.{" "}
-                            <button
-                                onClick={() =>
-                                    navigate("/user/create-grievance")
-                                }
-                                className="text-blue-600 hover:underline"
-                            >
-                                File a grievance
-                            </button>
-                        </p>
+                    <div className="mg-empty">
+                        No grievances found.
+                        <button
+                            onClick={() => navigate("/user/create-grievance")}
+                            className="mg-link"
+                        >
+                            File a grievance
+                        </button>
                     </div>
                 ) : (
                     <>
                         {/* Cards grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="mg-grid">
                             {current.map((g) => (
-                                <div
-                                    key={g._id || g.trackingId}
-                                    className="border rounded-xl p-4 shadow-sm flex flex-col justify-between"
-                                >
-                                    <div>
-                                        <div className="flex justify-between items-start gap-2 mb-1">
-                                            <div className="font-semibold text-base">
-                                                {g.title}
-                                            </div>
-                                            <div
-                                                className={
-                                                    "px-2 py-1 rounded-full text-xs font-semibold " +
-                                                    getStatusClasses(
-                                                        g.status
-                                                    )
-                                                }
-                                            >
-                                                {g.status || "Pending"}
-                                            </div>
-                                        </div>
+                                <div key={g._id} className="mg-item">
 
-                                        <div className="text-xs text-gray-500 mb-2 space-y-1">
-                                            <div>
-                                                <strong>
-                                                    Tracking:
-                                                </strong>{" "}
-                                                {g.trackingId ||
-                                                    "N/A"}
-                                            </div>
-                                            <div>
-                                                <strong>
-                                                    Priority:
-                                                </strong>{" "}
-                                                {g.priority ||
-                                                    "Medium"}
-                                            </div>
-                                            <div>
-                                                <strong>
-                                                    Dept:
-                                                </strong>{" "}
-                                                {g.department?.name ||
-                                                    (typeof g.department ===
-                                                        "string"
-                                                        ? g.department
-                                                        : "N/A")}
-                                            </div>
-                                        </div>
+                                    <div className="mg-item-header">
+                                        <div className="mg-item-title">{g.title}</div>
 
-                                        <p className="text-sm text-gray-700">
-                                            {g.description
-                                                ? g.description
-                                                    .toString()
-                                                    .slice(
-                                                        0,
-                                                        120
-                                                    ) +
-                                                (g.description
-                                                    .toString()
-                                                    .length > 120
-                                                    ? "..."
-                                                    : "")
-                                                : ""}
-                                        </p>
+                                        <div className={`mg-status-badge ${g.status?.toLowerCase()}`}>
+                                            {g.status || "Pending"}
+                                        </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-                                        <div>
-                                            {new Date(
-                                                g.updatedAt ||
-                                                g.createdAt
-                                            ).toLocaleString()}
-                                        </div>
+                                    <div className="mg-meta">
+                                        <p><b>Tracking:</b> {g.trackingId}</p>
+                                        <p><b>Priority:</b> {g.priority}</p>
+                                        <p><b>Dept:</b> {g.department?.name || "N/A"}</p>
+                                    </div>
+
+                                    <p className="mg-description">
+                                        {g.description?.slice(0, 120)}
+                                        {g.description?.length > 120 ? "..." : ""}
+                                    </p>
+
+                                    <div className="mg-item-footer">
+                                        <span className="mg-date">
+                                            {new Date(g.updatedAt).toLocaleString()}
+                                        </span>
+
                                         <button
-                                            className="text-blue-600 hover:underline text-sm"
-                                            onClick={() =>
-                                                gotoDetails(
-                                                    g._id,
-                                                    g.trackingId
-                                                )
-                                            }
+                                            className="mg-details-btn"
+                                            onClick={() => gotoDetails(g.trackingId)}
                                         >
                                             View Details →
                                         </button>
@@ -281,32 +220,21 @@ export default function MyGrievances() {
                         </div>
 
                         {/* Pagination */}
-                        <div className="flex justify-center items-center gap-4 mt-4 text-sm">
+                        <div className="mg-pagination">
                             <button
                                 disabled={page <= 1}
-                                onClick={() =>
-                                    setPage((p) =>
-                                        Math.max(1, p - 1)
-                                    )
-                                }
-                                className="px-3 py-1 border rounded-lg disabled:opacity-50"
+                                onClick={() => setPage(page - 1)}
                             >
                                 Prev
                             </button>
-                            <div>
+
+                            <span className="mg-page-info">
                                 Page {page} / {totalPages}
-                            </div>
+                            </span>
+
                             <button
                                 disabled={page >= totalPages}
-                                onClick={() =>
-                                    setPage((p) =>
-                                        Math.min(
-                                            totalPages,
-                                            p + 1
-                                        )
-                                    )
-                                }
-                                className="px-3 py-1 border rounded-lg disabled:opacity-50"
+                                onClick={() => setPage(page + 1)}
                             >
                                 Next
                             </button>

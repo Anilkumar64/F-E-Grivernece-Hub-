@@ -1,0 +1,193 @@
+/* ================= LAYOUT ================== */
+.sa-main {
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 32px 40px;
+    background: #f9fafb;
+    /* new cleaner grey */
+    min-height: 100vh;
+    font-family: "Inter", sans-serif;
+}
+
+/* ================= TOPBAR ================== */
+.sa-topbar {
+    margin-bottom: 32px;
+}
+
+.sa-topbar-title {
+    font-size: 26px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.sa-topbar-sub {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.sa-date-pill {
+    margin-top: 10px;
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    font-size: 13px;
+    color: #374151;
+}
+
+/* ================= HERO SECTION ================== */
+
+.sa-hero-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.sa-hero-card {
+    flex: 1.3;
+    background: white;
+    padding: 20px 24px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.sa-hero-card h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #111827;
+}
+
+.sa-hero-card p {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+.sa-hero-badges {
+    display: flex;
+    gap: 8px;
+}
+
+.sa-hero-badges span {
+    padding: 4px 10px;
+    background: #eef2ff;
+    border-radius: 999px;
+    font-size: 12px;
+    color: #4f46e5;
+    font-weight: 500;
+}
+
+/* ================== STATS CARDS ================== */
+
+.sa-stats-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.sa-stat-card {
+    background: white;
+    padding: 16px 18px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.sa-stat-label {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.sa-stat-value {
+    font-size: 22px;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* ================== CHARTS ================== */
+
+.sa-charts-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    margin-bottom: 26px;
+}
+
+.sa-chart-card {
+    background: white;
+    padding: 18px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.sa-chart-header {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #111827;
+}
+
+/* ================== BOTTOM ROW ================== */
+
+.sa-bottom-row {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 22px;
+}
+
+/* Panels */
+.sa-panel-card {
+    background: white;
+    padding: 20px 24px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.sa-panel-header {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.sa-insights-grid {
+    display: grid;
+    gap: 16px 12px;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.sa-insight-label {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.sa-insight-value {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* Action buttons */
+.sa-actions-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.sa-action-btn {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #eef2ff;
+    border: 1px solid #dbeafe;
+    color: #4338ca;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+.sa-action-btn:hover {
+    background: #e0e7ff;
+}

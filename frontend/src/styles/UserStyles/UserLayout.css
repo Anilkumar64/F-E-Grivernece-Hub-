@@ -1,0 +1,7 @@
+.user-main {
+    padding: 2rem;
+    height: 100vh;
+    overflow-y: auto;
+    background: #f9faff;
+    transition: margin-left 0.25s ease;
+}

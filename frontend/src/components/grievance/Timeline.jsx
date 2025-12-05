@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import "./Timeline.css"; // ⬅️ enable this
 
 /**
  * Timeline component

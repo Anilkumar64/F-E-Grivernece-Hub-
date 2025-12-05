@@ -1,0 +1,55 @@
+/* ===================================
+   ADMIN FOOTER MAIN
+=================================== */
+.admin-footer {
+    width: 100%;
+    padding: 1.6rem 0;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    margin-top: 3rem;
+}
+
+/* ===================================
+   SOCIAL ICONS
+=================================== */
+.admin-footer-icons {
+    display: flex;
+    gap: 1.2rem;
+    margin-bottom: 0.8rem;
+}
+
+.admin-footer-icons a {
+    font-size: 1.3rem;
+    color: #6b7280;
+    transition: 0.25s;
+}
+
+/* Hover effects */
+.admin-footer-icons a:hover {
+    color: #6d28d9;
+    transform: translateY(-3px);
+}
+
+/* ===================================
+   COPYRIGHT
+=================================== */
+.admin-footer-copy {
+    font-size: 0.95rem;
+    color: #4b5563;
+    font-weight: 500;
+}
+
+/* ===================================
+   RESPONSIVE
+=================================== */
+@media (max-width: 700px) {
+    .admin-footer-icons {
+        gap: 1rem;
+    }
+}

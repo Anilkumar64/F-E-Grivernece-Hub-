@@ -1,0 +1,181 @@
+/* ============================================================
+   USER SIDEBAR — PREMIUM GLASS UI
+============================================================ */
+
+/* Wrapper */
+.user-sidebar {
+    width: 260px;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(18px);
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+    padding: 1rem;
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+/* COLLAPSED STATE */
+.user-sidebar.collapsed {
+    width: 75px;
+    padding: 1rem 0.5rem;
+}
+
+/* HEADER */
+.user-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.4rem;
+}
+
+.brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.toggle-btn {
+    background: rgba(255, 255, 255, 0.4);
+    border: none;
+    border-radius: 8px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: 0.25s ease;
+}
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+/* PROFILE SECTION */
+.user-profile {
+    text-align: center;
+    margin-bottom: 1.6rem;
+}
+
+.avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #4f46e5, #818cf8);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.3rem;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.user-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    color: #1e293b;
+}
+
+.user-email {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+/* COLLAPSED PROFILE */
+.user-sidebar.collapsed .user-profile {
+    text-align: center;
+}
+
+.user-sidebar.collapsed .user-name,
+.user-sidebar.collapsed .user-email {
+    display: none;
+}
+
+/* MENU */
+.user-sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 1;
+}
+
+/* Menu Item Button */
+.user-menu-item {
+    width: 100%;
+    border: none;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    background: transparent;
+    color: #334155;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.user-menu-item:hover {
+    background: rgba(255, 255, 255, 0.7);
+    transform: translateX(4px);
+}
+
+.user-menu-item.active {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+/* DOT for collapsed menu */
+.dot {
+    width: 12px;
+    height: 12px;
+    background: #4f46e5;
+    border-radius: 50%;
+    display: block;
+    margin: 0 auto;
+}
+
+/* COLLAPSE BEHAVIOR */
+.user-sidebar.collapsed .user-menu-item {
+    text-align: center;
+    padding: 0.75rem 0;
+}
+
+/* FOOTER */
+.user-sidebar-footer {
+    margin-top: 1rem;
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 0.7rem;
+    border-radius: 10px;
+    border: none;
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.logout-btn:hover {
+    background: #dc2626;
+    color: white;
+}
+
+.user-sidebar.collapsed .logout-btn {
+    font-size: 0;
+}
+
+.user-sidebar.collapsed .logout-btn::after {
+    content: "⏏";
+    font-size: 1.2rem;
+    color: #dc2626;
+}
