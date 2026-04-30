@@ -83,6 +83,10 @@ adminSchema.methods.isPasswordCorrect = async function (password) {
 
 // 🔑 Generate tokens
 adminSchema.methods.generateAccessToken = function () {
+    if (!process.env.ACCESS_TOKEN_SECRET || process.env.ACCESS_TOKEN_SECRET.length < 32) {
+        throw new Error("ACCESS_TOKEN_SECRET must be at least 32 characters");
+    }
+
     return jwt.sign(
         {
             _id: this._id,
@@ -95,6 +99,10 @@ adminSchema.methods.generateAccessToken = function () {
 };
 
 adminSchema.methods.generateRefreshToken = function () {
+    if (!process.env.REFRESH_TOKEN_SECRET || process.env.REFRESH_TOKEN_SECRET.length < 32) {
+        throw new Error("REFRESH_TOKEN_SECRET must be at least 32 characters");
+    }
+
     return jwt.sign(
         {
             _id: this._id,

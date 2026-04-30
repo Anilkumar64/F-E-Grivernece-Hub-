@@ -136,6 +136,11 @@ const grievanceSchema = new mongoose.Schema(
             ref: "Department",
             default: null,
         },
+
+        closureRequested: {
+            type: Boolean,
+            default: false,
+        },
     },
     { timestamps: true }
 );

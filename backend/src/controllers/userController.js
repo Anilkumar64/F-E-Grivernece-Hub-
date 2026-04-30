@@ -3,6 +3,10 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
 const generateToken = (user) => {
+    if (!process.env.ACCESS_TOKEN_SECRET || process.env.ACCESS_TOKEN_SECRET.length < 32) {
+        throw new Error("ACCESS_TOKEN_SECRET must be at least 32 characters");
+    }
+
     return jwt.sign(
         {
             _id: user._id,
