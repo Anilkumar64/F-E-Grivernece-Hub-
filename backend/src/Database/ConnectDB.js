@@ -3,9 +3,8 @@ import mongoose from "mongoose";
 export const connectDB = async () => {
     try {
         const connection = await mongoose.connect(process.env.MONGODB_URL, {
-            dbName: "EgrievanceHub", // cleaner and centralized naming
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+            dbName: process.env.MONGODB_DB || "EgrievanceHub",
+            maxPoolSize: 10,
         });
 
         console.log(`MongoDB Connected: ${connection.connection.host}`);
