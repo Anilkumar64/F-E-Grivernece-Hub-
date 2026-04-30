@@ -25,6 +25,7 @@ import { apiLimiter } from "./src/middleware/rateLimiters.js";
 import { authenticate } from "./src/middleware/authMiddleware.js";
 import { notFound, errorHandler } from "./src/middleware/errorHandler.js";
 import { startSlaEscalationJob } from "./src/jobs/slaEscalationJob.js";
+import { initCache } from "./src/utils/cache.js";
 
 dotenv.config();
 
@@ -110,6 +111,7 @@ const shutdown = (signal) => {
 
 const startServer = async () => {
     await ConnectDB();
+    await initCache().catch((error) => console.warn("Cache startup skipped:", error.message));
     startSlaEscalationJob();
     serverInstance = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 };

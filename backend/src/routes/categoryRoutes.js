@@ -3,17 +3,23 @@ import GrievanceCategory from "../models/GrievanceCategory.js";
 import Grievance from "../models/Grievance.js";
 import { authenticate, authorize } from "../middleware/authMiddleware.js";
 import { writeAuditLog } from "../utils/audit.js";
+import { delCache, getCache, setCache } from "../utils/cache.js";
 
 const router = express.Router();
 
 router.get("/", async (req, res) => {
     const filter = req.query.department ? { department: req.query.department } : {};
+    const cacheKey = `categories:${req.query.department || "all"}`;
+    const cached = await getCache(cacheKey);
+    if (cached) return res.json({ categories: cached });
     const categories = await GrievanceCategory.find(filter).populate("department", "name code").sort({ name: 1 });
+    await setCache(cacheKey, categories);
     res.json({ categories });
 });
 
 router.post("/", authenticate, authorize("superadmin"), async (req, res) => {
     const category = await GrievanceCategory.create(req.body);
+    await delCache("categories:*");
     await writeAuditLog(req, "CATEGORY_CREATED", "GrievanceCategory", category._id);
     res.status(201).json({ message: "Category created", category });
 });
@@ -21,6 +27,7 @@ router.post("/", authenticate, authorize("superadmin"), async (req, res) => {
 router.patch("/:id", authenticate, authorize("superadmin"), async (req, res) => {
     const category = await GrievanceCategory.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!category) return res.status(404).json({ message: "Category not found" });
+    await delCache("categories:*");
     await writeAuditLog(req, "CATEGORY_UPDATED", "GrievanceCategory", category._id, req.body);
     res.json({ message: "Category updated", category });
 });
@@ -31,6 +38,7 @@ router.delete("/:id", authenticate, authorize("superadmin"), async (req, res) =>
     }
     const category = await GrievanceCategory.findByIdAndDelete(req.params.id);
     if (!category) return res.status(404).json({ message: "Category not found" });
+    await delCache("categories:*");
     await writeAuditLog(req, "CATEGORY_DELETED", "GrievanceCategory", category._id);
     res.json({ message: "Category deleted" });
 });
