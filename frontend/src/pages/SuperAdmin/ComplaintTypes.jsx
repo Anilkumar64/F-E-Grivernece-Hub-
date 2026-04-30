@@ -42,8 +42,8 @@ export default function ComplaintTypes() {
         }
 
         const payload = {
-            type,
-            department, // MUST be department NAME (String)
+            type: type.trim(),
+            department,
             subTypes: subTypes
                 ? subTypes.split(",").map(s => s.trim())
                 : [],
@@ -105,7 +105,7 @@ export default function ComplaintTypes() {
                     <option value="">Select Department *</option>
 
                     {departments.map((d) => (
-                        <option key={d._id} value={d.name}>
+                        <option key={d._id} value={d._id}>
                             {d.name}
                         </option>
                     ))}
@@ -151,7 +151,7 @@ export default function ComplaintTypes() {
                             <div key={t._id} className="ct-item">
                                 <div>
                                     <p className="ct-item-name">
-                                        {t.type} — <span className="ct-dept">{t.department}</span>
+                                        {t.type} — <span className="ct-dept">{t.department?.name || "No department"}</span>
                                     </p>
 
                                     {t.subTypes?.length > 0 && (
