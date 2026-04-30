@@ -28,8 +28,8 @@ const loginForRole = (role) => async (req, res) => {
 
     let user = await User.findOne({ email: email.toLowerCase().trim(), role }).select("+password +refreshTokenHash").populate("department", "name code");
 
-    if (!user && role === "admin") {
-        user = await migrateLegacyAdmin(email, password);
+    if (!user && ["admin", "superadmin"].includes(role)) {
+        user = await migrateLegacyAdmin(email, password, role);
         if (user?.legacyError) return res.status(user.legacyError.status).json({ message: user.legacyError.message });
     }
 
@@ -48,11 +48,12 @@ const loginForRole = (role) => async (req, res) => {
     return res.json({ message: "Login successful", accessToken, user: publicUser(user) });
 };
 
-const migrateLegacyAdmin = async (email, password) => {
-    const legacyAdmin = await Admin.findOne({ email: email.toLowerCase().trim() });
+const migrateLegacyAdmin = async (email, password, targetRole) => {
+    const legacyRole = targetRole === "admin" ? "departmentadmin" : "superadmin";
+    const legacyAdmin = await Admin.findOne({ email: email.toLowerCase().trim(), role: legacyRole });
     if (!legacyAdmin) return null;
 
-    if (!legacyAdmin.verified) {
+    if (targetRole === "admin" && !legacyAdmin.verified) {
         return { legacyError: { status: 403, message: "Admin not verified by SuperAdmin" } };
     }
 
@@ -67,8 +68,8 @@ const migrateLegacyAdmin = async (email, password) => {
             email: legacyAdmin.email,
             password: legacyAdmin.password,
             staffId: legacyAdmin.staffId,
-            department: legacyAdmin.department,
-            role: "admin",
+            department: targetRole === "admin" ? legacyAdmin.department : null,
+            role: targetRole,
             isActive: true,
             createdAt: legacyAdmin.createdAt || now,
             updatedAt: now,

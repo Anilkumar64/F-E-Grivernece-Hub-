@@ -9,17 +9,21 @@ import MyGrievances from "../pages/User/MyGrievances";
 import TrackGrievance from "../pages/User/TrackGrievance";
 import Profile from "../pages/User/Profile";
 import AdminLogin from "../pages/Admin/AdminLogin";
+import AdminSignup from "../pages/Admin/AdminSignup";
+import AdminAbout from "../pages/Admin/AdminAbout";
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import AdminGrievances from "../pages/Admin/AdminGrievances";
 import PendingGrievances from "../pages/Admin/PendingGrievances";
 import AdminGrievanceDetails from "../pages/Admin/AdminGrievanceDetails";
 import AdminProfile from "../pages/Admin/AdminProfile";
+import AdminLandingPage from "../pages/Landing/AdminLandingPage";
 import SuperAdminLogin from "../pages/SuperAdmin/SuperAdminLogin";
 import SuperAdminDashboard from "../pages/SuperAdmin/SuperAdminDashboard";
 import AllAdmins from "../pages/SuperAdmin/AllAdmins";
 import ManageDepartments from "../pages/SuperAdmin/ManageDepartments";
 import ComplaintTypes from "../pages/SuperAdmin/ComplaintTypes";
 import SuperAdminReports from "../pages/SuperAdmin/SuperAdminReports";
+import SuperAdminLandingPage from "../pages/Landing/SuperAdminLandingPage";
 import ProtectedRoute from "../components/protected/ProtectedRoute";
 import AppLayout from "../components/common/AppLayout";
 import NotificationsPage from "../pages/Shared/NotificationsPage";
@@ -31,7 +35,12 @@ export default function AppRoutes() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/admin" element={<AdminLandingPage />} />
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/signup" element={<AdminSignup />} />
+            <Route path="/admin/AdminSignup" element={<AdminSignup />} />
+            <Route path="/admin/about" element={<AdminAbout />} />
+            <Route path="/superadmin" element={<SuperAdminLandingPage />} />
             <Route path="/superadmin/login" element={<SuperAdminLogin />} />
 
             <Route element={<ProtectedRoute allowedRoles={["student"]} />}>

@@ -16,10 +16,18 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const bootstrap = async () => {
+            const token = localStorage.getItem("accessToken");
+            if (!token) {
+                localStorage.removeItem("authUser");
+                setAuthUser(null);
+                setAccessToken(null);
+                setLoading(false);
+                return;
+            }
+
             try {
-                const hasSession = Boolean(localStorage.getItem("accessToken") || localStorage.getItem("authUser"));
-                const res = await api.get("/auth/me", { skipAuthRefresh: !hasSession });
-                persist(res.data.user, localStorage.getItem("accessToken"));
+                const res = await api.get("/auth/me");
+                persist(res.data.user, token);
             } catch {
                 localStorage.removeItem("authUser");
                 localStorage.removeItem("accessToken");
