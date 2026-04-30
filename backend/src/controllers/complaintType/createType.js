@@ -1,6 +1,7 @@
 // backend/src/controllers/complaintType/createType.js
 
 import ComplaintType from "../../models/ComplaintType.js";
+import Department from "../../models/Department.js";
 
 export const createType = async (req, res) => {
     try {
@@ -11,6 +12,11 @@ export const createType = async (req, res) => {
             return res.status(400).json({
                 message: "Type and department fields are required",
             });
+        }
+
+        const departmentExists = await Department.exists({ _id: department });
+        if (!departmentExists) {
+            return res.status(400).json({ message: "Invalid department" });
         }
 
         // Check duplicate

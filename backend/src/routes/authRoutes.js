@@ -5,6 +5,7 @@ import {
     refreshAccessToken,
     logoutAdmin,
 } from "../controllers/authController.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -14,6 +15,6 @@ router.post("/register", registerAdmin);
 // 🔐 Login, token refresh, and logout
 router.post("/login", loginAdmin);
 router.post("/refresh", refreshAccessToken);
-router.post("/logout", logoutAdmin);
+router.post("/logout", verifyToken, logoutAdmin);
 
 export default router;

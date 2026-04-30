@@ -63,7 +63,15 @@ router.get("/me", verifyToken, verifyAdmin, async (req, res) => {
 
 router.get("/admins", verifyToken, verifyAdmin, async (req, res) => {
     try {
-        const admins = await Admin.find().select("-password");
+        const query = { verified: true };
+
+        if (req.role !== "superadmin" && req.admin?.department) {
+            query.department = req.admin.department;
+        }
+
+        const admins = await Admin.find(query)
+            .select("-password -refreshToken")
+            .populate("department", "name code");
         res.json({ admins });
     } catch (err) {
         console.error("Admin list fetch error:", err);

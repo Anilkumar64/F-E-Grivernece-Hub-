@@ -5,10 +5,12 @@ import Admin from "./src/models/Admin.js";
 
 dotenv.config();
 
-console.log("Loaded URI →", process.env.MONGODB_URL);
-
 async function createSuperAdmin() {
     try {
+        if (!process.env.MONGODB_URL) {
+            throw new Error("MONGODB_URL is required");
+        }
+
         const conn = await mongoose.connect(process.env.MONGODB_URL);
         console.log("Connected to database:", conn.connection.host);
 
@@ -26,7 +28,7 @@ async function createSuperAdmin() {
             name: "Super Admin",
             email: process.env.SUPERADMIN_EMAIL || "superadmin@university.ac.in",
             staffId: "SA001",
-            department: "Administration",
+            department: null,
             role: "superadmin",
             password: tempPassword,
             verified: true

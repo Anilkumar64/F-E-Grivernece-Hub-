@@ -1,6 +1,5 @@
 import Admin from "../models/Admin.js";
 import sendEmail from "../utils/sendEmail.js";
-import jwt from "jsonwebtoken";
 
 
 // await sendEmail({
@@ -118,8 +117,17 @@ export const loginAdmin = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Login successful",
+            token: accessToken,
             accessToken,
             refreshToken,
+            admin: {
+                _id: adminUser._id,
+                name: adminUser.name,
+                email: adminUser.email,
+                department: adminUser.department,
+                role: adminUser.role,
+                verified: adminUser.verified,
+            },
             user: {
                 _id: adminUser._id,
                 name: adminUser.name,
@@ -153,7 +161,9 @@ export const getPendingAdmins = async (req, res) => {
 //  🟩 APPROVE ADMIN (SuperAdmin)
 export const getAllAdmins = async (req, res) => {
     try {
-        const admins = await Admin.find().populate("department", "name");
+        const admins = await Admin.find()
+            .select("-password -refreshToken")
+            .populate("department", "name code");
 
         res.status(200).json({
             success: true,

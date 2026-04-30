@@ -29,7 +29,7 @@ router.get("/admin/latest", verifyToken, verifyAdmin, getAdminLatestGrievances);
 router.get("/admin/all", verifyToken, verifyAdmin, getAdminAllGrievances);
 router.get("/admin/pending", verifyToken, verifyAdmin, getAdminPendingGrievances);
 
-router.get("/admin/grievance/:id", verifyToken, async (req, res) => {
+router.get("/admin/grievance/:id", verifyToken, verifyAdmin, async (req, res) => {
     try {
         const grievance = await Grievance.findById(req.params.id)
             .populate("department")
@@ -58,6 +58,12 @@ router.get("/id/:id", verifyToken, async (req, res) => {
             return res.status(404).json({ message: "Grievance not found" });
         }
 
+        const isOwner = grievance.user?.toString() === req.userId;
+        const isAdmin = ["departmentadmin", "superadmin"].includes(req.role);
+        if (!isOwner && !isAdmin) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
         res.json({ grievance });
     } catch (err) {
         console.error("ID fetch error:", err);
@@ -77,6 +83,12 @@ router.get("/track/:trackingId", verifyToken, async (req, res) => {
             return res.status(404).json({ message: "Tracking ID not found" });
         }
 
+        const isOwner = grievance.user?.toString() === req.userId;
+        const isAdmin = ["departmentadmin", "superadmin"].includes(req.role);
+        if (!isOwner && !isAdmin) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
         res.json({ grievance });
     } catch (err) {
         console.error("Tracking error:", err);
@@ -85,8 +97,8 @@ router.get("/track/:trackingId", verifyToken, async (req, res) => {
 });
 
 /* ACTION ROUTES */
-router.patch("/escalate/:id", verifyToken, escalateGrievance);
-router.patch("/update-status/:id", verifyToken, updateGrievanceStatus);
-router.patch("/assign/:id", verifyToken, assignGrievance);
+router.patch("/escalate/:id", verifyToken, verifyAdmin, escalateGrievance);
+router.patch("/update-status/:id", verifyToken, verifyAdmin, updateGrievanceStatus);
+router.patch("/assign/:id", verifyToken, verifyAdmin, assignGrievance);
 
 export default router;

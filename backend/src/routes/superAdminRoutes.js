@@ -2,9 +2,6 @@ import express from "express";
 import { verifySuperAdmin } from "../middleware/authMiddleware.js";
 import { getAllAdmins } from "../controllers/adminController.js";
 
-
-import Admin from "../models/Admin.js";
-
 import {
     getSuperAdminStats,
     grievancesByStatus,
@@ -51,17 +48,6 @@ router.get("/departments", verifySuperAdmin, getDepartments);
 router.post("/departments", verifySuperAdmin, createDepartment);
 router.delete("/departments/:id", verifySuperAdmin, deleteDepartment);
 
-router.get("/admins", verifySuperAdmin, async (req, res) => {
-    try {
-        const admins = await Admin.find({ verified: true }).select(
-            "-password"
-        );
-        res.json({ admins });
-    } catch (err) {
-        console.error("All admins fetch error:", err);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-});
 // landing page config
 router.get("/site-config", verifySuperAdmin, getSiteConfig);
 router.put("/site-config", verifySuperAdmin, updateSiteConfig);

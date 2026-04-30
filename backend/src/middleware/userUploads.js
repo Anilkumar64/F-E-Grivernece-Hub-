@@ -1,12 +1,14 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 
-// Ensure uploads folder exists
-const uploadPath = "uploads/user_idcards";
-if (!fs.existsSync(uploadPath)) {
-    fs.mkdirSync(uploadPath, { recursive: true });
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const backendRoot = path.resolve(__dirname, "..", "..");
+const uploadPath = path.join(backendRoot, "uploads", "user_idcards");
+
+fs.mkdirSync(uploadPath, { recursive: true });
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -14,7 +16,7 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, cb) => {
         const unique = Date.now() + "-" + Math.round(Math.random() * 1e4);
-        cb(null, unique + path.extname(file.originalname));
+        cb(null, unique + path.extname(file.originalname).toLowerCase());
     },
 });
 

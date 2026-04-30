@@ -31,9 +31,12 @@ const adminSchema = new mongoose.Schema(
             trim: true,
         },
         department: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
             ref: "Department",
-            required: [true, "Department is required"],
+            required: function () {
+                return this.role !== "superadmin";
+            },
+            default: null,
         },
         role: {
             type: String,

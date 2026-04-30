@@ -1,9 +1,12 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 
-// Define absolute path to backend/uploads/idcards
-const uploadDir = path.join(process.cwd(), "backend", "uploads", "idcards");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const backendRoot = path.resolve(__dirname, "..", "..");
+const uploadDir = path.join(backendRoot, "uploads", "idcards");
 
 // Ensure the upload directory exists (create if missing)
 fs.mkdirSync(uploadDir, { recursive: true });
@@ -16,7 +19,7 @@ const storage = multer.diskStorage({
     filename: function (req, file, cb) {
         // Example: idcard-1699871234567-123456789.png
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        const ext = path.extname(file.originalname);
+        const ext = path.extname(file.originalname).toLowerCase();
         cb(null, `idcard-${uniqueSuffix}${ext}`);
     },
 });
@@ -25,7 +28,8 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|pdf/;
     const ext = path.extname(file.originalname).toLowerCase().replace(".", "");
-    if (allowedTypes.test(ext)) {
+    const allowedMimeTypes = ["image/jpeg", "image/png", "application/pdf"];
+    if (allowedTypes.test(ext) && allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
         cb(new Error("Only JPG, JPEG, PNG, or PDF files are allowed"));

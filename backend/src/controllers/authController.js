@@ -86,6 +86,14 @@ export const loginAdmin = async (req, res) => {
             token: accessToken, // kept for backward compatibility
             accessToken,
             refreshToken,
+            user: {
+                _id: adminUser._id,
+                name: adminUser.name,
+                email: adminUser.email,
+                department: adminUser.department,
+                role: adminUser.role,
+                verified: adminUser.verified,
+            },
             admin: {
                 _id: adminUser._id,
                 name: adminUser.name,
@@ -106,7 +114,7 @@ export const loginAdmin = async (req, res) => {
 ------------------------------------------------------------------ */
 export const refreshAccessToken = async (req, res) => {
     try {
-        const { refreshToken } = req.body;
+        const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
 
         if (!refreshToken) {
             return res.status(401).json({ message: "Refresh token missing" });
@@ -167,4 +175,3 @@ export const logoutAdmin = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
-
