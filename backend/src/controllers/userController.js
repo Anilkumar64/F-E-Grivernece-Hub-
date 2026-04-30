@@ -14,13 +14,8 @@ const generateToken = (user) => {
     );
 };
 
-//
-// 🎯 USER SIGNUP — NO OTP, NO ID CARD, NO EMAIL SENDING
-//
 export const registerUser = async (req, res) => {
     try {
-        console.log("REGISTER BODY:", req.body);
-
         const {
             name,
             email,
@@ -67,10 +62,6 @@ export const registerUser = async (req, res) => {
             phone: phone || null,
             address: address || null,
             yearOfStudy: yearOfStudy || null,
-            isVerified: true,   // no OTP signup
-            otp: null,
-            otpExpire: null,
-            idCard: null,
         });
 
         await newUser.save();
@@ -85,9 +76,6 @@ export const registerUser = async (req, res) => {
     }
 };
 
-//
-// 🔑 USER LOGIN — EMAIL + PASSWORD ONLY
-//
 export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -118,6 +106,7 @@ export const loginUser = async (req, res) => {
             success: true,
             message: "Login successful",
             accessToken,
+            token: accessToken,
             user: {
                 _id: user._id,
                 name: user.name,
@@ -132,40 +121,6 @@ export const loginUser = async (req, res) => {
     }
 };
 
-const user = await User.findOne({ email });
-if (!user) {
-    return res.status(401).json({ message: "Invalid credentials" });
-}
-
-const isMatch = await user.matchPassword(password);
-if (!isMatch) {
-    return res.status(401).json({ message: "Invalid credentials" });
-}
-
-// 🔑 Generate JWT
-const accessToken = generateToken(user);
-
-return res.status(200).json({
-    message: "Login successful",
-    accessToken,          // ⬅️ frontend AuthContext looks for this
-    token: accessToken,   // ⬅️ keep this if some old code still uses `token`
-    user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-    },
-});
-    } catch (error) {
-    console.error("Login Error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-}
-};
-
-
-//
-// 📴 TEMPORARILY DISABLE FORGOT/RESET/OTP (so they don't pull in buggy email/template code)
-//
 export const forgotPassword = (req, res) => {
     return res
         .status(501)
