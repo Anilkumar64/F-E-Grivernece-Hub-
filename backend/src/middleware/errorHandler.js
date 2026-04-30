@@ -13,7 +13,7 @@ const errorHandler = (err, req, res, next) => {
         details = Object.entries(err.errors)
             .map(([field, error]) => `${field}: ${error.message}`)
             .join(", ");
-    } else if (err.name === "MongoError" && err.code === 11000) {
+    } else if ((err.name === "MongoError" || err.name === "MongoServerError") && err.code === 11000) {
         statusCode = 409;
         const field = Object.keys(err.keyPattern)[0];
         message = `${field} already exists`;
