@@ -146,13 +146,14 @@ export const refreshAccessToken = async (req, res) => {
 ------------------------------------------------------------------ */
 export const logoutAdmin = async (req, res) => {
     try {
-        const { id } = req.body;
+        // ✅ Use authenticated user's ID from JWT token, not from request body (prevents IDOR)
+        const adminId = req.userId;
 
-        if (!id) {
-            return res.status(400).json({ message: "Admin id is required" });
+        if (!adminId) {
+            return res.status(401).json({ message: "Unauthorized" });
         }
 
-        const adminUser = await Admin.findById(id);
+        const adminUser = await Admin.findById(adminId);
         if (!adminUser) {
             return res.status(404).json({ message: "Admin not found" });
         }
