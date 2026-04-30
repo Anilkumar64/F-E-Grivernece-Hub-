@@ -24,6 +24,7 @@ import ManageDepartments from "../pages/SuperAdmin/ManageDepartments";
 import ComplaintTypes from "../pages/SuperAdmin/ComplaintTypes";
 import SuperAdminReports from "../pages/SuperAdmin/SuperAdminReports";
 import SuperAdminLandingPage from "../pages/Landing/SuperAdminLandingPage";
+import LandingEditor from "../pages/SuperAdmin/LandingEditor";
 import ProtectedRoute from "../components/protected/ProtectedRoute";
 import AppLayout from "../components/common/AppLayout";
 import NotificationsPage from "../pages/Shared/NotificationsPage";
@@ -60,6 +61,8 @@ export default function AppRoutes() {
                     <Route path="/admin/grievances" element={<AdminGrievances />} />
                     <Route path="/admin/pending" element={<PendingGrievances />} />
                     <Route path="/admin/resolved" element={<AdminGrievances fixedStatus="Resolved" />} />
+                    <Route path="/admin/escalated" element={<AdminGrievances fixedStatus="Escalated" />} />
+                    <Route path="/admin/comments" element={<AdminGrievances />} />
                     <Route path="/admin/grievance/:id" element={<AdminGrievanceDetails />} />
                     <Route path="/admin/notifications" element={<NotificationsPage />} />
                     <Route path="/admin/profile" element={<AdminProfile />} />
@@ -72,6 +75,7 @@ export default function AppRoutes() {
                     <Route path="/superadmin/admins" element={<AllAdmins />} />
                     <Route path="/superadmin/departments" element={<ManageDepartments />} />
                     <Route path="/superadmin/categories" element={<ComplaintTypes />} />
+                    <Route path="/superadmin/landing-editor" element={<LandingEditor />} />
                     <Route path="/superadmin/reports" element={<SuperAdminReports />} />
                     <Route path="/superadmin/audit-logs" element={<AuditLogs />} />
                     <Route path="/superadmin/notifications" element={<NotificationsPage />} />
