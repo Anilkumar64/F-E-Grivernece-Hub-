@@ -97,7 +97,6 @@ export default function GrievanceDetails() {
         history = [],
         adminAssigned,
         createdAt,
-        updatedAt,
     } = grievance;
 
     return (

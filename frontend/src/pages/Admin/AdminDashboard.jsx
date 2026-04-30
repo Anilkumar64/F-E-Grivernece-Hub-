@@ -123,6 +123,14 @@ export default function AdminDashboard() {
 
     return (
         <div className="admin-shell">
+            <Sidebar
+                admin={storedAdmin}
+                collapsed={sidebarCollapsed}
+                location={location}
+                onNav={handleNav}
+                onLogout={handleLogout}
+                onToggle={() => setSidebarCollapsed((value) => !value)}
+            />
             <main className="admin-shell-main">
                 <header className="admin-main-header">
                     <div>

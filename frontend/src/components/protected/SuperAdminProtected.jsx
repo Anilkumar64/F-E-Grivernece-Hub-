@@ -6,7 +6,7 @@ export default function SuperAdminProtected() {
 
     try {
         superadmin = JSON.parse(localStorage.getItem("superadmin"));
-    } catch (e) {
+    } catch {
         return <Navigate to="/superadmin/login" replace />;
     }
 

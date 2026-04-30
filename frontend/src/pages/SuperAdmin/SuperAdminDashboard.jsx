@@ -320,6 +320,13 @@ export default function SuperAdminDashboard() {
                             >
                                 Edit Landing Page
                             </button>
+                            <button
+                                className="sa-action-btn"
+                                type="button"
+                                onClick={handleLogout}
+                            >
+                                Logout
+                            </button>
                         </div>
                     </div>
                 </section>

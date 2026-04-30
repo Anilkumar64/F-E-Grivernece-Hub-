@@ -107,8 +107,9 @@ api.interceptors.response.use(
             } catch (err) {
                 handleQueue(err, null);
 
+                const wasSuperAdmin = !!localStorage.getItem("superadmin");
                 localStorage.clear();
-                window.location.href = superadmin ? "/superadmin/login" : "/admin/login";
+                window.location.href = wasSuperAdmin ? "/superadmin/login" : "/admin/login";
                 return Promise.reject(err);
             } finally {
                 refreshing = false;

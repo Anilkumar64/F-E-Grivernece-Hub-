@@ -61,7 +61,7 @@ export default function AdminGrievanceDetails() {
         try {
             await api.patch(`/grievances/update-status/${grievance._id}`, {
                 status: newStatus,
-                message: `Status changed to ${newStatus} by admin`,
+                adminRemarks: `Status changed to ${newStatus} by admin`,
             });
             toast.success("Status updated");
             await fetchGrievance();
@@ -76,7 +76,9 @@ export default function AdminGrievanceDetails() {
         if (!assignedTo) return toast.warn("Choose an admin");
         setSaving(true);
         try {
-            await api.patch(`/grievances/assign/${grievance._id}`, { assignedTo });
+            await api.patch(`/grievances/assign/${grievance._id}`, {
+                adminId: assignedTo,
+            });
             toast.success("Assigned successfully");
             await fetchGrievance();
         } catch (err) {
@@ -203,6 +205,7 @@ export default function AdminGrievanceDetails() {
                         <button
                             className="agd-btn"
                             onClick={() => handleChangeStatus("In Progress")}
+                            disabled={saving}
                         >
                             Start
                         </button>
@@ -210,6 +213,7 @@ export default function AdminGrievanceDetails() {
                         <button
                             className="agd-btn agd-btn-outline"
                             onClick={() => handleChangeStatus("Resolved")}
+                            disabled={saving}
                         >
                             Resolve
                         </button>
@@ -217,6 +221,7 @@ export default function AdminGrievanceDetails() {
                         <button
                             className="agd-btn agd-btn-danger"
                             onClick={() => handleChangeStatus("Rejected")}
+                            disabled={saving}
                         >
                             Reject
                         </button>
@@ -237,9 +242,9 @@ export default function AdminGrievanceDetails() {
                         <button
                             className="agd-btn"
                             onClick={handleAddAdminNote}
-                            disabled={!adminNote.trim()}
+                            disabled={saving || !adminNote.trim()}
                         >
-                            Add Note
+                            {saving ? "Saving..." : "Add Note"}
                         </button>
 
                         {adminRemarks && (
@@ -273,8 +278,9 @@ export default function AdminGrievanceDetails() {
                             <button
                                 className="agd-btn"
                                 onClick={handleAddTimelineEvent}
+                                disabled={addingTimeline || !timelineMsg.trim()}
                             >
-                                Add Timeline
+                                {addingTimeline ? "Adding..." : "Add Timeline"}
                             </button>
                         </div>
                     </section>
@@ -305,8 +311,8 @@ export default function AdminGrievanceDetails() {
                             ))}
                         </select>
 
-                        <button className="agd-btn" onClick={handleAssignAdmin}>
-                            Assign
+                        <button className="agd-btn" onClick={handleAssignAdmin} disabled={saving}>
+                            {saving ? "Saving..." : "Assign"}
                         </button>
 
                         <p className="agd-muted">
@@ -328,8 +334,8 @@ export default function AdminGrievanceDetails() {
                             <option>Critical</option>
                         </select>
 
-                        <button className="agd-btn" onClick={handleChangePriority}>
-                            Save
+                        <button className="agd-btn" onClick={handleChangePriority} disabled={saving}>
+                            {saving ? "Saving..." : "Save"}
                         </button>
                     </div>
 
@@ -357,12 +363,14 @@ export default function AdminGrievanceDetails() {
                         <button
                             className="agd-btn"
                             onClick={() => handleForwardEscalate({ escalateToSuper: true })}
+                            disabled={saving}
                         >
                             Escalate to SuperAdmin
                         </button>
 
                         <button
                             className="agd-btn agd-btn-outline"
+                            disabled={saving}
                             onClick={() => {
                                 const dept = prompt("Enter Department ID");
                                 if (dept) handleForwardEscalate({ forwardDeptId: dept });

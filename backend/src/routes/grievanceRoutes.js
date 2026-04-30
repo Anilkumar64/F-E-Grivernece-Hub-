@@ -9,7 +9,10 @@ import {
     getAdminAllGrievances,
     getAdminPendingGrievances,
     escalateGrievance,
-    assignGrievance
+    assignGrievance,
+    updateGrievancePriority,
+    addAdminNote,
+    addTimelineEvent
 } from "../controllers/grievanceController.js";
 
 import Grievance from "../models/Grievance.js";
@@ -100,5 +103,8 @@ router.get("/track/:trackingId", verifyToken, async (req, res) => {
 router.patch("/escalate/:id", verifyToken, verifyAdmin, escalateGrievance);
 router.patch("/update-status/:id", verifyToken, verifyAdmin, updateGrievanceStatus);
 router.patch("/assign/:id", verifyToken, verifyAdmin, assignGrievance);
+router.patch("/update-priority/:id", verifyToken, verifyAdmin, updateGrievancePriority);
+router.post("/admin-note/:id", verifyToken, verifyAdmin, addAdminNote);
+router.post("/timeline/:id", verifyToken, verifyAdmin, addTimelineEvent);
 
 export default router;

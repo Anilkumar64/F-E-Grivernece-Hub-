@@ -10,7 +10,7 @@ import AuthContext from "./AuthCore";
 const UserContext = createContext(null);
 
 export const UserProvider = ({ children }) => {
-    const { authUser, role, isAuthenticated, loading: authLoading } =
+    const { role, isAuthenticated, loading: authLoading } =
         useContext(AuthContext);
 
     const [profile, setProfile] = useState(null);

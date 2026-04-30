@@ -507,6 +507,101 @@ export const assignGrievance = async (req, res) => {
     }
 };
 
+export const updateGrievancePriority = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const normalizedPriority = normalizePriorityFromClient(req.body.priority);
+
+        const grievance = await Grievance.findById(id);
+        if (!grievance) {
+            return res.status(404).json({ message: "Grievance not found" });
+        }
+
+        if (!canAdminAccessGrievance(req, grievance)) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        grievance.priority = normalizedPriority;
+        await grievance.save();
+
+        res.status(200).json({
+            message: "Priority updated successfully",
+            grievance,
+        });
+    } catch (err) {
+        console.error("Update priority error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const addAdminNote = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const note = req.body.note || req.body.adminRemarks;
+
+        if (!note?.trim()) {
+            return res.status(400).json({ message: "Note is required" });
+        }
+
+        const grievance = await Grievance.findById(id);
+        if (!grievance) {
+            return res.status(404).json({ message: "Grievance not found" });
+        }
+
+        if (!canAdminAccessGrievance(req, grievance)) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        grievance.adminRemarks = note.trim();
+        await grievance.save();
+
+        res.status(200).json({
+            message: "Admin note added successfully",
+            grievance,
+        });
+    } catch (err) {
+        console.error("Add admin note error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const addTimelineEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const normalizedStatus = normalizeStatusFromClient(req.body.status);
+        const message = req.body.message || "";
+
+        if (!normalizedStatus) {
+            return res.status(400).json({ message: "Invalid status" });
+        }
+
+        const grievance = await Grievance.findById(id);
+        if (!grievance) {
+            return res.status(404).json({ message: "Grievance not found" });
+        }
+
+        if (!canAdminAccessGrievance(req, grievance)) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        grievance.status = normalizedStatus;
+        grievance.timeline.push({
+            status: normalizedStatus,
+            message,
+        });
+
+        await grievance.save();
+
+        res.status(200).json({
+            message: "Timeline event added successfully",
+            grievance,
+        });
+    } catch (err) {
+        console.error("Add timeline event error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 export const getAdminAllGrievances = async (req, res) => {
     try {
         const adminId = req.user?._id;

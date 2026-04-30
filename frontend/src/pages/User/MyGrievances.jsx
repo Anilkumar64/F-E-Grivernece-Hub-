@@ -187,7 +187,9 @@ export default function MyGrievances() {
                                     <div className="mg-item-header">
                                         <div className="mg-item-title">{g.title}</div>
 
-                                        <div className={`mg-status-badge ${g.status?.toLowerCase()}`}>
+                                        <div
+                                            className={`mg-status-badge ${g.status?.toLowerCase()?.replace(/\s+/g, "-") || ""} ${getStatusClasses(g.status)}`}
+                                        >
                                             {g.status || "Pending"}
                                         </div>
                                     </div>
