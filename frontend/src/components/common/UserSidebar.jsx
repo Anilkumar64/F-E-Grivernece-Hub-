@@ -62,6 +62,9 @@ export default function UserSidebar({ collapsed, onToggle }) {
                     onClick={() => {
                         localStorage.removeItem("user");
                         localStorage.removeItem("token");
+                        localStorage.removeItem("accessToken");
+                        localStorage.removeItem("refreshToken");
+                        localStorage.removeItem("authUser");
                         navigate("/login");
                     }}
                 >
