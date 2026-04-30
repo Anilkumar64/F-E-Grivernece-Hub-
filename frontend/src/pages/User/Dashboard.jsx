@@ -48,7 +48,7 @@ const Dashboard = () => {
     const getStatusClasses = (status = "") => {
         const s = status.toLowerCase();
         if (s.includes("resolved")) return "bg-green-100 text-green-700";
-        if (s.includes("pending")) return "bg-yellow-100 text-yellow-700";
+        if (s.includes("pending") || s.includes("submitted")) return "bg-yellow-100 text-yellow-700";
         if (s.includes("rejected") || s.includes("closed"))
             return "bg-red-100 text-red-700";
         return "bg-gray-100 text-gray-700";
