@@ -39,9 +39,6 @@ const userSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-userSchema.index({ email: 1 }, { unique: true });
-userSchema.index({ staffId: 1 }, { unique: true, sparse: true });
-userSchema.index({ studentId: 1 }, { unique: true, sparse: true });
 userSchema.index({ role: 1, department: 1 });
 
 userSchema.pre("validate", function (next) {

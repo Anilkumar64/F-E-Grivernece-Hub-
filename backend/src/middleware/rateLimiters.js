@@ -1,6 +1,6 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
-const keyGenerator = (req) => req.userId || req.ip;
+const keyGenerator = (req) => req.userId || ipKeyGenerator(req.ip);
 
 export const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
