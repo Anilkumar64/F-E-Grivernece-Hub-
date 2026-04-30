@@ -14,6 +14,7 @@ import {
     addAdminNote,
     addTimelineEvent,
     addComment,
+    requestCloseGrievance,
     canAdminAccessGrievance
 } from "../controllers/grievanceController.js";
 
@@ -113,5 +114,6 @@ router.patch("/update-priority/:id", verifyToken, verifyAdmin, updateGrievancePr
 router.post("/admin-note/:id", verifyToken, verifyAdmin, addAdminNote);
 router.post("/timeline/:id", verifyToken, verifyAdmin, addTimelineEvent);
 router.post("/comment/:id", verifyToken, addComment);
+router.patch("/request-close/:id", verifyToken, requestCloseGrievance);
 
 export default router;

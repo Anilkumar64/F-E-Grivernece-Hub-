@@ -674,6 +674,37 @@ export const addComment = async (req, res) => {
     }
 };
 
+export const requestCloseGrievance = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const grievance = await Grievance.findById(id);
+
+        if (!grievance) {
+            return res.status(404).json({ message: "Grievance not found" });
+        }
+
+        if (grievance.user?.toString() !== req.userId) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        if (["resolved", "rejected"].includes(grievance.status)) {
+            return res.status(400).json({ message: "Grievance is already closed" });
+        }
+
+        grievance.closureRequested = true;
+        grievance.timeline.push({
+            status: grievance.status,
+            message: "Student requested closure",
+        });
+
+        await grievance.save();
+        res.status(200).json({ message: "Closure request submitted", grievance });
+    } catch (err) {
+        console.error("Request close error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 export const getAdminAllGrievances = async (req, res) => {
     try {
         const adminId = req.user?._id;
