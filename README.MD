@@ -1,244 +1,48 @@
+# University E-Grievance Management System
 
+Full-stack MERN grievance platform with student, department-admin, and super-admin RBAC.
 
-# 🟦 **E-Grievance Hub – University Grievance Management System**
+## Setup
 
-A complete MERN-stack platform designed to streamline grievance submission, tracking, and resolution for universities and institutions.
+1. Install backend dependencies: `cd backend && npm install`
+2. Install frontend dependencies: `cd frontend && npm install`
+3. Copy env: `cp backend/.env.example backend/.env`
+4. Create the first super admin: `cd backend && node createSuperAdmin.js`
+5. Start backend: `cd backend && npm start`
+6. Start frontend: `cd frontend && npm run frontend`
 
-# 🌟 **Overview**
+Docker: `docker compose up --build`
 
-**E-Grievance Hub** connects **Students → Admins → SuperAdmins** in a single transparent workflow.
-It eliminates manual paperwork, long queues, and miscommunication — giving real-time updates, tracking, and accountability inside a campus.
+## Roles
 
----
+- Student: submit grievances, view own list, track timeline, comment, feedback after resolution.
+- Department Admin: view only department grievances, update statuses, comment, monitor SLA warnings.
+- Super Admin: manage admins, departments, categories, audit logs, reports, and all grievances.
 
-# 🚀 **Key Features**
+## Main API Routes
 
-### 🧑‍🎓 **For Students**
+| Area | Routes |
+| --- | --- |
+| Auth | `POST /api/auth/student/login`, `POST /api/auth/admin/login`, `POST /api/auth/superadmin/login`, `POST /api/auth/logout`, `GET /api/auth/me` |
+| Grievances | `POST /api/grievances`, `GET /api/grievances/mine`, `GET /api/grievances/:id`, `GET /api/grievances`, `PATCH /api/grievances/:id/status`, `POST /api/grievances/:id/comments`, `POST /api/grievances/:id/feedback`, `GET /api/grievances/analytics` |
+| Admins | `POST /api/admin/create`, `GET /api/admin/all`, `PATCH /api/admin/:id`, `DELETE /api/admin/:id` |
+| Departments | `GET /api/departments`, `POST /api/departments`, `PATCH /api/departments/:id`, `DELETE /api/departments/:id` |
+| Categories | `GET /api/categories`, `POST /api/categories`, `PATCH /api/categories/:id`, `DELETE /api/categories/:id` |
+| Notifications | `GET /api/notifications/mine`, `PATCH /api/notifications/:id/read`, `PATCH /api/notifications/read-all` |
+| Audit/Reports | `GET /api/audit-logs`, `GET /api/reports/grievances.csv` |
+| Health | `GET /api/health`, `GET /api/ready` |
 
-* File grievances quickly
-* Choose department, grievance type, priority
-* Attach files (PDF, images, etc.)
-* Track real-time grievance progress
-* Anonymous grievance option
+## Frontend Routes
 
-### 🧑‍💼 **For Admins**
+- Public: `/`, `/login`, `/signup`, `/admin/login`, `/superadmin/login`
+- Student: `/dashboard`, `/submit-grievance`, `/my-grievances`, `/grievance/:id`, `/notifications`, `/profile`
+- Admin: `/admin/dashboard`, `/admin/grievances`, `/admin/pending`, `/admin/resolved`, `/admin/grievance/:id`, `/admin/notifications`, `/admin/profile`
+- Super Admin: `/superadmin/dashboard`, `/superadmin/admins`, `/superadmin/departments`, `/superadmin/categories`, `/superadmin/reports`, `/superadmin/audit-logs`, `/superadmin/profile`
 
-* View grievances assigned to their department
-* Change status: *Pending → In Review → Resolved*
-* Add solution notes & timeline
-* Manage student queries
+## Production Notes
 
-### 🏛️ **For SuperAdmins**
-
-* Approve or reject admin registrations
-* Manage departments & grievance categories
-* View system-wide analytics
-* Platform monitoring dashboard
-
-### 📊 **Analytics & Dashboard**
-
-* Total complaints
-* Monthly trends
-* Pie charts & bar graphs for grievance categories
-* Department-wise performance
-
----
-
-# 🧩 **Tech Stack**
-
-### **Frontend**
-
-* React + Vite
-* Tailwind CSS
-* Axios
-* React Router
-* Recharts (Charts & Insights)
-
-### **Backend**
-
-* Node.js
-* Express.js
-* MongoDB + Mongoose
-* JWT Authentication
-* Multer (File Uploads)
-
-### **DevOps**
-
-* Git + GitHub
-* PM2 (optional for deployment)
-* Nginx (optional)
-
----
-
-# 🔐 **System Architecture**
-
-```
-                   ┌────────────────────────────────┐
-                   │          Frontend (React)       │
-                   │  - Student UI                   │
-                   │  - Admin Dashboard              │
-                   │  - SuperAdmin Panel             │
-                   └────────────────────────────────┘
-                                   │
-                                   ▼
-                       ┌─────────────────────┐
-                       │    API Gateway      │
-                       │  (Express Server)   │
-                       └─────────────────────┘
-                                   │
-        ┌────────────────────────────────────────────────────────────┐
-        │                            │                               │
-        ▼                            ▼                               ▼
-┌──────────────┐      ┌───────────────────────┐         ┌───────────────────────┐
-│ Authentication│      │  Grievance Services  │         │  Admin/SuperAdmin     │
-│ JWT + Middleware│    │ CRUD + File Uploads  │         │  Approvals & Config   │
-└──────────────┘      └───────────────────────┘         └───────────────────────┘
-                                   │
-                                   ▼
-                        ┌──────────────────────┐
-                        │   MongoDB Database   │
-                        │ Users / Admins /     │
-                        │ Complaints / Logs    │
-                        └──────────────────────┘
-```
-
----
-
-# 📁 **Project Structure (Backend)**
-
-```
-backend/
-│
-├── server.js
-├── .env
-│
-├── src/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── utils/
-│   ├── Database/
-│   └── uploads/
-│
-└── package.json
-```
-
----
-
-# 📁 **Project Structure (Frontend)**
-
-```
-frontend/
-│
-├── src/
-│   ├── pages/
-│   ├── components/
-│   ├── layouts/
-│   ├── api/
-│   ├── hooks/
-│   └── styles/
-│
-└── index.html
-```
-
----
-
-# ⚙️ **Environment Variables**
-
-Create a `.env` file in **backend**:
-
-```
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/egrievance
-JWT_SECRET=your_secret_key
-CLOUD_UPLOAD_PATH=/uploads
-```
-
----
-
-# 🛠️ **Installation & Setup**
-
-### **1️⃣ Clone the repository**
-
-```bash
-git clone https://github.com/yourusername/egrievance-hub.git
-cd egrievance-hub
-```
-
-### **2️⃣ Install Backend**
-
-```bash
-cd backend
-npm install
-npm start
-```
-
-### **3️⃣ Install Frontend**
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
----
-
-# 🔥 API Overview
-
-### **Authentication**
-
-| Method | Endpoint                | Description      |
-| ------ | ----------------------- | ---------------- |
-| POST   | `/api/users/register`   | Student Signup   |
-| POST   | `/api/users/login`      | Student Login    |
-| POST   | `/api/admin/login`      | Admin Login      |
-| POST   | `/api/superadmin/login` | SuperAdmin Login |
-
-### **Grievances**
-
-| Method | Endpoint                     | Description          |
-| ------ | ---------------------------- | -------------------- |
-| POST   | `/api/grievances`            | Create grievance     |
-| GET    | `/api/grievances/my`         | Student grievances   |
-| PATCH  | `/api/grievances/:id/status` | Admin updates status |
-
----
-
-# 🖼️ Screenshots (Add Later)
-
-```
-/screenshots/dashboard.png
-/screenshots/student_form.png
-/screenshots/admin_panel.png
-/screenshots/superadmin.png
-```
-
----
-
-# 🤝 Contributing
-
-We welcome contributions from students, faculty, and open-source developers.
-
-1. Fork the repo
-2. Create a new branch
-3. Commit your changes
-4. Submit a Pull Request
-
----
-
-# 📜 License
-
-This project is **Open Source** under the **MIT License**.
-
----
-
-# 🎯 Final Notes
-
-E-Grievance Hub is designed to:
-
-* Improve transparency
-* Speed up grievance resolutions
-* Create accountability in institutions
-* Offer a clean tech-driven workflow for students and administration
-
+- JWT access tokens expire in 15 minutes; refresh tokens are stored in httpOnly role-specific cookies.
+- Auth, API, and upload routes are rate-limited.
+- Helmet, CORS whitelist, HPP, Mongo sanitize, and compression are enabled.
+- SLA escalation runs every 30 minutes with `node-cron`.
+- Redis caches department/category lists and analytics for 5 minutes when `REDIS_URL` is available.
