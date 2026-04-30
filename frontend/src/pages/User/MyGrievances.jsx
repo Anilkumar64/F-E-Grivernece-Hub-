@@ -115,7 +115,7 @@ export default function MyGrievances() {
         const s = status.toLowerCase();
         if (s.includes("resolved"))
             return "bg-green-100 text-green-700";
-        if (s.includes("pending"))
+        if (s.includes("pending") || s.includes("submitted"))
             return "bg-yellow-100 text-yellow-700";
         if (s.includes("rejected") || s.includes("closed"))
             return "bg-red-100 text-red-700";
@@ -145,10 +145,10 @@ export default function MyGrievances() {
                         className="mg-select"
                     >
                         <option value="all">All Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Resolved">Resolved</option>
-                        <option value="Rejected">Rejected</option>
+                        <option value="submitted">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="rejected">Rejected</option>
                     </select>
 
                     <select
