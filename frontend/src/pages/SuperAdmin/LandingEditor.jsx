@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import api from "../../api/axiosInstance";
-import LandingPage from "../Landing/LandingPage";
 
 const emptyFeature = { icon: "FileText", title: "", description: "" };
 const emptyAnnouncement = { title: "", body: "", isActive: true };
