@@ -48,8 +48,10 @@ const adminSchema = new mongoose.Schema(
         idCardFile: {
             type: String, // file URL or path (like /uploads/idcards/...)
         },
-        Refreshtoken: {
+        // ✅ Fixed: Changed from Refreshtoken to refreshToken for consistent camelCase naming
+        refreshToken: {
             type: String,
+            default: null,
         },
         verified: {
             type: Boolean,

@@ -78,7 +78,7 @@ export const loginAdmin = async (req, res) => {
         const refreshToken = generateRefreshToken(adminUser);
 
         // store refresh token (keep field name consistent with your schema)
-        adminUser.Refreshtoken = refreshToken;
+        adminUser.refreshToken = refreshToken;
         await adminUser.save({ validateBeforeSave: false });
 
         return res.status(200).json({
@@ -112,8 +112,8 @@ export const refreshAccessToken = async (req, res) => {
             return res.status(401).json({ message: "Refresh token missing" });
         }
 
-        // use Admin model, not "admin"
-        const adminUser = await Admin.findOne({ Refreshtoken: refreshToken });
+        // ✅ Use updated field name
+        const adminUser = await Admin.findOne({ refreshToken });
         if (!adminUser) {
             return res.status(403).json({ message: "Invalid refresh token" });
         }
@@ -158,7 +158,7 @@ export const logoutAdmin = async (req, res) => {
             return res.status(404).json({ message: "Admin not found" });
         }
 
-        adminUser.Refreshtoken = null;
+        adminUser.refreshToken = null;
         await adminUser.save({ validateBeforeSave: false });
 
         res.status(200).json({ message: "Logged out successfully" });
