@@ -19,11 +19,10 @@
     "mongoose": "^8.19.3",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
-    "nodemailer": "^7.0.10"
+    "nodemailer": "^8.0.7"
   },
   "main": "server.js",
   "author": "",
   "license": "ISC",
-  "description": "its a egriverence",
-  "devDependencies": {}
+  "description": "its a egriverence"
 }

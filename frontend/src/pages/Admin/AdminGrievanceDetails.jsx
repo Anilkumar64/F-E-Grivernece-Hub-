@@ -25,6 +25,7 @@ export default function AdminGrievanceDetails() {
     useEffect(() => {
         fetchGrievance();
         fetchAdmins();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     const fetchGrievance = async () => {

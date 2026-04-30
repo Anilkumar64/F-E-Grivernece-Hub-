@@ -26,6 +26,7 @@ export default function MyGrievances() {
     useEffect(() => {
         applyFilters();
         setPage(1);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [grievances, search, statusFilter, sortBy]);
 
     const fetchMyGrievances = async () => {

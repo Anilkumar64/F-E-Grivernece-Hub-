@@ -31,6 +31,7 @@ export default function GrievanceDetails() {
 
     useEffect(() => {
         fetchGrievance();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     // ================================

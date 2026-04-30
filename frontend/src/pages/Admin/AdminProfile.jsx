@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../api/axiosInstance";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import AuthenticatedImage from "../../components/common/AuthenticatedImage";
 import "../../styles/AdminStyles/AdminProfile.css";
 
 function AdminProfile() {
@@ -47,6 +48,7 @@ function AdminProfile() {
 
     useEffect(() => {
         fetchProfile();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (loading) return <div className="admin-profile-loading">Loading profile...</div>;
@@ -97,7 +99,7 @@ function AdminProfile() {
             {admin.idCardFile && (
                 <div className="admin-profile-idcard">
                     <p className="admin-profile-idlabel">ID Card:</p>
-                    <img
+                    <AuthenticatedImage
                         src={idCardUrl}
                         alt="ID Card"
                         className="admin-profile-id-img"

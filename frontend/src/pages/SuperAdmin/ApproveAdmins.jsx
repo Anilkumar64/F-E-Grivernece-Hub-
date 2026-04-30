@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../api/axiosInstance";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import AuthenticatedImage from "../../components/common/AuthenticatedImage";
 
 function ApproveAdmins() {
     const [pendingAdmins, setPendingAdmins] = useState([]);
@@ -164,7 +165,7 @@ function ApproveAdmins() {
                                 {idCardUrl && (
                                     <div className="ap-id-card">
                                         <span className="ap-label">ID Card</span>
-                                        <img
+                                        <AuthenticatedImage
                                             src={idCardUrl}
                                             alt="ID Card"
                                             className="ap-id-image"

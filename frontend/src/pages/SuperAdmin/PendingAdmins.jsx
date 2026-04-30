@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../../api/axiosInstance";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import AuthenticatedImage from "../../components/common/AuthenticatedImage";
 
 
 export default function PendingAdmins() {
@@ -176,7 +177,7 @@ export default function PendingAdmins() {
 
                         <div className="pa-modal-body">
                             {/\.(png|jpe?g|gif|webp)$/i.test(previewUrl) ? (
-                                <img src={previewUrl} alt="idcard" />
+                                <AuthenticatedImage src={previewUrl} alt="idcard" />
                             ) : (
                                 <iframe
                                     title="preview"

@@ -23,6 +23,7 @@ export default function ManageDepartments() {
     useEffect(() => {
         nameRef.current?.focus();
         fetchDepartments();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchDepartments = async () => {
