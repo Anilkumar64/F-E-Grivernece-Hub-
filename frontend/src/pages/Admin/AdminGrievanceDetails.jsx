@@ -35,7 +35,7 @@ export default function AdminGrievanceDetails() {
 
             setGrievance(data);
             setStatus(data.status || "");
-            setPriority(data.priority || "Medium");
+            setPriority(data.priority || "medium");
             setAssignedTo(data.assignedTo?._id || data.assignedTo || "");
         } catch (err) {
             toast.error(err?.response?.data?.message || "Failed to load grievance");
@@ -204,7 +204,7 @@ export default function AdminGrievanceDetails() {
                     <div className="agd-actions-row">
                         <button
                             className="agd-btn"
-                            onClick={() => handleChangeStatus("In Progress")}
+                            onClick={() => handleChangeStatus("in_progress")}
                             disabled={saving}
                         >
                             Start
@@ -212,7 +212,7 @@ export default function AdminGrievanceDetails() {
 
                         <button
                             className="agd-btn agd-btn-outline"
-                            onClick={() => handleChangeStatus("Resolved")}
+                            onClick={() => handleChangeStatus("resolved")}
                             disabled={saving}
                         >
                             Resolve
@@ -220,7 +220,7 @@ export default function AdminGrievanceDetails() {
 
                         <button
                             className="agd-btn agd-btn-danger"
-                            onClick={() => handleChangeStatus("Rejected")}
+                            onClick={() => handleChangeStatus("rejected")}
                             disabled={saving}
                         >
                             Reject
@@ -269,10 +269,10 @@ export default function AdminGrievanceDetails() {
                                 onChange={(e) => setStatus(e.target.value)}
                             >
                                 <option value="">Select Status</option>
-                                <option>Pending</option>
-                                <option>In Progress</option>
-                                <option>Resolved</option>
-                                <option>Rejected</option>
+                                <option value="submitted">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="rejected">Rejected</option>
                             </select>
 
                             <button
@@ -328,10 +328,10 @@ export default function AdminGrievanceDetails() {
                             value={priority}
                             onChange={(e) => setPriority(e.target.value)}
                         >
-                            <option>Low</option>
-                            <option>Medium</option>
-                            <option>High</option>
-                            <option>Critical</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
                         </select>
 
                         <button className="agd-btn" onClick={handleChangePriority} disabled={saving}>
