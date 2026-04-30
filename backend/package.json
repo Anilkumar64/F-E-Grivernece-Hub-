@@ -8,21 +8,32 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",
     "debug": "~2.6.9",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.4.1",
     "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
     "http-errors": "~1.6.3",
+    "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.3",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
-    "nodemailer": "^8.0.7"
+    "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.7",
+    "redis": "^5.12.1",
+    "zod": "^4.4.1"
   },
   "main": "server.js",
   "author": "",
   "license": "ISC",
-  "description": "its a egriverence"
+  "description": "its a egriverence",
+  "devDependencies": {
+    "baseline-browser-mapping": "^2.10.24"
+  }
 }
