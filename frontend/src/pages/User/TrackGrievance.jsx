@@ -54,11 +54,7 @@ export default function TrackGrievance() {
         if (!window.confirm("Request to close this grievance?")) return;
 
         try {
-            // matches router.patch("/update-status/:id", ...)
-            await api.patch(`/grievances/update-status/${grievance._id}`, {
-                status: "resolved",
-                adminRemarks: "Student requested closure",
-            });
+            await api.patch(`/grievances/request-close/${grievance._id}`);
 
             toast.success("Close request submitted");
             fetchGrievance();

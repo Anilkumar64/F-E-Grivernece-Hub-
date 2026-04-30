@@ -67,10 +67,7 @@ export default function GrievanceDetails() {
         if (!window.confirm("Request to close this grievance?")) return;
 
         try {
-            await api.patch(`/grievances/update-status/${grievance._id}`, {
-                status: "Resolved",
-                message: "Student requested closing",
-            });
+            await api.patch(`/grievances/request-close/${grievance._id}`);
 
             toast.success("Close request submitted");
             fetchGrievance();
