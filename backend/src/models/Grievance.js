@@ -59,10 +59,6 @@ const grievanceSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-grievanceSchema.index({ status: 1 });
-grievanceSchema.index({ department: 1 });
-grievanceSchema.index({ submittedBy: 1 });
-grievanceSchema.index({ assignedTo: 1 });
 grievanceSchema.index({ createdAt: -1 });
 grievanceSchema.index({ department: 1, status: 1 });
 grievanceSchema.index({ grievanceId: "text", title: "text" });
