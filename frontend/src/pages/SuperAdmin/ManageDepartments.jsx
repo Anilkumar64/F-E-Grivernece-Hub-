@@ -11,6 +11,8 @@ export default function ManageDepartments() {
 
     const [name, setName] = useState("");
     const [code, setCode] = useState("");
+    const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [description, setDescription] = useState("");
 
     const [confirmDelete, setConfirmDelete] = useState(null);
@@ -48,6 +50,11 @@ export default function ManageDepartments() {
             return;
         }
 
+        if (!email.trim()) {
+            toast.warn("Department email is required");
+            return;
+        }
+
         // prevent duplicates
         if (departments.some((d) => d.name.toLowerCase() === name.trim().toLowerCase())) {
             toast.error("Department already exists");
@@ -60,6 +67,8 @@ export default function ManageDepartments() {
             await api.post("/superadmin/departments", {
                 name: name.trim(),
                 code: code.trim() || undefined,
+                email: email.trim(),
+                phone: phone.trim() || undefined,
                 description: description.trim() || undefined,
             });
 
@@ -67,6 +76,8 @@ export default function ManageDepartments() {
 
             setName("");
             setCode("");
+            setEmail("");
+            setPhone("");
             setDescription("");
             nameRef.current?.focus();
 
@@ -120,16 +131,31 @@ export default function ManageDepartments() {
                         onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                     />
 
-                    <input
-                        className="md-input"
-                        placeholder="Department code (optional)"
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                    />
+                        <input
+                            className="md-input"
+                            placeholder="Department code"
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
+                        />
 
-                    <input
-                        className="md-input"
-                        placeholder="Description (optional)"
+                        <input
+                            className="md-input"
+                            placeholder="Department email *"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+
+                        <input
+                            className="md-input"
+                            placeholder="Phone (optional)"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                        />
+
+                        <input
+                            className="md-input"
+                            placeholder="Description (optional)"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
@@ -150,6 +176,8 @@ export default function ManageDepartments() {
                         onClick={() => {
                             setName("");
                             setCode("");
+                            setEmail("");
+                            setPhone("");
                             setDescription("");
                             nameRef.current?.focus();
                         }}
@@ -184,6 +212,9 @@ export default function ManageDepartments() {
 
                                         {dept.description && (
                                             <p className="md-desc">{dept.description}</p>
+                                        )}
+                                        {dept.email && (
+                                            <p className="md-desc">{dept.email}</p>
                                         )}
 
                                         <p className="md-date">Created: {createdText}</p>
