@@ -1,4 +1,5 @@
 // backend/src/controllers/grievanceController.js
+import mongoose from "mongoose";
 import Grievance from "../models/Grievance.js";
 import User from "../models/User.js";
 import Department from "../models/Department.js";
@@ -66,7 +67,7 @@ const getPagination = (query) => {
     return { page, limit, skip };
 };
 
-const canAdminAccessGrievance = (req, grievance) => {
+export const canAdminAccessGrievance = (req, grievance) => {
     if (req.role === "superadmin") return true;
     if (!req.admin?.department || !grievance?.department) return false;
     return grievance.department.toString() === req.admin.department.toString();
@@ -142,30 +143,48 @@ export const createGrievance = async (req, res) => {
             }));
         }
 
-        // create grievance
-        const grievance = await Grievance.create({
-            user: userId,
-            userEmail: user.email,
-            department,
-            complaintType: complaintType || undefined,
-            title,
-            description,
-            priority: normalizedPriority,
-            isAnonymous: isAnonymous === "true" || isAnonymous === true,
-            attachments,
-            status: "submitted",
-            timeline: [
-                {
-                    status: "submitted",
-                    message: "Grievance submitted",
-                },
-            ],
-        });
+        attachments = attachments.map((file) => ({
+            ...file,
+            fileUrl: file.fileUrl.replace("/uploads/idcards/", "/uploads/grievance_attachments/"),
+        }));
 
-        // update department counters
-        await Department.findByIdAndUpdate(department, {
-            $inc: { totalComplaints: 1, activeComplaints: 1 },
-        });
+        let grievance;
+        const session = await mongoose.startSession();
+        try {
+            await session.withTransaction(async () => {
+                const [created] = await Grievance.create(
+                    [{
+                        user: userId,
+                        userEmail: user.email,
+                        department,
+                        complaintType: complaintType || undefined,
+                        title,
+                        description,
+                        priority: normalizedPriority,
+                        isAnonymous: isAnonymous === "true" || isAnonymous === true,
+                        attachments,
+                        status: "submitted",
+                        timeline: [
+                            {
+                                status: "submitted",
+                                message: "Grievance submitted",
+                            },
+                        ],
+                    }],
+                    { session }
+                );
+
+                grievance = created;
+
+                await Department.findByIdAndUpdate(
+                    department,
+                    { $inc: { totalComplaints: 1, activeComplaints: 1 } },
+                    { session }
+                );
+            });
+        } finally {
+            await session.endSession();
+        }
 
         // send emails (best-effort)
         try {
@@ -211,7 +230,7 @@ Tracking ID: ${grievance.trackingId}`;
         });
     } catch (error) {
         console.error("Create grievance error:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
+        res.status(500).json({ message: "Server error" });
     }
 };
 
@@ -222,12 +241,14 @@ Tracking ID: ${grievance.trackingId}`;
  */
 export const getMyGrievances = async (req, res) => {
     try {
+        const { limit, skip, page } = getPagination(req.query);
         const grievances = await Grievance.find({ user: req.user._id })
             .populate("department", "name")
             .sort({ createdAt: -1 })
-            .limit(getPagination(req.query).limit);
+            .skip(skip)
+            .limit(limit);
 
-        res.json(grievances);
+        res.json({ grievances, page, limit });
     } catch (error) {
         console.error("getMyGrievances error:", error);
         res.status(500).json({ message: "Failed to fetch grievances" });
@@ -281,6 +302,10 @@ export const updateGrievanceStatus = async (req, res) => {
             return res.status(403).json({ message: "Access denied" });
         }
 
+        const previousStatus = grievance.status;
+        const wasTerminal = ["resolved", "rejected"].includes(previousStatus);
+        const willBeTerminal = ["resolved", "rejected"].includes(normalizedStatus);
+
         // update fields
         grievance.status = normalizedStatus;
         if (adminRemarks) grievance.adminRemarks = adminRemarks;
@@ -292,13 +317,22 @@ export const updateGrievanceStatus = async (req, res) => {
             message: adminRemarks || "",
         });
 
-        // update department counters when resolved / rejected
-        const wasOpen = !["resolved", "rejected"].includes(grievance.status);
-        if ((normalizedStatus === "resolved" || normalizedStatus === "rejected") && wasOpen) {
+        if (!wasTerminal && willBeTerminal) {
             grievance.resolutionDate = new Date();
 
+            const inc = { activeComplaints: -1 };
+            if (normalizedStatus === "resolved") inc.resolvedComplaints = 1;
+            await Department.findByIdAndUpdate(grievance.department, { $inc: inc });
+        } else if (wasTerminal && !willBeTerminal) {
+            grievance.resolutionDate = null;
+
+            const inc = { activeComplaints: 1 };
+            if (previousStatus === "resolved") inc.resolvedComplaints = -1;
+            await Department.findByIdAndUpdate(grievance.department, { $inc: inc });
+        } else if (previousStatus === "rejected" && normalizedStatus === "resolved") {
+            grievance.resolutionDate = new Date();
             await Department.findByIdAndUpdate(grievance.department, {
-                $inc: { activeComplaints: -1, resolvedComplaints: 1 },
+                $inc: { resolvedComplaints: 1 },
             });
         }
 
@@ -325,7 +359,6 @@ export const updateGrievanceStatus = async (req, res) => {
         console.error("updateGrievanceStatus error:", error);
         res.status(500).json({
             message: "Failed to update grievance",
-            error: error.message,
         });
     }
 };
@@ -602,6 +635,42 @@ export const addTimelineEvent = async (req, res) => {
     }
 };
 
+export const addComment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const text = (req.body.comment || req.body.text || "").trim();
+
+        if (!text) {
+            return res.status(400).json({ message: "Comment is required" });
+        }
+
+        const grievance = await Grievance.findById(id);
+        if (!grievance) {
+            return res.status(404).json({ message: "Grievance not found" });
+        }
+
+        const isOwner = grievance.user?.toString() === req.userId;
+        const isAdmin = ["departmentadmin", "superadmin"].includes(req.role);
+        if (!isOwner && (!isAdmin || !canAdminAccessGrievance(req, grievance))) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        grievance.comments.push({
+            author: req.userId,
+            authorModel: isAdmin ? "Admin" : "User",
+            authorName: req.user?.name || req.user?.email || "",
+            text,
+            isAdmin,
+        });
+
+        await grievance.save();
+        res.status(201).json({ message: "Comment added", grievance });
+    } catch (err) {
+        console.error("Add comment error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 export const getAdminAllGrievances = async (req, res) => {
     try {
         const adminId = req.user?._id;
@@ -691,6 +760,10 @@ export const escalateGrievance = async (req, res) => {
         }
 
         if (forwardDeptId) {
+            const dept = await Department.exists({ _id: forwardDeptId });
+            if (!dept) {
+                return res.status(400).json({ message: "Invalid forwarding department" });
+            }
             grievance.forwardedToDept = forwardDeptId;
         }
 
