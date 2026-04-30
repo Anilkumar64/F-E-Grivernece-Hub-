@@ -19,7 +19,7 @@ export default function GrievanceDetails() {
     const fetchGrievance = async () => {
         setLoading(true);
         try {
-            const res = await api.get(`/grievances/${id}`);
+            const res = await api.get(`/grievances/track/${id}`);
             setGrievance(res.data?.grievance || res.data || null);
         } catch (err) {
             console.error("Fetch grievance error:", err);
