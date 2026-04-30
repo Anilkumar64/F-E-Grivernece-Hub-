@@ -12,9 +12,20 @@ const router = express.Router();
 router.get("/", async (_req, res) => {
     const cached = await getCache("departments:all");
     if (cached) return res.json({ departments: cached });
-    const departments = await Department.find().populate("headAdmin", "name email").sort({ name: 1 });
+    const departments = await Department.find()
+        .populate("headAdmin", "name email staffId")
+        .populate("grievanceCount")
+        .sort({ name: 1 });
     await setCache("departments:all", departments);
     res.json({ departments });
+});
+
+router.get("/:id", authenticate, authorize("superadmin"), async (req, res) => {
+    const department = await Department.findById(req.params.id)
+        .populate("headAdmin", "name email staffId")
+        .populate("grievanceCount");
+    if (!department) return res.status(404).json({ message: "Department not found" });
+    res.json({ department });
 });
 
 router.post("/", authenticate, authorize("superadmin"), async (req, res) => {
@@ -33,19 +44,11 @@ router.patch("/:id", authenticate, authorize("superadmin"), async (req, res) => 
 });
 
 router.delete("/:id", authenticate, authorize("superadmin"), async (req, res) => {
-    const usage = await Promise.all([
-        User.exists({ department: req.params.id }),
-        Grievance.exists({ department: req.params.id }),
-        GrievanceCategory.exists({ department: req.params.id }),
-    ]);
-    const inUse = usage.some(Boolean);
-
-    if (inUse) return res.status(409).json({ message: "Department is in use and cannot be deleted" });
-    const department = await Department.findByIdAndDelete(req.params.id);
+    const department = await Department.findByIdAndUpdate(req.params.id, { isActive: false }, { new: true });
     if (!department) return res.status(404).json({ message: "Department not found" });
     await delCache("departments:*");
-    await writeAuditLog(req, "DEPARTMENT_DELETED", "Department", department._id);
-    res.json({ message: "Department deleted" });
+    await writeAuditLog(req, "DEPARTMENT_DEACTIVATED", "Department", department._id);
+    res.json({ message: "Department deactivated", department });
 });
 
 export default router;

@@ -1,6 +1,14 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+const ordinal = (value) => {
+    const number = Number(value);
+    if (!number) return "";
+    const suffix = ["th", "st", "nd", "rd"];
+    const mod100 = number % 100;
+    return `${number}${suffix[(mod100 - 20) % 10] || suffix[mod100] || suffix[0]}`;
+};
+
 const userSchema = new mongoose.Schema(
     {
         name: { type: String, required: true, trim: true, maxlength: 120 },
@@ -21,6 +29,10 @@ const userSchema = new mongoose.Schema(
             index: true,
         },
         studentId: { type: String, trim: true, sparse: true },
+        rollNumber: { type: String, trim: true, default: "" },
+        class: { type: String, trim: true, default: "" },
+        admissionYear: { type: Number, min: 1990, max: 2100, default: null },
+        course: { type: mongoose.Schema.Types.ObjectId, ref: "Course", default: null },
         staffId: { type: String, trim: true, sparse: true },
         department: {
             type: mongoose.Schema.Types.ObjectId,
@@ -28,15 +40,18 @@ const userSchema = new mongoose.Schema(
             default: null,
         },
         phone: { type: String, trim: true, default: "" },
+        contactNumber: { type: String, trim: true, default: "" },
+        alternateEmail: { type: String, trim: true, default: "" },
         address: { type: String, trim: true, default: "" },
         yearOfStudy: { type: String, trim: true, default: "" },
         avatar: { type: String, default: "" },
+        profilePhoto: { type: String, default: "" },
         isActive: { type: Boolean, default: true, index: true },
         refreshTokenHash: { type: String, select: false, default: null },
         resetToken: { type: String, select: false, default: null },
         resetTokenExpire: { type: Date, select: false, default: null },
     },
-    { timestamps: true }
+    { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
 userSchema.index({ role: 1, department: 1 });
@@ -66,5 +81,14 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.comparePassword = function (password) {
     return bcrypt.compare(password, this.password);
 };
+
+userSchema.virtual("currentYear").get(function () {
+    if (!this.admissionYear) return this.yearOfStudy || "";
+    const now = new Date();
+    const academicYear = now.getMonth() + 1 >= 7 ? now.getFullYear() : now.getFullYear() - 1;
+    const rawYear = Math.max(1, Math.floor(academicYear - this.admissionYear + 1));
+    const duration = this.course?.durationYears || 8;
+    return `${ordinal(Math.min(rawYear, duration))} Year`;
+});
 
 export default mongoose.model("User", userSchema);
