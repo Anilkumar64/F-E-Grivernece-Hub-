@@ -67,9 +67,11 @@ export const verifySuperAdmin = async (req, res, next) => {
         }
 
         req.user = decoded;
+        req.userId = decoded._id;
+        req.role = decoded.role;
         next();
     } catch (error) {
         console.error("SuperAdmin check error:", error);
-        res.status(401).json({ message: "Invalid or expired token" });
+        return res.status(401).json({ message: "Invalid or expired token" });
     }
 };
