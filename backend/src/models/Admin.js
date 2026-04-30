@@ -68,7 +68,7 @@ adminSchema.pre("save", async function (next) {
 
 // 🔍 Compare passwords
 adminSchema.methods.isPasswordCorrect = async function (password) {
-    return await bcrypt.compare(password, this.password);
+    return await bcryptjs.compare(password, this.password);
 };
 
 // 🔑 Generate tokens
