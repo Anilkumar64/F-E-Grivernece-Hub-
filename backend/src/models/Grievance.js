@@ -118,12 +118,16 @@ const grievanceSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Indexes for common queries
+// ✅ Comprehensive indexes for frequently queried fields
 grievanceSchema.index({ user: 1 });
 grievanceSchema.index({ department: 1 });
 grievanceSchema.index({ assignedTo: 1 });
 grievanceSchema.index({ status: 1 });
-grievanceSchema.index({ trackingId: 1 });
+grievanceSchema.index({ trackingId: 1 }, { unique: true });
+grievanceSchema.index({ createdAt: -1 });
+grievanceSchema.index({ user: 1, status: 1 });  // Compound for user's grievances by status
+grievanceSchema.index({ department: 1, status: 1 });  // Compound for department stats
+grievanceSchema.index({ status: 1, createdAt: -1 });  // For filtering and sorting
 
 // Auto-generate trackingId if not present
 grievanceSchema.pre("validate", function (next) {
