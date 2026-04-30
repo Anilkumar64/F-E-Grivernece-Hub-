@@ -135,7 +135,7 @@ function ApproveAdmins() {
                                             {admin.name || "Unnamed Admin"}
                                         </h3>
                                         <p className="ap-card-role">
-                                            {admin.department || "No department set"}
+                                            {admin.department?.name || admin.department || "No department set"}
                                         </p>
                                     </div>
                                 </div>

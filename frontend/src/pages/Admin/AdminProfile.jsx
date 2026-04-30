@@ -81,7 +81,7 @@ function AdminProfile() {
                 <p><strong>Name:</strong> {admin.name}</p>
                 <p><strong>Email:</strong> {admin.email}</p>
                 <p><strong>Staff ID:</strong> {admin.staffId}</p>
-                <p><strong>Department:</strong> {admin.department}</p>
+                <p><strong>Department:</strong> {admin.department?.name || admin.department || "—"}</p>
                 <p><strong>Role:</strong> {admin.role}</p>
 
                 <p>
