@@ -111,7 +111,7 @@ export const loginAdmin = async (req, res) => {
         const refreshToken = adminUser.generateRefreshToken();
 
         // 6️⃣ Save refresh token in DB
-        adminUser.Refreshtoken = refreshToken;
+        adminUser.refreshToken = refreshToken;
         await adminUser.save({ validateBeforeSave: false });
 
         // 7️⃣ Send response
