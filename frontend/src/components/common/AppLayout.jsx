@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import AuthContext from "../../context/AuthCore";
 import { useNotifications } from "../../hooks/useNotifications";
+import api from "../../api/axiosInstance";
 
 const iconSize = 20;
 
@@ -177,7 +178,6 @@ export default function AppLayout({ role }) {
 }
 
 async function apiMarkAll(reloadNotifications) {
-    const api = (await import("../../api/axiosInstance")).default;
     await api.patch("/notifications/read-all");
     reloadNotifications();
 }

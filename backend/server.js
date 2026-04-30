@@ -88,7 +88,12 @@ app.get("/uploads/:folder/:file", authenticate, (req, res) => {
 });
 
 app.get("/api/health", (_req, res) => {
-    res.json({ status: "ok", uptime: process.uptime(), dbStatus: mongoose.connection.readyState === 1 ? "connected" : "disconnected" });
+    res.json({
+        status: "ok",
+        uptime: process.uptime(),
+        dbStatus: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+        version: process.env.npm_package_version || "0.0.0",
+    });
 });
 
 app.get("/api/ready", (_req, res) => {
