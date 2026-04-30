@@ -8,7 +8,7 @@ import AuthContext from "./AuthCore";
 import NotificationContext from "./NotificationCore.jsx";
 
 export const NotificationProvider = ({ children }) => {
-    const { isAuthenticated, loading: authLoading } = useContext(AuthContext);
+    const { authUser, role, isAuthenticated, loading: authLoading } = useContext(AuthContext);
 
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -21,12 +21,18 @@ export const NotificationProvider = ({ children }) => {
     // 🔹 Fetch notifications from backend
     const fetchNotifications = async () => {
         if (!isAuthenticated) return;
+        if (!(authUser?._id || authUser?.id) || !role) return;
 
         setLoading(true);
         setError(null);
 
         try {
-            const res = await axiosInstance.get("/api/notifications/");
+            const res = await axiosInstance.get("/notifications", {
+                params: {
+                    userId: authUser?._id || authUser?.id,
+                    role,
+                },
+            });
             const data = res.data.notifications || res.data.data || res.data || [];
 
             setNotifications(data);
@@ -42,7 +48,7 @@ export const NotificationProvider = ({ children }) => {
     // 🔹 Mark single notification as read
     const markAsRead = async (id) => {
         try {
-            await axiosInstance.patch(`/api/notifications/read/${id}`);
+            await axiosInstance.patch(`/notifications/${id}/read`);
 
             setNotifications((prev) => {
                 const updated = prev.map((n) =>
@@ -61,7 +67,7 @@ export const NotificationProvider = ({ children }) => {
     // 🔹 Delete a notification
     const deleteNotification = async (id) => {
         try {
-            await axiosInstance.delete(`/api/notifications/${id}`);
+            await axiosInstance.delete(`/notifications/${id}`);
 
             setNotifications((prev) => {
                 const updated = prev.filter((n) => n._id !== id);
@@ -86,7 +92,7 @@ export const NotificationProvider = ({ children }) => {
 
         fetchNotifications();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [authLoading, isAuthenticated]);
+    }, [authLoading, isAuthenticated, authUser, role]);
 
     const value = {
         notifications,

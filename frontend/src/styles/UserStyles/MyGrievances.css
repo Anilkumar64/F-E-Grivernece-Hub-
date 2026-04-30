@@ -157,7 +157,9 @@
 }
 
 /* IN PROGRESS */
-["in progress"],
+.in-progress,
+.in_progress,
+.inprogress,
 .bg-blue-100 {
     background: #dbeafe;
     color: #1e40af;

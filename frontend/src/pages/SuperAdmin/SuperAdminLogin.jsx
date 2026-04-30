@@ -61,11 +61,16 @@ export default function SuperAdminLogin() {
 
             // Save tokens + superadmin object
             const token = res.data.accessToken;
+            const refreshToken = res.data.refreshToken;
             if (token) {
                 localStorage.setItem("accessToken", token);
                 localStorage.setItem("token", token);
             }
+            if (refreshToken) {
+                localStorage.setItem("refreshToken", refreshToken);
+            }
             localStorage.setItem("superadmin", JSON.stringify(admin));
+            localStorage.setItem("authUser", JSON.stringify(admin));
 
             toast.success("Super Admin login successful");
             navigate("/superadmin/dashboard");

@@ -59,6 +59,19 @@ const normalizePriorityFromClient = (priority) => {
     return "medium";
 };
 
+const getPagination = (query) => {
+    const page = Math.max(parseInt(query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(query.limit, 10) || 50, 1), 100);
+    const skip = (page - 1) * limit;
+    return { page, limit, skip };
+};
+
+const canAdminAccessGrievance = (req, grievance) => {
+    if (req.role === "superadmin") return true;
+    if (!req.admin?.department || !grievance?.department) return false;
+    return grievance.department.toString() === req.admin.department.toString();
+};
+
 // Optional: map DB → UI priority
 export const mapPriorityToUi = (priority) => {
     const p = (priority || "").toLowerCase();
@@ -100,7 +113,11 @@ export const createGrievance = async (req, res) => {
                 .json({ message: "Title, description, and department are required" });
         }
 
-        const userId = req.user._id;
+        const userId = req.user?._id;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
         const user = await User.findById(userId).select("name email");
 
         if (!user) return res.status(404).json({ message: "User not found" });
@@ -121,7 +138,7 @@ export const createGrievance = async (req, res) => {
         if (req.files && req.files.length > 0) {
             attachments = req.files.map((file) => ({
                 fileName: file.originalname,
-                fileUrl: `/uploads/${file.filename}`,
+                fileUrl: `/uploads/idcards/${file.filename}`,
             }));
         }
 
@@ -207,7 +224,8 @@ export const getMyGrievances = async (req, res) => {
     try {
         const grievances = await Grievance.find({ user: req.user._id })
             .populate("department", "name")
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .limit(getPagination(req.query).limit);
 
         res.json(grievances);
     } catch (error) {
@@ -259,6 +277,10 @@ export const updateGrievanceStatus = async (req, res) => {
         if (!grievance)
             return res.status(404).json({ message: "Grievance not found" });
 
+        if (!canAdminAccessGrievance(req, grievance)) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
         // update fields
         grievance.status = normalizedStatus;
         if (adminRemarks) grievance.adminRemarks = adminRemarks;
@@ -271,7 +293,8 @@ export const updateGrievanceStatus = async (req, res) => {
         });
 
         // update department counters when resolved / rejected
-        if (normalizedStatus === "resolved" || normalizedStatus === "rejected") {
+        const wasOpen = !["resolved", "rejected"].includes(grievance.status);
+        if ((normalizedStatus === "resolved" || normalizedStatus === "rejected") && wasOpen) {
             grievance.resolutionDate = new Date();
 
             await Department.findByIdAndUpdate(grievance.department, {
@@ -461,6 +484,19 @@ export const assignGrievance = async (req, res) => {
             return res.status(404).json({ message: "Grievance not found" });
         }
 
+        if (!canAdminAccessGrievance(req, grievance)) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        const assignee = await Admin.findById(adminId);
+        if (!assignee) {
+            return res.status(400).json({ message: "Assigned admin not found" });
+        }
+
+        if (req.role !== "superadmin" && assignee.department?.toString() !== req.admin.department?.toString()) {
+            return res.status(403).json({ message: "Cannot assign outside your department" });
+        }
+
         grievance.assignedTo = adminId;
         await grievance.save();
 
@@ -485,10 +521,13 @@ export const getAdminAllGrievances = async (req, res) => {
             query.department = admin.department;
         }
 
+        const { limit, skip } = getPagination(req.query);
         const grievances = await Grievance.find(query)
             .sort({ createdAt: -1 })
             .populate("department", "name")
-            .populate("user", "name email");
+            .populate("user", "name email")
+            .skip(skip)
+            .limit(limit);
 
         return res.json({ grievances });
     } catch (error) {
@@ -519,10 +558,13 @@ export const getAdminPendingGrievances = async (req, res) => {
             query.department = admin.department;
         }
 
+        const { limit, skip } = getPagination(req.query);
         const grievances = await Grievance.find(query)
             .sort({ createdAt: -1 })
             .populate("department", "name")
-            .populate("user", "name email");
+            .populate("user", "name email")
+            .skip(skip)
+            .limit(limit);
 
         return res.json({ grievances });
     } catch (error) {
@@ -544,6 +586,10 @@ export const escalateGrievance = async (req, res) => {
         const grievance = await Grievance.findById(id);
         if (!grievance)
             return res.status(404).json({ message: "Grievance not found" });
+
+        if (!canAdminAccessGrievance(req, grievance)) {
+            return res.status(403).json({ message: "Access denied" });
+        }
 
         if (escalateToSuper) {
             grievance.escalatedToSuper = true;

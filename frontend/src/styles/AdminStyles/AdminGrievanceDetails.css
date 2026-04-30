@@ -63,7 +63,8 @@
     color: #8a6d3b;
 }
 
-.agd-badge["in progress"],
+.agd-badge.in-progress,
+.agd-badge.in_progress,
 .agd-badge.inprogress {
     background: #dbeafe;
     color: #1e40af;

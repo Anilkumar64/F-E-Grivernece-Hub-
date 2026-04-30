@@ -32,7 +32,8 @@ export default function AdminLogin() {
             });
 
             const accessToken = res?.data?.accessToken;
-            const admin = res?.data?.admin;
+            const refreshToken = res?.data?.refreshToken;
+            const admin = res?.data?.admin || res?.data?.user;
 
             if (accessToken) {
                 localStorage.setItem("accessToken", accessToken);
@@ -40,8 +41,13 @@ export default function AdminLogin() {
                 localStorage.setItem("token", accessToken);
             }
 
+            if (refreshToken) {
+                localStorage.setItem("refreshToken", refreshToken);
+            }
+
             if (admin) {
                 localStorage.setItem("admin", JSON.stringify(admin));
+                localStorage.setItem("authUser", JSON.stringify(admin));
             }
 
             toast.success("Admin login successful");

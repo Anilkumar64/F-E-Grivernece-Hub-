@@ -21,10 +21,12 @@ const Login = () => {
             const token = res?.data?.token || res?.data?.accessToken;
             if (token) {
                 localStorage.setItem("token", token);
+                localStorage.setItem("accessToken", token);
             }
 
             if (res?.data?.user) {
                 localStorage.setItem("user", JSON.stringify(res.data.user));
+                localStorage.setItem("authUser", JSON.stringify(res.data.user));
             }
 
             navigate("/user/dashboard");

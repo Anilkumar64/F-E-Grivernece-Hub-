@@ -167,22 +167,21 @@ export const getSuperAdminReports = async (req, res, next) => {
         // --- SUMMARY ---
         const [totalGrievances, resolved] = await Promise.all([
             Grievance.countDocuments({}),
-            Grievance.countDocuments({ status: "Resolved" }),
+            Grievance.countDocuments({ status: "resolved" }),
         ]);
 
-        // average resolution time (in hours) – optional
         const resolvedDocs = await Grievance.find(
-            { status: "Resolved", resolvedAt: { $exists: true } },
-            { createdAt: 1, resolvedAt: 1 }
+            { status: "resolved" },
+            { createdAt: 1, resolutionDate: 1, updatedAt: 1 }
         ).lean();
 
         let avgResolutionTime = 0;
         if (resolvedDocs.length > 0) {
             const totalMs = resolvedDocs.reduce((sum, g) => {
                 const created = new Date(g.createdAt).getTime();
-                const resolved = new Date(g.resolvedAt).getTime();
-                if (!isNaN(created) && !isNaN(resolved) && resolved > created) {
-                    return sum + (resolved - created);
+                const resolvedAt = new Date(g.resolutionDate || g.updatedAt).getTime();
+                if (!isNaN(created) && !isNaN(resolvedAt) && resolvedAt > created) {
+                    return sum + (resolvedAt - created);
                 }
                 return sum;
             }, 0);
@@ -237,4 +236,3 @@ export const getSuperAdminReports = async (req, res, next) => {
         next(err);
     }
 };
-

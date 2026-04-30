@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }) => {
     const setAuthFromResponse = (data, fallbackRole = "user") => {
         const userObj = data.user || data.admin || data.superAdmin || data.authUser || null;
         const token = data.accessToken;
+        const refreshToken = data.refreshToken;
 
         if (!userObj || !token) {
             console.error("Auth response missing user or accessToken:", data);
@@ -58,21 +59,25 @@ export const AuthProvider = ({ children }) => {
 
         localStorage.setItem("authUser", JSON.stringify(userObj));
         localStorage.setItem("accessToken", token);
+        localStorage.setItem("token", token);
+        if (refreshToken) {
+            localStorage.setItem("refreshToken", refreshToken);
+        }
     };
 
     const registerUser = async (payload) => {
-        const res = await axiosInstance.post("/api/users/register", payload);
+        const res = await axiosInstance.post("/users/register", payload);
         return res.data;
     };
 
     const loginUser = async ({ email, password }) => {
-        const res = await axiosInstance.post("/api/users/login", { email, password });
+        const res = await axiosInstance.post("/users/login", { email, password });
         setAuthFromResponse(res.data, "user");
         return res.data;
     };
 
     const loginAdmin = async ({ email, password }) => {
-        const res = await axiosInstance.post("/api/admin/login", { email, password });
+        const res = await axiosInstance.post("/admin/login", { email, password });
         const data = res.data;
         const fallbackRole = data.role || "admin";
         setAuthFromResponse(data, fallbackRole);
@@ -81,12 +86,18 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            await axiosInstance.post("/api/admin/logout").catch(() => { });
+            await axiosInstance.post("/admin/logout").catch(() => { });
         } catch (err) {
             console.error("Logout error:", err);
         } finally {
             localStorage.removeItem("accessToken");
+            localStorage.removeItem("token");
+            localStorage.removeItem("refreshToken");
             localStorage.removeItem("authUser");
+            localStorage.removeItem("admin");
+            localStorage.removeItem("superadmin");
+            localStorage.removeItem("user");
+            delete axiosInstance.defaults.headers.common.Authorization;
 
             setAuthUser(null);
             setAccessToken(null);

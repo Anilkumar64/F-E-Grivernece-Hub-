@@ -4,7 +4,9 @@ import ComplaintType from "../../models/ComplaintType.js";
 
 export const getTypes = async (req, res) => {
     try {
-        const types = await ComplaintType.find().sort({ type: 1 });
+        const types = await ComplaintType.find()
+            .populate("department", "name code")
+            .sort({ type: 1 });
 
         res.status(200).json({
             success: true,

@@ -19,7 +19,9 @@ const getAuth = () => {
         localStorage.getItem("accessToken") ||
         localStorage.getItem("token");
 
-    return { superadmin, admin, accessToken };
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    return { superadmin, admin, accessToken, refreshToken };
 };
 
 // -------------------------------
@@ -28,7 +30,12 @@ const getAuth = () => {
 api.interceptors.request.use((config) => {
     const { accessToken } = getAuth();
 
+    if (config.url?.startsWith("/api/")) {
+        config.url = config.url.replace(/^\/api/, "");
+    }
+
     if (accessToken) {
+        config.headers = config.headers || {};
         config.headers.Authorization = `Bearer ${accessToken}`;
     }
 
@@ -53,17 +60,13 @@ const handleQueue = (error, token = null) => {
 // REFRESH ACCESS TOKEN FUNCTION
 // -------------------------------
 const refreshToken = async () => {
-    const { superadmin, admin } = getAuth();
+    const { superadmin, admin, refreshToken: storedRefreshToken } = getAuth();
 
-    // Decide which refresh API to call
-    let refreshUrl = null;
+    const refreshUrl = superadmin || admin ? `${API_BASE}/admin/refresh` : null;
 
-    if (superadmin) refreshUrl = `${API_BASE}/superadmin/refresh`;
-    if (admin) refreshUrl = `${API_BASE}/admin/refresh`;
+    if (!refreshUrl || !storedRefreshToken) throw new Error("No refresh token available");
 
-    if (!refreshUrl) throw new Error("No user found for refresh");
-
-    const res = await axios.post(refreshUrl, {}, { withCredentials: true });
+    const res = await axios.post(refreshUrl, { refreshToken: storedRefreshToken }, { withCredentials: true });
     return res.data.accessToken;
 };
 
@@ -98,12 +101,14 @@ api.interceptors.response.use(
                 api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
                 handleQueue(null, newToken);
 
+                original.headers = original.headers || {};
+                original.headers.Authorization = `Bearer ${newToken}`;
                 return api(original);
             } catch (err) {
                 handleQueue(err, null);
 
                 localStorage.clear();
-                window.location.href = "/superadmin/login";
+                window.location.href = superadmin ? "/superadmin/login" : "/admin/login";
                 return Promise.reject(err);
             } finally {
                 refreshing = false;
