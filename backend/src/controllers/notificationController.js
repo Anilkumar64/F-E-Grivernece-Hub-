@@ -1,24 +1,34 @@
 import Notification from "../models/Notification.js";
-import Admin from "../models/Admin.js";
+
+const getRecipientModel = (role) =>
+    role === "superadmin" || role === "departmentadmin" || role === "admin"
+        ? "Admin"
+        : "User";
 
 /* ------------------------------------------------------------------
  🟩 CREATE NOTIFICATION
 ------------------------------------------------------------------ */
 export const createNotification = async (req, res) => {
     try {
-        const { recipientId, recipientRole, title, message, link, type } = req.body;
+        const { recipientId, recipientRole, title, message, link, type, grievance } = req.body;
 
-        if (!recipientId || !recipientRole || !title || !message) {
+        if (!recipientId || !recipientRole || !message) {
             return res.status(400).json({ message: "Missing required fields" });
         }
 
+        const isAdminSender = ["superadmin", "departmentadmin", "admin"].includes(req.role);
+        if (!isAdminSender && recipientId !== req.userId) {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
         const newNotification = await Notification.create({
-            recipientId,
-            recipientRole,
+            recipient: recipientId,
+            recipientModel: getRecipientModel(recipientRole),
             title,
             message,
             link,
             type,
+            grievance: grievance || null,
         });
 
         res.status(201).json({
@@ -36,14 +46,9 @@ export const createNotification = async (req, res) => {
 ------------------------------------------------------------------ */
 export const getNotifications = async (req, res) => {
     try {
-        const { userId, role } = req.query;
-
-        if (!userId || !role)
-            return res.status(400).json({ message: "userId and role required" });
-
         const notifications = await Notification.find({
-            recipientId: userId,
-            recipientRole: role,
+            recipient: req.userId,
+            recipientModel: getRecipientModel(req.role),
         })
             .sort({ createdAt: -1 })
             .limit(20);
@@ -62,8 +67,12 @@ export const markAsRead = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const updated = await Notification.findByIdAndUpdate(
-            id,
+        const updated = await Notification.findOneAndUpdate(
+            {
+                _id: id,
+                recipient: req.userId,
+                recipientModel: getRecipientModel(req.role),
+            },
             { isRead: true },
             { new: true }
         );
@@ -84,7 +93,11 @@ export const deleteNotification = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const deleted = await Notification.findByIdAndDelete(id);
+        const deleted = await Notification.findOneAndDelete({
+            _id: id,
+            recipient: req.userId,
+            recipientModel: getRecipientModel(req.role),
+        });
 
         if (!deleted) return res.status(404).json({ message: "Notification not found" });
 

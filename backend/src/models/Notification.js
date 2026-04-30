@@ -8,6 +8,11 @@ const notificationSchema = new mongoose.Schema(
             required: [true, "Notification message is required"],
         },
 
+        title: {
+            type: String,
+            default: "",
+        },
+
         // 👤 Who should receive this notification
         recipient: {
             type: mongoose.Schema.Types.ObjectId,
@@ -27,6 +32,11 @@ const notificationSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Grievance",
             default: null,
+        },
+
+        link: {
+            type: String,
+            default: "",
         },
 
         // 🚦 Type of notification
@@ -62,5 +72,4 @@ const notificationSchema = new mongoose.Schema(
 notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export default mongoose.model("Notification", notificationSchema);
-
 
