@@ -12,8 +12,17 @@ const api = axios.create({
 // GET TOKEN + USER ROLE
 // -------------------------------
 const getAuth = () => {
-    const superadmin = JSON.parse(localStorage.getItem("superadmin") || "null");
-    const admin = JSON.parse(localStorage.getItem("admin") || "null");
+    const safeParse = (key) => {
+        try {
+            return JSON.parse(localStorage.getItem(key) || "null");
+        } catch {
+            localStorage.removeItem(key);
+            return null;
+        }
+    };
+
+    const superadmin = safeParse("superadmin");
+    const admin = safeParse("admin");
 
     const accessToken =
         localStorage.getItem("accessToken") ||
@@ -67,6 +76,9 @@ const refreshToken = async () => {
     if (!refreshUrl || !storedRefreshToken) throw new Error("No refresh token available");
 
     const res = await axios.post(refreshUrl, { refreshToken: storedRefreshToken }, { withCredentials: true });
+    if (res.data.refreshToken) {
+        localStorage.setItem("refreshToken", res.data.refreshToken);
+    }
     return res.data.accessToken;
 };
 

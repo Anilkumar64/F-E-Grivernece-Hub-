@@ -5,15 +5,25 @@ export default function ProtectedRoute({ allowedRoles = [] }) {
     const location = useLocation();
 
     // Extract roles safely
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-    const admin = JSON.parse(localStorage.getItem("admin") || "null");
-    const superadmin = JSON.parse(localStorage.getItem("superadmin") || "null");
+    const safeParse = (key) => {
+        try {
+            return JSON.parse(localStorage.getItem(key) || "null");
+        } catch {
+            localStorage.removeItem(key);
+            return null;
+        }
+    };
+
+    const user = safeParse("user") || safeParse("authUser");
+    const admin = safeParse("admin");
+    const superadmin = safeParse("superadmin");
 
     // Determine role
     let role = null;
     if (superadmin?.role === "superadmin") role = "superadmin";
     else if (admin?.role) role = admin.role;
     else if (user?.role) role = user.role;
+    if (role === "student" || role === "staff") role = "user";
 
     // Not logged in
     if (!role) {
