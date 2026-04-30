@@ -2,6 +2,7 @@ import express from "express";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Admin from "../models/Admin.js";
 import { authenticate, authorize, clearAuthCookies, refreshCookieNames, setAuthCookies, signAccessToken, signRefreshToken } from "../middleware/authMiddleware.js";
 import { authLimiter } from "../middleware/rateLimiters.js";
 import { writeAuditLog } from "../utils/audit.js";
@@ -25,7 +26,13 @@ const loginForRole = (role) => async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: "Email and password are required" });
 
-    const user = await User.findOne({ email: email.toLowerCase().trim(), role }).select("+password +refreshTokenHash").populate("department", "name code");
+    let user = await User.findOne({ email: email.toLowerCase().trim(), role }).select("+password +refreshTokenHash").populate("department", "name code");
+
+    if (!user && role === "admin") {
+        user = await migrateLegacyAdmin(email, password);
+        if (user?.legacyError) return res.status(user.legacyError.status).json({ message: user.legacyError.message });
+    }
+
     if (!user || !user.isActive || !(await user.comparePassword(password))) {
         return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -39,6 +46,39 @@ const loginForRole = (role) => async (req, res) => {
     await writeAuditLog(req, "LOGIN", "User", user._id, { role });
 
     return res.json({ message: "Login successful", accessToken, user: publicUser(user) });
+};
+
+const migrateLegacyAdmin = async (email, password) => {
+    const legacyAdmin = await Admin.findOne({ email: email.toLowerCase().trim() });
+    if (!legacyAdmin) return null;
+
+    if (!legacyAdmin.verified) {
+        return { legacyError: { status: 403, message: "Admin not verified by SuperAdmin" } };
+    }
+
+    if (!(await legacyAdmin.isPasswordCorrect(password))) {
+        return null;
+    }
+
+    try {
+        const now = new Date();
+        const userDoc = {
+            name: legacyAdmin.name,
+            email: legacyAdmin.email,
+            password: legacyAdmin.password,
+            staffId: legacyAdmin.staffId,
+            department: legacyAdmin.department,
+            role: "admin",
+            isActive: true,
+            createdAt: legacyAdmin.createdAt || now,
+            updatedAt: now,
+        };
+        const result = await User.collection.insertOne(userDoc);
+        return User.findById(result.insertedId).select("+password +refreshTokenHash").populate("department", "name code");
+    } catch (error) {
+        if (error.code === 11000) return null;
+        throw error;
+    }
 };
 
 router.post("/student/login", authLimiter, loginForRole("student"));

@@ -24,14 +24,46 @@ const flushQueue = (error, token) => {
     queue = [];
 };
 
+const hasStoredSession = () => Boolean(localStorage.getItem("accessToken") || localStorage.getItem("authUser"));
+
+const clearStoredAuth = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("authUser");
+};
+
+const getLoginPath = () => {
+    let role = null;
+    try {
+        role = JSON.parse(localStorage.getItem("authUser") || "null")?.role;
+    } catch {
+        role = null;
+    }
+    if (role === "superadmin") return "/superadmin/login";
+    if (role === "admin") return "/admin/login";
+    return "/login";
+};
+
+const isAuthRoute = (url = "") => url.includes("/auth/");
+const isBootstrapRoute = (url = "") => url.includes("/auth/me");
+
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const original = error.config;
-        if (error?.response?.status !== 401 || original?._retry) return Promise.reject(error);
+        const url = `${original?.baseURL || ""}${original?.url || ""}`;
+        const shouldTryRefresh =
+            error?.response?.status === 401 &&
+            original &&
+            !original._retry &&
+            !original.skipAuthRefresh &&
+            hasStoredSession() &&
+            (!isAuthRoute(url) || isBootstrapRoute(url));
+
+        if (!shouldTryRefresh) return Promise.reject(error);
 
         if (refreshing) {
             return new Promise((resolve, reject) => queue.push({ resolve, reject })).then((token) => {
+                original.headers = original.headers || {};
                 original.headers.Authorization = `Bearer ${token}`;
                 return api(original);
             });
@@ -50,11 +82,9 @@ api.interceptors.response.use(
             return api(original);
         } catch (refreshError) {
             flushQueue(refreshError, null);
-            const role = JSON.parse(localStorage.getItem("authUser") || "null")?.role;
-            localStorage.clear();
-            if (role === "superadmin") window.location.href = "/superadmin/login";
-            else if (role === "admin") window.location.href = "/admin/login";
-            else window.location.href = "/login";
+            const loginPath = getLoginPath();
+            clearStoredAuth();
+            if (window.location.pathname !== loginPath) window.location.href = loginPath;
             return Promise.reject(refreshError);
         } finally {
             refreshing = false;
