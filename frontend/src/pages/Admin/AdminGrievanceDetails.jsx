@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "../../api/axiosInstance";
@@ -12,7 +12,7 @@ export default function AdminGrievanceDetails() {
     const [message, setMessage] = useState("");
     const [comment, setComment] = useState("");
 
-    const load = async () => {
+    const load = useCallback(async () => {
         setLoading(true);
         try {
             const res = await api.get(`/grievances/${id}`);
@@ -23,9 +23,9 @@ export default function AdminGrievanceDetails() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
 
-    useEffect(() => { load(); }, [id]);
+    useEffect(() => { load(); }, [load]);
 
     const updateStatus = async (e) => {
         e.preventDefault();

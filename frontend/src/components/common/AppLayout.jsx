@@ -79,8 +79,9 @@ const titleFromPath = (pathname) =>
 export default function AppLayout({ role }) {
     const [open, setOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
     const { authUser, logout } = useContext(AuthContext);
-    const { unreadCount } = useNotifications();
+    const { notifications, unreadCount, reloadNotifications } = useNotifications();
     const location = useLocation();
     const navigate = useNavigate();
     const items = useMemo(() => navItems[role] || [], [role]);
@@ -130,10 +131,23 @@ export default function AppLayout({ role }) {
                         <div className="breadcrumb">{titleFromPath(location.pathname)}</div>
                     </div>
                     <div className="topbar-actions">
-                        <button className="icon-button badge-button" aria-label="Notifications" onClick={() => navigate(role === "student" ? "/notifications" : `/${role}/notifications`)}>
-                            <Bell size={20} />
-                            {unreadCount > 0 && <span>{unreadCount}</span>}
-                        </button>
+                        <div className="profile-menu">
+                            <button className="icon-button badge-button" aria-label="Notifications" onClick={() => setNotificationsOpen((value) => !value)}>
+                                <Bell size={20} />
+                                {unreadCount > 0 && <span>{unreadCount}</span>}
+                            </button>
+                            {notificationsOpen && (
+                                <div className="profile-dropdown notification-dropdown">
+                                    <button onClick={() => { apiMarkAll(reloadNotifications); setNotificationsOpen(false); }}>Mark all as read</button>
+                                    {notifications.slice(0, 10).map((item) => (
+                                        <button key={item._id} onClick={() => navigate(item.grievance?.grievanceId ? `${role === "student" ? "" : `/${role}`}/grievance/${item.grievance.grievanceId}` : role === "student" ? "/notifications" : `/${role}/notifications`)}>
+                                            <Bell size={16} /> {item.message}
+                                        </button>
+                                    ))}
+                                    <button onClick={() => navigate(role === "student" ? "/notifications" : `/${role}/notifications`)}>View all</button>
+                                </div>
+                            )}
+                        </div>
                         <div className="profile-menu">
                             <button className="avatar-button" onClick={() => setProfileOpen((value) => !value)}>{initials}</button>
                             {profileOpen && (
@@ -160,4 +174,10 @@ export default function AppLayout({ role }) {
             </button>
         </div>
     );
+}
+
+async function apiMarkAll(reloadNotifications) {
+    const api = (await import("../../api/axiosInstance")).default;
+    await api.patch("/notifications/read-all");
+    reloadNotifications();
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Download, Send } from "lucide-react";
@@ -14,7 +14,7 @@ export default function TrackGrievance() {
     const [comment, setComment] = useState("");
     const [rating, setRating] = useState(5);
 
-    const load = async () => {
+    const load = useCallback(async () => {
         setLoading(true);
         try {
             const res = await api.get(`/grievances/${id}`);
@@ -24,9 +24,9 @@ export default function TrackGrievance() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
 
-    useEffect(() => { load(); }, [id]);
+    useEffect(() => { load(); }, [load]);
 
     const sendComment = async (e) => {
         e.preventDefault();
