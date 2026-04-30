@@ -13,6 +13,8 @@ import GrievanceDetails from "../pages/User/GrievanceDetails";
 import TrackGrievance from "../pages/User/TrackGrievance";
 import MyGrievances from "../pages/User/MyGrievances";
 import UserLayout from "../layouts/UserLayout";
+import ForgotPassword from "../pages/Auth/ForgotPassword";
+import ResetPassword from "../pages/Auth/ResetPassword";
 
 // ADMIN pages
 import AdminLogin from "../pages/Admin/AdminLogin";
@@ -53,6 +55,8 @@ export default function AppRoutes() {
             {/* USER PUBLIC */}
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* USER PROTECTED ROUTES */}
             <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
