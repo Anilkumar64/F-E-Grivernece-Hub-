@@ -70,7 +70,10 @@ router.get("/id/:id", verifyToken, async (req, res) => {
 
         const isOwner = grievance.user?.toString() === req.userId;
         const isAdmin = ["departmentadmin", "superadmin"].includes(req.role);
-        if (!isOwner && !isAdmin) {
+        if (isAdmin && !req.admin) {
+            req.admin = await Admin.findById(req.userId);
+        }
+        if (!isOwner && (!isAdmin || !canAdminAccessGrievance(req, grievance))) {
             return res.status(403).json({ message: "Access denied" });
         }
 
@@ -95,7 +98,10 @@ router.get("/track/:trackingId", verifyToken, async (req, res) => {
 
         const isOwner = grievance.user?.toString() === req.userId;
         const isAdmin = ["departmentadmin", "superadmin"].includes(req.role);
-        if (!isOwner && !isAdmin) {
+        if (isAdmin && !req.admin) {
+            req.admin = await Admin.findById(req.userId);
+        }
+        if (!isOwner && (!isAdmin || !canAdminAccessGrievance(req, grievance))) {
             return res.status(403).json({ message: "Access denied" });
         }
 
