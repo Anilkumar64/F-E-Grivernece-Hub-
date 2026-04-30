@@ -48,7 +48,7 @@ export default function AllAdmins() {
                                     </h3>
                                     <p className="aa-meta">{admin.email}</p>
                                     <p className="aa-meta">
-                                        Dept: {admin.departmentName || "—"}
+                                        Dept: {admin.department?.name || admin.departmentName || "—"}
                                     </p>
 
                                     <p className="aa-created">

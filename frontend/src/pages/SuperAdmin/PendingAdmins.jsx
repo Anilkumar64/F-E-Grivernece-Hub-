@@ -121,7 +121,7 @@ export default function PendingAdmins() {
                                             </span>
                                         </div>
                                         <div className="pa-meta">
-                                            Dept: {req.department || "—"}
+                                            Dept: {req.department?.name || req.department || "—"}
                                         </div>
                                     </div>
 
