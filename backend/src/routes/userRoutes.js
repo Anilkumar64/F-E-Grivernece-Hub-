@@ -2,6 +2,7 @@ import express from "express";
 import User from "../models/User.js";
 import { authenticate, authorize } from "../middleware/authMiddleware.js";
 import { writeAuditLog } from "../utils/audit.js";
+import { forgotPassword, resetPassword, verifyResetOTP } from "../controllers/userController.js";
 
 const router = express.Router();
 
@@ -26,6 +27,10 @@ router.post("/register", async (req, res) => {
     await writeAuditLog(req, "STUDENT_REGISTERED", "User", user._id);
     res.status(201).json({ message: "Student registered successfully", userId: user._id });
 });
+
+router.post("/forgot-password", forgotPassword);
+router.post("/verify-reset-otp", verifyResetOTP);
+router.post("/reset-password", resetPassword);
 
 router.get("/me", authenticate, authorize("student"), (req, res) => {
     res.json({ user: req.user });

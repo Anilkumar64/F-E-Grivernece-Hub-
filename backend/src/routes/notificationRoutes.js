@@ -7,11 +7,14 @@ const router = express.Router();
 router.use(authenticate);
 
 router.get("/mine", async (req, res) => {
-    const notifications = await Notification.find({ recipient: req.userId })
+    const filter = { recipient: req.userId };
+    if (req.query.unread === "true") filter.isRead = false;
+    const notifications = await Notification.find(filter)
         .populate("grievance", "grievanceId title status")
         .sort({ createdAt: -1 })
         .limit(50);
-    res.json({ unreadCount: notifications.filter((item) => !item.isRead).length, notifications });
+    const unreadCount = await Notification.countDocuments({ recipient: req.userId, isRead: false });
+    res.json({ unreadCount, notifications });
 });
 
 router.patch("/read-all", async (req, res) => {
