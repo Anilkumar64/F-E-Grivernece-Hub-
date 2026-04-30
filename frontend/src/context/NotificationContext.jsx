@@ -27,12 +27,7 @@ export const NotificationProvider = ({ children }) => {
         setError(null);
 
         try {
-            const res = await axiosInstance.get("/notifications", {
-                params: {
-                    userId: authUser?._id || authUser?.id,
-                    role,
-                },
-            });
+            const res = await axiosInstance.get("/notifications");
             const data = res.data.notifications || res.data.data || res.data || [];
 
             setNotifications(data);

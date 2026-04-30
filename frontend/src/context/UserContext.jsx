@@ -26,11 +26,11 @@ export const UserProvider = ({ children }) => {
         setProfileError(null);
 
         try {
-            let endpoint = "/api/users/profile";
+            let endpoint = "/users/me";
 
             // Admin & SuperAdmin can share same /api/admin/me
             if (role === "admin" || role === "superadmin") {
-                endpoint = "/api/admin/me";
+                endpoint = "/admin/me";
             }
 
             const res = await axiosInstance.get(endpoint);

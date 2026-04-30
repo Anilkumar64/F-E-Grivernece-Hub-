@@ -60,6 +60,16 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("authUser", JSON.stringify(userObj));
         localStorage.setItem("accessToken", token);
         localStorage.setItem("token", token);
+        localStorage.removeItem("user");
+        localStorage.removeItem("admin");
+        localStorage.removeItem("superadmin");
+        if (resolvedRole === "superadmin") {
+            localStorage.setItem("superadmin", JSON.stringify(userObj));
+        } else if (resolvedRole === "admin" || resolvedRole === "departmentadmin") {
+            localStorage.setItem("admin", JSON.stringify(userObj));
+        } else {
+            localStorage.setItem("user", JSON.stringify(userObj));
+        }
         if (refreshToken) {
             localStorage.setItem("refreshToken", refreshToken);
         }
