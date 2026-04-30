@@ -40,11 +40,11 @@ export const getSuperAdminStats = async (req, res, next) => {
             avgResolutionTime = +(totalMs / resolvedDocs.length / (1000 * 60 * 60)).toFixed(2);
         }
 
-        // very simple SLA breach example: older than 7 days and not resolved
+        // ✅ very simple SLA breach example: older than 7 days and not resolved (using correct enum)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         const slaBreaches = await Grievance.countDocuments({
-            status: { $ne: "Resolved" },
+            status: { $nin: ["resolved", "rejected"] },
             createdAt: { $lt: sevenDaysAgo },
         });
 
@@ -61,8 +61,6 @@ export const getSuperAdminStats = async (req, res, next) => {
         ]);
 
         const mostActiveDept =
-            deptAgg[0]?.__id ||
-            deptAgg[0]?.department ||
             deptAgg[0]?._id ||
             "N/A";
 
