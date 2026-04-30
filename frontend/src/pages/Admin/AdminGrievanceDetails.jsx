@@ -344,13 +344,17 @@ export default function AdminGrievanceDetails() {
                         <h4>Attachments</h4>
                         {attachments.length ? (
                             <ul className="agd-attachments">
-                                {attachments.map((file, idx) => (
-                                    <li key={idx}>
-                                        <a href={`/uploads/${file}`} target="_blank" rel="noreferrer">
-                                            Attachment {idx + 1}
-                                        </a>
-                                    </li>
-                                ))}
+                                {attachments.map((file, idx) => {
+                                    const href = file.fileUrl || file.url || file;
+                                    const label = file.fileName || `Attachment ${idx + 1}`;
+                                    return (
+                                        <li key={idx}>
+                                            <a href={href} target="_blank" rel="noreferrer">
+                                                {label}
+                                            </a>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         ) : (
                             <p className="agd-muted">No attachments</p>

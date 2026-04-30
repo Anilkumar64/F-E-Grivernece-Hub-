@@ -107,10 +107,10 @@ export default function AdminGrievances() {
                     onChange={(e) => setStatusFilter(e.target.value)}
                 >
                     <option value="">All Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                    <option value="Rejected">Rejected</option>
+                    <option value="submitted">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="rejected">Rejected</option>
                 </select>
 
                 <select
@@ -118,10 +118,10 @@ export default function AdminGrievances() {
                     onChange={(e) => setPriorityFilter(e.target.value)}
                 >
                     <option value="">All Priorities</option>
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
                 </select>
 
                 <select
