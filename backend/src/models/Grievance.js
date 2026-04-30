@@ -12,6 +12,15 @@ const feedbackSchema = new mongoose.Schema({
     comment: { type: String, default: "" },
 });
 
+const commentSchema = new mongoose.Schema({
+    author: { type: mongoose.Schema.Types.ObjectId, refPath: "comments.authorModel" },
+    authorModel: { type: String, enum: ["User", "Admin"] },
+    authorName: { type: String, default: "" },
+    text: { type: String, required: true, trim: true },
+    isAdmin: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
+});
+
 const attachmentSchema = new mongoose.Schema({
     fileName: { type: String },
     fileUrl: { type: String },
@@ -114,6 +123,19 @@ const grievanceSchema = new mongoose.Schema(
 
         // Timeline of status changes
         timeline: [timelineSchema],
+
+        comments: [commentSchema],
+
+        escalatedToSuper: {
+            type: Boolean,
+            default: false,
+        },
+
+        forwardedToDept: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Department",
+            default: null,
+        },
     },
     { timestamps: true }
 );
