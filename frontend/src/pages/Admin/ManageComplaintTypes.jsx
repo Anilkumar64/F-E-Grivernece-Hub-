@@ -44,7 +44,7 @@ function ManageComplaintTypes() {
             setSaving(true);
 
             await api.post("/complaints/type/create", {
-                name: newType.trim(),
+                type: newType.trim(),
             });
 
             toast.success("Complaint type added");
@@ -128,7 +128,7 @@ function ManageComplaintTypes() {
                         key={t._id}
                         className="mct-type-row"
                     >
-                        <p>{t.name}</p>
+                        <p>{t.type || t.name}</p>
                         <button
                             onClick={() => deleteType(t._id)}
                             disabled={saving}
