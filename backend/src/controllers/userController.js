@@ -98,34 +98,68 @@ export const loginUser = async (req, res) => {
                 .json({ message: "Email and password required" });
         }
 
+        // Find user by email
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(401).json({ message: "Invalid email or password" });
         }
 
-        const isMatch = await user.matchPassword(password);
-        if (!isMatch) {
-            return res.status(401).json({ message: "Invalid credentials" });
+        // Verify password
+        const isPasswordValid = await user.matchPassword(password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "Invalid email or password" });
         }
 
-        // 🔑 Generate JWT
+        // Generate tokens
         const accessToken = generateToken(user);
 
+        // ✅ Standardized response format
         return res.status(200).json({
+            success: true,
             message: "Login successful",
-            accessToken,          // ⬅️ frontend AuthContext looks for this
-            token: accessToken,   // ⬅️ keep this if some old code still uses `token`
+            accessToken,
             user: {
-                id: user._id,
+                _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                department: user.department,
             },
         });
     } catch (error) {
-        console.error("Login Error:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        console.error("Login error:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
+};
+
+const user = await User.findOne({ email });
+if (!user) {
+    return res.status(401).json({ message: "Invalid credentials" });
+}
+
+const isMatch = await user.matchPassword(password);
+if (!isMatch) {
+    return res.status(401).json({ message: "Invalid credentials" });
+}
+
+// 🔑 Generate JWT
+const accessToken = generateToken(user);
+
+return res.status(200).json({
+    message: "Login successful",
+    accessToken,          // ⬅️ frontend AuthContext looks for this
+    token: accessToken,   // ⬅️ keep this if some old code still uses `token`
+    user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+    },
+});
+    } catch (error) {
+    console.error("Login Error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+}
 };
 
 

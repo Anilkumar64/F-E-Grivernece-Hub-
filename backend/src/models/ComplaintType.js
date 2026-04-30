@@ -13,9 +13,12 @@ const complaintTypeSchema = new mongoose.Schema({
         },
     ],
 
+    // ✅ Fixed: Changed from String to ObjectId reference
     department: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Department",
         required: true,
+        index: true,
     },
 
     defaultPriority: {

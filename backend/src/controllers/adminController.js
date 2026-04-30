@@ -116,11 +116,12 @@ export const loginAdmin = async (req, res) => {
 
         // 7️⃣ Send response
         res.status(200).json({
+            success: true,
             message: "Login successful",
             accessToken,
             refreshToken,
-            admin: {
-                id: adminUser._id,
+            user: {
+                _id: adminUser._id,
                 name: adminUser.name,
                 email: adminUser.email,
                 department: adminUser.department,
@@ -129,7 +130,7 @@ export const loginAdmin = async (req, res) => {
         });
     } catch (error) {
         console.error("Login Error:", error);
-        res.status(500).json({ message: "Internal Server Error" });
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
 
