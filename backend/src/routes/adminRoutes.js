@@ -12,7 +12,9 @@ router.use(authenticate, authorize("superadmin"));
 const adminProjection = "-password -refreshTokenHash -resetToken";
 
 router.post("/create", async (req, res) => {
-    const { name, email, password, staffId, department, role = "admin" } = req.body;
+    const generatedPassword = crypto.randomBytes(9).toString("base64url");
+    const { name, email, staffId, department, role = "admin", isActive = true } = req.body;
+    const password = req.body.autoGeneratePassword ? generatedPassword : req.body.password;
     if (!name || !email || !staffId || !department || !password) {
         return res.status(400).json({ message: "Name, email, staff ID, department, and password are required" });
     }
@@ -21,9 +23,13 @@ router.post("/create", async (req, res) => {
     const dept = await Department.findById(department);
     if (!dept) return res.status(400).json({ message: "Department not found" });
 
-    const admin = await User.create({ name, email, password, staffId, department, role: "admin", isActive: true });
+    const admin = await User.create({ name, email, password, staffId, department, role: "admin", isActive });
     await writeAuditLog(req, "ADMIN_CREATED", "User", admin._id, { department });
-    res.status(201).json({ message: "Admin created", admin: await User.findById(admin._id).select(adminProjection).populate("department", "name code") });
+    res.status(201).json({
+        message: "Admin created",
+        temporaryPassword: req.body.autoGeneratePassword ? password : undefined,
+        admin: await User.findById(admin._id).select(adminProjection).populate("department", "name code"),
+    });
 });
 
 router.get("/all", async (req, res) => {

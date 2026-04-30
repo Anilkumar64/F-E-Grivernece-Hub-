@@ -13,7 +13,9 @@ import mongoose from "mongoose";
 import ConnectDB from "./src/Database/ConnectDB.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
+import studentRoutes from "./src/routes/studentRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
+import superAdminRoutes from "./src/routes/superAdminRoutes.js";
 import grievanceRoutes from "./src/routes/grievanceRoutes.js";
 import categoryRoutes from "./src/routes/categoryRoutes.js";
 import departmentRoutes from "./src/routes/departmentRoutes.js";
@@ -21,6 +23,7 @@ import notificationRoutes from "./src/routes/notificationRoutes.js";
 import auditLogRoutes from "./src/routes/auditLogRoutes.js";
 import reportRoutes from "./src/routes/reportRoutes.js";
 import siteRoutes from "./src/routes/siteRoutes.js";
+import landingConfigRoutes from "./src/routes/landingConfigRoutes.js";
 import { apiLimiter } from "./src/middleware/rateLimiters.js";
 import { authenticate } from "./src/middleware/authMiddleware.js";
 import { notFound, errorHandler } from "./src/middleware/errorHandler.js";
@@ -61,8 +64,19 @@ app.use(hpp());
 
 if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
 
+app.get("/uploads/landing/:file", (req, res) => {
+    const { file } = req.params;
+    if (file.includes("..") || path.isAbsolute(file)) {
+        return res.status(400).json({ message: "Invalid file path" });
+    }
+    const uploadRoot = path.resolve(__dirname, "uploads");
+    const requested = path.resolve(uploadRoot, "landing", file);
+    if (!requested.startsWith(uploadRoot + path.sep)) return res.status(400).json({ message: "Invalid file path" });
+    res.sendFile(requested);
+});
+
 app.get("/uploads/:folder/:file", authenticate, (req, res) => {
-    const allowedFolders = new Set(["grievance_attachments"]);
+    const allowedFolders = new Set(["grievance_attachments", "landing", "user_idcards"]);
     const { folder, file } = req.params;
     if (!allowedFolders.has(folder) || file.includes("..") || path.isAbsolute(file)) {
         return res.status(400).json({ message: "Invalid file path" });
@@ -83,9 +97,12 @@ app.get("/api/ready", (_req, res) => {
 });
 
 app.use("/api/site", siteRoutes);
+app.use("/api/landing-config", landingConfigRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", apiLimiter, userRoutes);
+app.use("/api/students", apiLimiter, studentRoutes);
 app.use("/api/admin", apiLimiter, adminRoutes);
+app.use("/api/superadmin", apiLimiter, superAdminRoutes);
 app.use("/api/grievances", apiLimiter, grievanceRoutes);
 app.use("/api/departments", apiLimiter, departmentRoutes);
 app.use("/api/categories", apiLimiter, categoryRoutes);
