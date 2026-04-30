@@ -1,18 +1,28 @@
 import jwt from "jsonwebtoken";
 import Admin from "../models/Admin.js";
 
+const getBearerToken = (req) => {
+    const token = req.headers.authorization;
+    if (!token || !token.startsWith("Bearer ")) return null;
+    return token.split(" ")[1];
+};
+
 // Verify any JWT
 export const verifyToken = async (req, res, next) => {
     try {
-        let token = req.headers.authorization;
+        const token = getBearerToken(req);
 
-        if (!token || !token.startsWith("Bearer ")) {
+        if (!token) {
             return res.status(401).json({ message: "Unauthorized: Token missing" });
         }
 
-        token = token.split(" ")[1];
+        if (!process.env.ACCESS_TOKEN_SECRET) {
+            return res.status(500).json({ message: "Auth configuration error" });
+        }
 
-        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, {
+            algorithms: ["HS256"],
+        });
 
         req.user = decoded;        // user = { _id, role }
         req.userId = decoded._id;  // attach userId
@@ -32,14 +42,19 @@ export const verifyAdmin = async (req, res, next) => {
             return res.status(403).json({ message: "Admin access denied: No role found" });
         }
 
-        if (req.role !== "admin" && req.role !== "departmentadmin" && req.role !== "superadmin") {
+        const adminRoles = ["admin", "departmentadmin", "superadmin"];
+        if (!adminRoles.includes(req.role)) {
             return res.status(403).json({ message: "Access denied: Not an admin" });
         }
 
-        const admin = await Admin.findById(req.userId);
+        const admin = await Admin.findOne({
+            _id: req.userId,
+            role: { $in: adminRoles },
+            verified: true,
+        });
 
         if (!admin) {
-            return res.status(403).json({ message: "Admin account not found" });
+            return res.status(403).json({ message: "Admin account not found or not approved" });
         }
 
         req.admin = admin;
@@ -53,22 +68,38 @@ export const verifyAdmin = async (req, res, next) => {
 // SuperAdmin ONLY
 export const verifySuperAdmin = async (req, res, next) => {
     try {
-        let token = req.headers.authorization;
+        const token = getBearerToken(req);
 
-        if (!token || !token.startsWith("Bearer ")) {
+        if (!token) {
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        token = token.split(" ")[1];
-        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        if (!process.env.ACCESS_TOKEN_SECRET) {
+            return res.status(500).json({ message: "Auth configuration error" });
+        }
+
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, {
+            algorithms: ["HS256"],
+        });
 
         if (decoded.role !== "superadmin") {
+            return res.status(403).json({ message: "Access denied: SuperAdmin only" });
+        }
+
+        const admin = await Admin.findOne({
+            _id: decoded._id,
+            role: "superadmin",
+            verified: true,
+        });
+
+        if (!admin) {
             return res.status(403).json({ message: "Access denied: SuperAdmin only" });
         }
 
         req.user = decoded;
         req.userId = decoded._id;
         req.role = decoded.role;
+        req.admin = admin;
         next();
     } catch (error) {
         console.error("SuperAdmin check error:", error);
