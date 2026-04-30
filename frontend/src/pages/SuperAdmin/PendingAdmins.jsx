@@ -72,7 +72,7 @@ export default function PendingAdmins() {
 
     const openPreview = (filePath, name) => {
         if (!filePath) {
-            toast.warn("No ID card uploaded");
+            toast("No ID card uploaded");
             return;
         }
 

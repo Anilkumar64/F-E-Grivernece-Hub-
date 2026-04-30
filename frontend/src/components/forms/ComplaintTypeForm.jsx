@@ -56,7 +56,7 @@ export default function ComplaintTypeForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.name.trim()) {
-            toast.warn("Name is required");
+            toast("Name is required");
             return;
         }
 

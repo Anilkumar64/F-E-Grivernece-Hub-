@@ -61,7 +61,7 @@ export default function DepartmentForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.name.trim()) {
-            toast.warn("Department name is required");
+            toast("Department name is required");
             return;
         }
 

@@ -38,7 +38,7 @@ function ManageComplaintTypes() {
     };
 
     const createType = async () => {
-        if (!newType.trim()) return toast.warning("Enter type name");
+        if (!newType.trim()) return toast("Enter type name");
 
         try {
             setSaving(true);

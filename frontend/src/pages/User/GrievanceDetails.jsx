@@ -39,7 +39,7 @@ export default function GrievanceDetails() {
     // ================================
     const handleAddComment = async (e) => {
         e.preventDefault();
-        if (!commentText.trim()) return toast.warn("Comment cannot be empty");
+        if (!commentText.trim()) return toast("Comment cannot be empty");
 
         if (!grievance?._id)
             return toast.error("Invalid grievance reference");
