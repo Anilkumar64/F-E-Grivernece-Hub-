@@ -56,6 +56,11 @@ const adminSchema = new mongoose.Schema(
             type: String,
             default: null,
         },
+        refreshTokenHash: {
+            type: String,
+            default: null,
+            select: false,
+        },
         verified: {
             type: Boolean,
             default: false, // Set to true after admin verification
