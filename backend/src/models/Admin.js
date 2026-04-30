@@ -62,7 +62,7 @@ const adminSchema = new mongoose.Schema(
 // 🔒 Encrypt password before saving
 adminSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();
-    this.password = await bcrypt.hash(this.password, 10);
+    this.password = await bcryptjs.hash(this.password, 10);
     next();
 });
 
