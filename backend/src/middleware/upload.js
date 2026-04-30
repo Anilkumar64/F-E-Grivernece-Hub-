@@ -6,21 +6,26 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const backendRoot = path.resolve(__dirname, "..", "..");
-const uploadDir = path.join(backendRoot, "uploads", "idcards");
+const uploadRoot = path.join(backendRoot, "uploads");
+const uploadDirs = {
+    idCardFile: path.join(uploadRoot, "idcards"),
+    attachments: path.join(uploadRoot, "grievance_attachments"),
+};
 
 // Ensure the upload directory exists (create if missing)
-fs.mkdirSync(uploadDir, { recursive: true });
+Object.values(uploadDirs).forEach((dir) => fs.mkdirSync(dir, { recursive: true }));
 
 // Configure storage
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, uploadDir);
+        cb(null, uploadDirs[file.fieldname] || uploadDirs.attachments);
     },
     filename: function (req, file, cb) {
         // Example: idcard-1699871234567-123456789.png
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
         const ext = path.extname(file.originalname).toLowerCase();
-        cb(null, `idcard-${uniqueSuffix}${ext}`);
+        const prefix = file.fieldname === "idCardFile" ? "idcard" : "attachment";
+        cb(null, `${prefix}-${uniqueSuffix}${ext}`);
     },
 });
 

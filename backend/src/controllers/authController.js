@@ -1,9 +1,13 @@
 import Admin from "../models/Admin.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import {
     generateAccessToken,
     generateRefreshToken,
 } from "../utils/generateToken.js";
+
+const hashToken = (token) =>
+    crypto.createHash("sha256").update(token).digest("hex");
 
 /* ------------------------------------------------------------------
  🧱 REGISTER ADMIN  (probably not used; real registration is in adminController)
@@ -77,8 +81,9 @@ export const loginAdmin = async (req, res) => {
         const accessToken = generateAccessToken(adminUser);
         const refreshToken = generateRefreshToken(adminUser);
 
-        // store refresh token (keep field name consistent with your schema)
-        adminUser.refreshToken = refreshToken;
+        // Store only a hash so a database leak cannot replay refresh tokens.
+        adminUser.refreshToken = null;
+        adminUser.refreshTokenHash = hashToken(refreshToken);
         await adminUser.save({ validateBeforeSave: false });
 
         return res.status(200).json({
@@ -120,8 +125,10 @@ export const refreshAccessToken = async (req, res) => {
             return res.status(401).json({ message: "Refresh token missing" });
         }
 
-        // ✅ Use updated field name
-        const adminUser = await Admin.findOne({ refreshToken });
+        const tokenHash = hashToken(refreshToken);
+        const adminUser = await Admin.findOne({ refreshTokenHash: tokenHash }).select(
+            "+refreshTokenHash"
+        );
         if (!adminUser) {
             return res.status(403).json({ message: "Invalid refresh token" });
         }
@@ -129,7 +136,7 @@ export const refreshAccessToken = async (req, res) => {
         jwt.verify(
             refreshToken,
             process.env.REFRESH_TOKEN_SECRET,
-            (err) => {
+            async (err) => {
                 if (err) {
                     return res
                         .status(403)
@@ -137,9 +144,15 @@ export const refreshAccessToken = async (req, res) => {
                 }
 
                 const newAccessToken = generateAccessToken(adminUser);
+                const newRefreshToken = generateRefreshToken(adminUser);
+                adminUser.refreshTokenHash = hashToken(newRefreshToken);
+                adminUser.refreshToken = null;
+                await adminUser.save({ validateBeforeSave: false });
+
                 return res.json({
                     message: "Access token refreshed",
                     accessToken: newAccessToken,
+                    refreshToken: newRefreshToken,
                 });
             }
         );
@@ -167,6 +180,7 @@ export const logoutAdmin = async (req, res) => {
         }
 
         adminUser.refreshToken = null;
+        adminUser.refreshTokenHash = null;
         await adminUser.save({ validateBeforeSave: false });
 
         res.status(200).json({ message: "Logged out successfully" });

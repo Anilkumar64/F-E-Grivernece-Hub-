@@ -1,5 +1,9 @@
 import Admin from "../models/Admin.js";
 import sendEmail from "../utils/sendEmail.js";
+import crypto from "crypto";
+
+const hashToken = (token) =>
+    crypto.createHash("sha256").update(token).digest("hex");
 
 
 // await sendEmail({
@@ -16,7 +20,7 @@ import sendEmail from "../utils/sendEmail.js";
 
 export const registerAdmin = async (req, res) => {
     try {
-        const { name, email, staffId, department, password, role } = req.body;
+        const { name, email, staffId, department, password } = req.body;
 
         // 1️⃣ Validate required fields
         if (!name || !email || !staffId || !department || !password) {
@@ -51,7 +55,7 @@ export const registerAdmin = async (req, res) => {
             staffId,
             department,
             password,
-            role: role || "departmentadmin",
+            role: "departmentadmin",
             idCardFile: idCardFilePath,
             verified: false,
         });
@@ -110,7 +114,8 @@ export const loginAdmin = async (req, res) => {
         const refreshToken = adminUser.generateRefreshToken();
 
         // 6️⃣ Save refresh token in DB
-        adminUser.refreshToken = refreshToken;
+        adminUser.refreshToken = null;
+        adminUser.refreshTokenHash = hashToken(refreshToken);
         await adminUser.save({ validateBeforeSave: false });
 
         // 7️⃣ Send response
@@ -182,9 +187,9 @@ export const approveAdmin = async (req, res) => {
 
         const updated = await Admin.findByIdAndUpdate(
             id,
-            { verified: true },
+            { verified: true, role: "departmentadmin" },
             { new: true }
-        );
+        ).select("-password -refreshToken -refreshTokenHash");
 
         if (!updated) {
             return res.status(404).json({ message: "Admin not found" });

@@ -7,6 +7,7 @@ import morgan from "morgan";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 import ConnectDB from "./src/Database/ConnectDB.js";
+import { verifyToken } from "./src/middleware/authMiddleware.js";
 
 import adminRoutes from "./src/routes/adminRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
@@ -32,6 +33,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+let serverInstance;
 
 // ---------- Middlewares ----------
 // ✅ Environment-driven CORS configuration
@@ -51,8 +53,8 @@ app.use(cors({
     methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: process.env.FORM_BODY_LIMIT || "1mb" }));
 app.use(cookieParser());
 app.use(helmet());
 
@@ -60,7 +62,26 @@ if (process.env.NODE_ENV !== "production") {
     app.use(morgan("dev"));
 }
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.get("/uploads/:folder/:file", verifyToken, (req, res) => {
+    const allowedFolders = new Set(["idcards", "user_idcards", "grievance_attachments"]);
+    const { folder, file } = req.params;
+
+    if (!allowedFolders.has(folder) || file.includes("..") || path.isAbsolute(file)) {
+        return res.status(400).json({ message: "Invalid file path" });
+    }
+
+    const uploadRoot = path.resolve(__dirname, "uploads");
+    const requested = path.resolve(uploadRoot, folder, file);
+    if (!requested.startsWith(uploadRoot + path.sep)) {
+        return res.status(400).json({ message: "Invalid file path" });
+    }
+
+    return res.sendFile(requested, (err) => {
+        if (err && !res.headersSent) {
+            res.status(err.statusCode || 404).json({ message: "File not found" });
+        }
+    });
+});
 app.use("/api/site", siteRoutes);
 
 // ---------- Routes ----------
@@ -89,6 +110,10 @@ app.get("/", (req, res) => {
     });
 });
 
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "ok" });
+});
+
 // ---------- Error Handlers ----------
 app.use(notFound);
 app.use(errorHandler);
@@ -99,7 +124,7 @@ const startServer = async () => {
         await ConnectDB();
         console.log("MongoDB Connected");
 
-        app.listen(PORT, () => {
+        serverInstance = app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);
         });
 
@@ -110,3 +135,15 @@ const startServer = async () => {
 };
 
 startServer();
+
+const shutdown = (signal) => {
+    console.log(`${signal} received. Closing HTTP server...`);
+    if (!serverInstance) process.exit(0);
+    serverInstance.close(() => {
+        console.log("HTTP server closed");
+        process.exit(0);
+    });
+};
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
