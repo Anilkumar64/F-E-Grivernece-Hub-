@@ -100,7 +100,7 @@ export default function AppLayout({ role }) {
                 <nav className="sidebar-nav">
                     {items.map(({ label, path, icon: Icon, badge }) => (
                         <NavLink key={path} to={path} onClick={() => setOpen(false)} className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-                            <Icon size={iconSize} />
+                            {React.createElement(Icon, { size: iconSize })}
                             <span>{label}</span>
                             {badge && unreadCount > 0 && <em>{unreadCount}</em>}
                         </NavLink>

@@ -10,7 +10,6 @@ export default function AdminGrievances({ fixedStatus }) {
     const [filters, setFilters] = useState({ search: "", status: fixedStatus || "", priority: "", sort: "newest" });
 
     useEffect(() => {
-        setLoading(true);
         const params = new URLSearchParams();
         Object.entries(filters).forEach(([key, value]) => value && params.set(key, value));
         api.get(`/grievances?${params}`).then((res) => setItems(res.data.grievances || [])).finally(() => setLoading(false));
