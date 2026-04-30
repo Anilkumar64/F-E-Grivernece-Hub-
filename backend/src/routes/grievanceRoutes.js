@@ -13,7 +13,7 @@ import {
 } from "../controllers/grievanceController.js";
 
 import Grievance from "../models/Grievance.js";
-import { verifyToken } from "../middleware/authMiddleware.js";
+import { verifyToken, verifyAdmin } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
 
 const router = express.Router();
@@ -23,10 +23,11 @@ router.post("/", verifyToken, upload.array("attachments", 10), createGrievance);
 router.get("/my", verifyToken, getMyGrievances);
 
 /* ADMIN ROUTES */
-router.get("/admin/dashboard", verifyToken, getAdminDashboardData);
-router.get("/admin/latest", verifyToken, getAdminLatestGrievances);
-router.get("/admin/all", verifyToken, getAdminAllGrievances);
-router.get("/admin/pending", verifyToken, getAdminPendingGrievances);
+// ✅ Added verifyAdmin middleware for proper role-based authorization
+router.get("/admin/dashboard", verifyToken, verifyAdmin, getAdminDashboardData);
+router.get("/admin/latest", verifyToken, verifyAdmin, getAdminLatestGrievances);
+router.get("/admin/all", verifyToken, verifyAdmin, getAdminAllGrievances);
+router.get("/admin/pending", verifyToken, verifyAdmin, getAdminPendingGrievances);
 
 router.get("/admin/grievance/:id", verifyToken, async (req, res) => {
     try {
