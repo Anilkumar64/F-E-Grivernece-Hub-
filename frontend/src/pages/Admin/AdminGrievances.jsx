@@ -1,206 +1,31 @@
 import React, { useEffect, useState } from "react";
-import api from "../../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import "../../styles/AdminStyles/AdminGrievances.css";
+import api from "../../api/axiosInstance";
+import Skeleton from "../../components/common/Skeleton";
 
-
-export default function AdminGrievances() {
+export default function AdminGrievances({ fixedStatus }) {
     const navigate = useNavigate();
-    const [grievances, setGrievances] = useState([]);
-    const [filtered, setFiltered] = useState([]);
+    const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    const [search, setSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState("");
-    const [priorityFilter, setPriorityFilter] = useState("");
-    const [sortOrder, setSortOrder] = useState("newest");
+    const [filters, setFilters] = useState({ search: "", status: fixedStatus || "", priority: "", sort: "newest" });
 
     useEffect(() => {
-        fetchAll();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const fetchAll = async () => {
-        try {
-            setLoading(true);
-
-            // axiosInstance already handles baseURL + Authorization header
-            const res = await api.get("/grievances/admin/all"); // change endpoint if your backend uses a different one
-
-            const data = res?.data?.grievances || res?.data || [];
-            setGrievances(data);
-            setFiltered(data);
-        } catch (err) {
-            console.error(err);
-            toast.error(
-                err?.response?.data?.message || "Failed to fetch grievances"
-            );
-
-            if (err?.response?.status === 401) {
-                navigate("/admin/login");
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // 🔍 Search + Filters
-    useEffect(() => {
-        let g = Array.isArray(grievances) ? [...grievances] : [];
-
-        // search by trackingId or title
-        if (search.trim()) {
-            const term = search.toLowerCase();
-            g = g.filter((x) => {
-                const tracking = x.trackingId?.toLowerCase() || "";
-                const title = x.title?.toLowerCase() || "";
-                return (
-                    tracking.includes(term) ||
-                    title.includes(term)
-                );
-            });
-        }
-
-        if (statusFilter) {
-            g = g.filter((x) => x.status === statusFilter);
-        }
-
-        if (priorityFilter) {
-            g = g.filter((x) => x.priority === priorityFilter);
-        }
-
-        if (sortOrder === "newest") {
-            g.sort(
-                (a, b) =>
-                    new Date(b.createdAt || 0) -
-                    new Date(a.createdAt || 0)
-            );
-        } else {
-            g.sort(
-                (a, b) =>
-                    new Date(a.createdAt || 0) -
-                    new Date(b.createdAt || 0)
-            );
-        }
-
-        setFiltered(g);
-    }, [search, statusFilter, priorityFilter, sortOrder, grievances]);
-
-    if (loading) return <div className="ag-loading">Loading...</div>;
+        const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
+        api.get(`/grievances?${params}`).then((res) => setItems(res.data.grievances || [])).finally(() => setLoading(false));
+    }, [filters]);
 
     return (
-        <div className="admin-grievances-page">
-            <h1>Admin Dashboard – Grievances</h1>
-
-            {/* FILTER BAR */}
-            <div className="ag-filters">
-                <input
-                    type="text"
-                    placeholder="Search by Tracking ID or Title..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-
-                <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                    <option value="">All Status</option>
-                    <option value="submitted">Pending</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="rejected">Rejected</option>
-                </select>
-
-                <select
-                    value={priorityFilter}
-                    onChange={(e) => setPriorityFilter(e.target.value)}
-                >
-                    <option value="">All Priorities</option>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="critical">Critical</option>
-                </select>
-
-                <select
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value)}
-                >
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                </select>
+        <section className="page-section">
+            <div className="page-heading"><h1>{fixedStatus || "All"} Grievances</h1></div>
+            <div className="filter-row">
+                <input placeholder="Search ID, title, student" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                {!fixedStatus && <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}><option value="">All Status</option>{["Pending", "InProgress", "UnderReview", "Resolved", "Closed", "Escalated"].map((s) => <option key={s}>{s}</option>)}</select>}
+                <select value={filters.priority} onChange={(e) => setFilters({ ...filters, priority: e.target.value })}><option value="">All Priority</option>{["Low", "Medium", "High", "Critical"].map((p) => <option key={p}>{p}</option>)}</select>
+                <select value={filters.sort} onChange={(e) => setFilters({ ...filters, sort: e.target.value })}><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="slaDeadline">SLA Deadline</option></select>
             </div>
-
-            {/* TABLE */}
-            <div className="ag-table-wrapper">
-                <table className="ag-table">
-                    <thead>
-                        <tr>
-                            <th>Tracking ID</th>
-                            <th>Title</th>
-                            <th>Status</th>
-                            <th>Priority</th>
-                            <th>Submitted By</th>
-                            <th>Created</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {filtered.map((g) => {
-                            const statusText = g.status || "Unknown";
-                            const priorityText = g.priority || "Medium";
-
-                            const statusClass = `ag-badge status-${statusText.replace(/\s+/g, "").toLowerCase()
-                                }`;
-                            const priorityClass = `ag-badge pri-${priorityText
-                                .toLowerCase()
-                                }`;
-
-                            const createdAtText = g.createdAt
-                                ? new Date(g.createdAt).toLocaleString()
-                                : "-";
-
-                            return (
-                                <tr
-                                    key={g._id || g.id}
-                                    onClick={() =>
-                                        navigate(`/admin/grievance/${g._id}`)
-                                    }
-                                >
-                                    <td>{g.trackingId}</td>
-                                    <td>{g.title}</td>
-
-                                    <td>
-                                        <span className={statusClass}>
-                                            {statusText}
-                                        </span>
-                                    </td>
-
-                                    <td>
-                                        <span className={priorityClass}>
-                                            {priorityText}
-                                        </span>
-                                    </td>
-
-                                    <td>{g.userEmail || "-"}</td>
-
-                                    <td>{createdAtText}</td>
-                                </tr>
-                            );
-                        })}
-
-                        {filtered.length === 0 && (
-                            <tr>
-                                <td colSpan="6" className="ag-empty">
-                                    No grievances found ✨
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+            {loading ? <Skeleton rows={5} /> : (
+                <div className="responsive-table"><table><thead><tr><th>ID</th><th>Student</th><th>Title</th><th>Status</th><th>Priority</th></tr></thead><tbody>{items.map((g) => <tr key={g._id} onClick={() => navigate(`/admin/grievance/${g.grievanceId}`)}><td>{g.grievanceId}</td><td>{g.submittedBy?.name}</td><td>{g.title}</td><td><span className={`status-badge ${g.status}`}>{g.status}</span></td><td>{g.priority}</td></tr>)}</tbody></table></div>
+            )}
+        </section>
     );
 }
