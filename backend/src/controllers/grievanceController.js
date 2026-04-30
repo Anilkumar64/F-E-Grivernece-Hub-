@@ -651,6 +651,9 @@ export const addComment = async (req, res) => {
 
         const isOwner = grievance.user?.toString() === req.userId;
         const isAdmin = ["departmentadmin", "superadmin"].includes(req.role);
+        if (isAdmin && !req.admin) {
+            req.admin = await Admin.findById(req.userId);
+        }
         if (!isOwner && (!isAdmin || !canAdminAccessGrievance(req, grievance))) {
             return res.status(403).json({ message: "Access denied" });
         }
