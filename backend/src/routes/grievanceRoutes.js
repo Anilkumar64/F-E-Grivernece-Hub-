@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import PDFDocument from "pdfkit";
 import Grievance, { GRIEVANCE_PRIORITIES, GRIEVANCE_STATUSES } from "../models/Grievance.js";
 import GrievanceCategory from "../models/GrievanceCategory.js";
 import Notification from "../models/Notification.js";
@@ -97,10 +98,11 @@ router.post("/", authenticate, authorize("student"), uploadLimiter, upload.array
 
     const admins = await User.find({ role: "admin", department: categoryDoc.department, isActive: true }).select("_id");
     await Notification.insertMany([
-        { recipient: req.userId, type: "grievance_submitted", message: `Your grievance ${grievance.grievanceId} was submitted.`, grievance: grievance._id },
+        { recipient: req.userId, type: "grievance_submitted", title: "Grievance submitted", message: `Your grievance ${grievance.grievanceId} was submitted.`, grievance: grievance._id },
         ...admins.map((admin) => ({
             recipient: admin._id,
             type: "grievance_submitted",
+            title: "New grievance assigned",
             message: `New grievance ${grievance.grievanceId} assigned to your department.`,
             grievance: grievance._id,
         })),
@@ -149,6 +151,59 @@ router.get("/", authenticate, authorize("admin", "superadmin"), async (req, res)
     res.json({ grievances, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
 });
 
+router.get("/track/:id", authenticate, async (req, res) => {
+    req.params.id = req.params.id;
+    const query = mongoose.Types.ObjectId.isValid(req.params.id)
+        ? { $or: [{ _id: req.params.id }, { grievanceId: req.params.id }] }
+        : { grievanceId: req.params.id };
+    const grievance = await populateGrievance(Grievance.findOne(query));
+    if (!grievance) return res.status(404).json({ message: "Grievance not found" });
+    if (!visibleToUser(req, grievance)) return res.status(403).json({ message: "Forbidden: grievance not accessible" });
+    res.json({ grievance });
+});
+
+router.get("/:id/pdf", authenticate, async (req, res) => {
+    const query = mongoose.Types.ObjectId.isValid(req.params.id)
+        ? { $or: [{ _id: req.params.id }, { grievanceId: req.params.id }] }
+        : { grievanceId: req.params.id };
+    const grievance = await populateGrievance(Grievance.findOne(query));
+    if (!grievance) return res.status(404).json({ message: "Grievance not found" });
+    if (!visibleToUser(req, grievance)) return res.status(403).json({ message: "Forbidden: grievance not accessible" });
+
+    const doc = new PDFDocument({ margin: 48 });
+    const filename = `Grievance_${grievance.grievanceId}.pdf`;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    doc.pipe(res);
+
+    doc.fontSize(18).text("University E-Grievance", { align: "center" });
+    doc.moveDown();
+    doc.fontSize(14).text(`${grievance.grievanceId} - ${grievance.title}`);
+    doc.moveDown(0.5);
+    doc.fontSize(10)
+        .text(`Submitted: ${new Date(grievance.createdAt).toLocaleString()}`)
+        .text(`Student: ${grievance.submittedBy?.name || "-"}`)
+        .text(`Department: ${grievance.department?.name || "-"}`)
+        .text(`Category: ${grievance.category?.name || "-"}`)
+        .text(`Priority: ${grievance.priority}`)
+        .text(`Status: ${grievance.status}`);
+    doc.moveDown();
+    doc.fontSize(12).text("Description", { underline: true });
+    doc.fontSize(10).text(grievance.description || "-", { align: "left" });
+    doc.moveDown();
+    doc.fontSize(12).text("Timeline", { underline: true });
+    grievance.timeline.forEach((item) => {
+        doc.fontSize(10).text(`${new Date(item.timestamp).toLocaleString()} - ${item.status}: ${item.message || ""}`);
+    });
+    doc.moveDown();
+    doc.fontSize(12).text("Comments", { underline: true });
+    if (!grievance.comments.length) doc.fontSize(10).text("No comments yet.");
+    grievance.comments.forEach((item) => {
+        doc.fontSize(10).text(`${item.postedBy?.name || item.role} (${new Date(item.timestamp).toLocaleString()}): ${item.text}`);
+    });
+    doc.end();
+});
+
 router.get("/:id", authenticate, async (req, res) => {
     const query = mongoose.Types.ObjectId.isValid(req.params.id)
         ? { $or: [{ _id: req.params.id }, { grievanceId: req.params.id }] }
@@ -174,6 +229,7 @@ router.patch("/:id/status", authenticate, authorize("admin", "superadmin"), asyn
     await Notification.create({
         recipient: grievance.submittedBy,
         type: status === "Resolved" ? "feedback_requested" : "status_changed",
+        title: "Grievance status updated",
         message: `Grievance ${grievance.grievanceId} status changed to ${status}.`,
         grievance: grievance._id,
     });
@@ -195,10 +251,24 @@ router.post("/:id/comments", authenticate, async (req, res) => {
         ? await User.findOne({ role: "admin", department: grievance.department, isActive: true }).select("_id")
         : await User.findById(grievance.submittedBy).select("_id");
     if (recipient) {
-        await Notification.create({ recipient: recipient._id, type: "comment_added", message: `New comment on grievance ${grievance.grievanceId}.`, grievance: grievance._id });
+        await Notification.create({ recipient: recipient._id, type: "comment_added", title: "New comment", message: `New comment on grievance ${grievance.grievanceId}.`, grievance: grievance._id });
     }
     await writeAuditLog(req, "GRIEVANCE_COMMENT_ADDED", "Grievance", grievance._id);
     res.status(201).json({ message: "Comment added", grievance: await populateGrievance(Grievance.findById(grievance._id)) });
+});
+
+router.post("/comment/:id", authenticate, async (req, res) => {
+    req.url = `/${req.params.id}/comments`;
+    res.status(410).json({ message: "Use POST /api/grievances/:id/comments" });
+});
+
+router.patch("/request-close/:id", authenticate, authorize("student"), async (req, res) => {
+    const grievance = await Grievance.findById(req.params.id);
+    if (!grievance) return res.status(404).json({ message: "Grievance not found" });
+    if (!visibleToUser(req, grievance)) return res.status(403).json({ message: "Forbidden: grievance not accessible" });
+    grievance.timeline.push({ status: grievance.status, message: "Student requested closure", updatedBy: req.userId });
+    await grievance.save();
+    res.json({ message: "Close request submitted", grievance: await populateGrievance(Grievance.findById(grievance._id)) });
 });
 
 router.post("/:id/feedback", authenticate, authorize("student"), async (req, res) => {
