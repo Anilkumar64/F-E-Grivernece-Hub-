@@ -8,6 +8,7 @@ import { authenticate, authorize } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
 import { uploadLimiter } from "../middleware/rateLimiters.js";
 import { writeAuditLog } from "../utils/audit.js";
+import { getCache, setCache } from "../utils/cache.js";
 
 const router = express.Router();
 
@@ -121,6 +122,9 @@ router.get("/mine", authenticate, authorize("student"), async (req, res) => {
 
 router.get("/analytics", authenticate, authorize("admin", "superadmin"), async (req, res) => {
     const match = req.role === "admin" ? { department: new mongoose.Types.ObjectId(req.user.department) } : {};
+    const cacheKey = `analytics:${req.role}:${req.user.department || "all"}`;
+    const cached = await getCache(cacheKey);
+    if (cached) return res.json(cached);
     const [statusDistribution, byCategory, byDepartment, totals, recent, slaWarnings, feedback] = await Promise.all([
         Grievance.aggregate([{ $match: match }, { $group: { _id: "$status", count: { $sum: 1 } } }]),
         Grievance.aggregate([{ $match: match }, { $group: { _id: "$category", count: { $sum: 1 } } }, { $limit: 10 }]),
@@ -130,7 +134,9 @@ router.get("/analytics", authenticate, authorize("admin", "superadmin"), async (
         populateGrievance(Grievance.find({ ...match, status: { $nin: ["Resolved", "Closed"] }, slaDeadline: { $lte: new Date(Date.now() + 12 * 60 * 60 * 1000) } })).sort({ slaDeadline: 1 }).limit(10),
         Grievance.aggregate([{ $match: { ...match, feedbackRating: { $ne: null } } }, { $group: { _id: "$department", averageRating: { $avg: "$feedbackRating" }, count: { $sum: 1 } } }]),
     ]);
-    res.json({ statusDistribution, byCategory, byDepartment, totals: totals[0] || { total: 0, resolved: 0, escalated: 0 }, recent, slaWarnings, feedback });
+    const payload = { statusDistribution, byCategory, byDepartment, totals: totals[0] || { total: 0, resolved: 0, escalated: 0 }, recent, slaWarnings, feedback };
+    await setCache(cacheKey, payload);
+    res.json(payload);
 });
 
 router.get("/", authenticate, authorize("admin", "superadmin"), async (req, res) => {
