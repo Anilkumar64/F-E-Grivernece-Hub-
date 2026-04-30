@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api/axiosInstance";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import AdminNavbar from "../../components/landing/AdminLandingNavbar";
 import "../../styles/AdminStyles/AdminSignup.css";

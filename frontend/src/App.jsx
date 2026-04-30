@@ -1,5 +1,4 @@
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Toaster } from "react-hot-toast";
 import { BrowserRouter } from 'react-router-dom'
 import './App.css'
 import AppRoutes from './routes/AppRoutes'
@@ -15,7 +14,7 @@ function App() {
           <UserProvider>
             <NotificationProvider>
               <AppRoutes></AppRoutes>
-              <ToastContainer position="top-right" autoClose={3000} />
+              <Toaster position="bottom-right" toastOptions={{ duration: 4000 }} />
             </NotificationProvider>
           </UserProvider>
         </AuthProvider>

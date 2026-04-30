@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import api from "../../api/axiosInstance";
 
 export default function ComplaintTypes() {

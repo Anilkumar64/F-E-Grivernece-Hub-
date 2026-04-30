@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import api from "../../api/axiosInstance";
 import Navbar from "../../components/common/Navbar";
 import "../../styles/UserStyles/UserLogin.css";
