@@ -14,23 +14,23 @@ export const getSuperAdminStats = async (req, res, next) => {
             totalAdmins,
         ] = await Promise.all([
             Grievance.countDocuments({}),                  // all
-            Grievance.countDocuments({ status: "Pending" }),
-            Grievance.countDocuments({ status: "Resolved" }),
+            Grievance.countDocuments({ status: "submitted" }),
+            Grievance.countDocuments({ status: "resolved" }),
             User.countDocuments({}),                       // adjust if you have some filter
             Admin.countDocuments({}),
         ]);
 
-        // average resolution time (in hours) from grievances that have resolvedAt
+        // ✅ average resolution time (in hours) using updatedAt instead of non-existent resolvedAt field
         const resolvedDocs = await Grievance.find(
-            { status: "Resolved", resolvedAt: { $exists: true } },
-            { createdAt: 1, resolvedAt: 1 }
+            { status: "resolved" },
+            { createdAt: 1, updatedAt: 1 }
         ).lean();
 
         let avgResolutionTime = 0;
         if (resolvedDocs.length > 0) {
             const totalMs = resolvedDocs.reduce((sum, g) => {
                 const created = new Date(g.createdAt).getTime();
-                const resolved = new Date(g.resolvedAt).getTime();
+                const resolved = new Date(g.updatedAt).getTime();
                 if (!isNaN(created) && !isNaN(resolved) && resolved > created) {
                     return sum + (resolved - created);
                 }
