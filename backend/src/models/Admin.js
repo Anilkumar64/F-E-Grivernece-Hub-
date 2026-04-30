@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import bcryptjs from "bcryptjs";
 // const ALLOWED_DEPARTMENTS = ["IT", "CSE", "ECE", "EEE", "MECH", "CIVIL"];
 
 const adminSchema = new mongoose.Schema(
