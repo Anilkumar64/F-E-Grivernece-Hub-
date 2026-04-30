@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
         setAccessToken(token);
         localStorage.setItem("authUser", JSON.stringify(user));
         if (token) localStorage.setItem("accessToken", token);
-    }, [persist]);
+    }, []);
 
     useEffect(() => {
         const bootstrap = async () => {
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
             }
         };
         bootstrap();
-    }, []);
+    }, [persist]);
 
     const loginStudent = useCallback(async (payload) => {
         const res = await api.post("/auth/student/login", payload);
