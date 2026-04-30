@@ -7,8 +7,8 @@ import jwt from "jsonwebtoken";
  * @throws {Error} If ACCESS_TOKEN_SECRET is not configured
  */
 export const generateAccessToken = (admin) => {
-    if (!process.env.ACCESS_TOKEN_SECRET) {
-        throw new Error("ACCESS_TOKEN_SECRET is not configured");
+    if (!process.env.ACCESS_TOKEN_SECRET || process.env.ACCESS_TOKEN_SECRET.length < 32) {
+        throw new Error("ACCESS_TOKEN_SECRET must be at least 32 characters");
     }
     return jwt.sign(
         {
@@ -28,8 +28,8 @@ export const generateAccessToken = (admin) => {
  * @throws {Error} If REFRESH_TOKEN_SECRET is not configured
  */
 export const generateRefreshToken = (admin) => {
-    if (!process.env.REFRESH_TOKEN_SECRET) {
-        throw new Error("REFRESH_TOKEN_SECRET is not configured");
+    if (!process.env.REFRESH_TOKEN_SECRET || process.env.REFRESH_TOKEN_SECRET.length < 32) {
+        throw new Error("REFRESH_TOKEN_SECRET must be at least 32 characters");
     }
     return jwt.sign(
         {

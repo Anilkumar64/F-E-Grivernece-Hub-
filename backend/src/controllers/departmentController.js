@@ -1,5 +1,8 @@
 // backend/src/controllers/departmentController.js
 import Department from "../models/Department.js";
+import Admin from "../models/Admin.js";
+import ComplaintType from "../models/ComplaintType.js";
+import Grievance from "../models/Grievance.js";
 
 /**
  * GET /api/superadmin/departments
@@ -64,6 +67,18 @@ export const createDepartment = async (req, res, next) => {
 export const deleteDepartment = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const [admin, type, grievance] = await Promise.all([
+            Admin.exists({ department: id }),
+            ComplaintType.exists({ department: id }),
+            Grievance.exists({ department: id }),
+        ]);
+
+        if (admin || type || grievance) {
+            return res.status(409).json({
+                message: "Department is in use and cannot be deleted",
+            });
+        }
+
         await Department.findByIdAndDelete(id);
         res.json({ message: "Department deleted" });
     } catch (err) {

@@ -1,5 +1,8 @@
 import express from "express";
 import Department from "../models/Department.js";
+import Admin from "../models/Admin.js";
+import ComplaintType from "../models/ComplaintType.js";
+import Grievance from "../models/Grievance.js";
 import { verifySuperAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -18,10 +21,10 @@ router.get("/", async (req, res) => {
 // CREATE NEW DEPARTMENT (SUPERADMIN)
 router.post("/", verifySuperAdmin, async (req, res) => {
     try {
-        const { name, code, description } = req.body;
+        const { name, code, description, email, phone } = req.body;
 
-        if (!name) {
-            return res.status(400).json({ message: "Department name required" });
+        if (!name || !email) {
+            return res.status(400).json({ message: "Department name and email required" });
         }
 
         const exists = await Department.findOne({ name });
@@ -29,7 +32,7 @@ router.post("/", verifySuperAdmin, async (req, res) => {
             return res.status(400).json({ message: "Department already exists" });
         }
 
-        const dept = await Department.create({ name, code, description });
+        const dept = await Department.create({ name, code, description, email, phone });
 
         res.status(201).json({ message: "Department created", department: dept });
     } catch (error) {
@@ -41,6 +44,18 @@ router.post("/", verifySuperAdmin, async (req, res) => {
 // DELETE DEPARTMENT
 router.delete("/:id", verifySuperAdmin, async (req, res) => {
     try {
+        const [admin, type, grievance] = await Promise.all([
+            Admin.exists({ department: req.params.id }),
+            ComplaintType.exists({ department: req.params.id }),
+            Grievance.exists({ department: req.params.id }),
+        ]);
+
+        if (admin || type || grievance) {
+            return res.status(409).json({
+                message: "Department is in use and cannot be deleted",
+            });
+        }
+
         await Department.findByIdAndDelete(req.params.id);
         res.json({ message: "Department deleted" });
     } catch (error) {

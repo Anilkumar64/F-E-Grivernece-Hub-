@@ -5,7 +5,9 @@ import Department from "../../models/Department.js";
 
 export const createType = async (req, res) => {
     try {
-        const { type, subTypes, department, defaultPriority, description } = req.body;
+        const type = req.body.type || req.body.name;
+        const department = req.body.department || req.admin?.department;
+        const { subTypes, defaultPriority, description } = req.body;
 
         // Validation
         if (!type || !department) {
@@ -20,7 +22,7 @@ export const createType = async (req, res) => {
         }
 
         // Check duplicate
-        const exists = await ComplaintType.findOne({ type });
+        const exists = await ComplaintType.findOne({ type, department });
         if (exists) {
             return res.status(400).json({
                 message: "This complaint type already exists",

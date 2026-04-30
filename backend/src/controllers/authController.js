@@ -133,29 +133,25 @@ export const refreshAccessToken = async (req, res) => {
             return res.status(403).json({ message: "Invalid refresh token" });
         }
 
-        jwt.verify(
-            refreshToken,
-            process.env.REFRESH_TOKEN_SECRET,
-            async (err) => {
-                if (err) {
-                    return res
-                        .status(403)
-                        .json({ message: "Invalid or expired token" });
-                }
+        try {
+            jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, {
+                algorithms: ["HS256"],
+            });
+        } catch {
+            return res.status(403).json({ message: "Invalid or expired token" });
+        }
 
-                const newAccessToken = generateAccessToken(adminUser);
-                const newRefreshToken = generateRefreshToken(adminUser);
-                adminUser.refreshTokenHash = hashToken(newRefreshToken);
-                adminUser.refreshToken = null;
-                await adminUser.save({ validateBeforeSave: false });
+        const newAccessToken = generateAccessToken(adminUser);
+        const newRefreshToken = generateRefreshToken(adminUser);
+        adminUser.refreshTokenHash = hashToken(newRefreshToken);
+        adminUser.refreshToken = null;
+        await adminUser.save({ validateBeforeSave: false });
 
-                return res.json({
-                    message: "Access token refreshed",
-                    accessToken: newAccessToken,
-                    refreshToken: newRefreshToken,
-                });
-            }
-        );
+        return res.json({
+            message: "Access token refreshed",
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+        });
     } catch (error) {
         console.error("Refresh error:", error);
         res.status(500).json({ message: "Internal Server Error" });
