@@ -12,7 +12,9 @@ import {
     assignGrievance,
     updateGrievancePriority,
     addAdminNote,
-    addTimelineEvent
+    addTimelineEvent,
+    addComment,
+    canAdminAccessGrievance
 } from "../controllers/grievanceController.js";
 
 import Grievance from "../models/Grievance.js";
@@ -41,6 +43,10 @@ router.get("/admin/grievance/:id", verifyToken, verifyAdmin, async (req, res) =>
 
         if (!grievance) {
             return res.status(404).json({ message: "Grievance not found" });
+        }
+
+        if (!canAdminAccessGrievance(req, grievance)) {
+            return res.status(403).json({ message: "Access denied" });
         }
 
         res.json({ grievance });
@@ -106,5 +112,6 @@ router.patch("/assign/:id", verifyToken, verifyAdmin, assignGrievance);
 router.patch("/update-priority/:id", verifyToken, verifyAdmin, updateGrievancePriority);
 router.post("/admin-note/:id", verifyToken, verifyAdmin, addAdminNote);
 router.post("/timeline/:id", verifyToken, verifyAdmin, addTimelineEvent);
+router.post("/comment/:id", verifyToken, addComment);
 
 export default router;
