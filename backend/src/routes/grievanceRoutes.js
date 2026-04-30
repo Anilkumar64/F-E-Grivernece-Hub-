@@ -19,6 +19,7 @@ import {
 } from "../controllers/grievanceController.js";
 
 import Grievance from "../models/Grievance.js";
+import Admin from "../models/Admin.js";
 import { verifyToken, verifyAdmin } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
 
