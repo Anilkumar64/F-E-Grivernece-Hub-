@@ -8,6 +8,7 @@ import { writeAuditLog } from "../utils/audit.js";
 import sendEmail from "../utils/sendEmail.js";
 import { generateOTP } from "../utils/generateOTP.js";
 import userUploads from "../middleware/userUploads.js";
+import { writeAuditLog } from "../utils/audit.js";
 
 const router = express.Router();
 const hashValue = (v) => crypto.createHash("sha256").update(v).digest("hex");
