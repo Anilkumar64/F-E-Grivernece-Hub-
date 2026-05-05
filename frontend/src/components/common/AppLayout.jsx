@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import AuthContext from "../../context/AuthCore";
 import { useNotifications } from "../../hooks/useNotifications";
+import RouteTracker from "./RouteTracker";
 
 const iconSize = 20;
 
