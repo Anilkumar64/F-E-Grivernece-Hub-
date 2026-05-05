@@ -85,6 +85,7 @@ export default function AppLayout({ role }) {
 
     return (
         <div className="app-shell">
+            <RouteTracker />
             <aside className={`sidebar ${open ? "open" : ""}`}>
                 <div className="sidebar-logo" onClick={() => navigate(dashboardPath[role])}>
                     <div className="logo-mark">UG</div>
