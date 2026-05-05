@@ -59,6 +59,17 @@ const userSchema = new mongoose.Schema(
         stepUpCodeHash: { type: String, default: null, select: false },
         stepUpCodeExpiresAt: { type: Date, default: null, select: false },
         stepUpVerifiedAt: { type: Date, default: null, select: false },
+        activeSessions: {
+            type: [{
+                sessionId: { type: String, required: true },
+                userAgent: { type: String, default: "" },
+                ipAddress: { type: String, default: "" },
+                lastSeenAt: { type: Date, default: Date.now },
+                createdAt: { type: Date, default: Date.now },
+            }],
+            default: [],
+            select: false,
+        },
     },
     { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );

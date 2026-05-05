@@ -2,6 +2,7 @@ import express from "express";
 import crypto from "crypto";
 import User from "../models/User.js";
 import Department from "../models/Department.js";
+import ApprovalRequest from "../models/ApprovalRequest.js";
 import { guardSuperAdmin } from "../middleware/guards.js";
 import { authorizePermission } from "../middleware/rbac.js";
 import { requireStepUp } from "../middleware/stepUp.js";
@@ -14,6 +15,16 @@ const router = express.Router();
 router.use(...guardSuperAdmin);
 
 const adminProjection = "-password -refreshTokenHash -resetToken -resetTokenExpire";
+const ensureApproval = async ({ approvalId, actorId, actionType }) => {
+    if (!approvalId) return { ok: false, message: "approvalId is required for this action (4-eyes control)." };
+    const request = await ApprovalRequest.findById(approvalId);
+    if (!request) return { ok: false, message: "Approval request not found" };
+    if (request.status !== "approved") return { ok: false, message: "Approval request is not approved" };
+    if (request.requestedBy?.toString() === actorId) return { ok: false, message: "Requester cannot execute approved action" };
+    if (request.actionType !== actionType) return { ok: false, message: "Approval action type mismatch" };
+    if (request.expiresAt && request.expiresAt < new Date()) return { ok: false, message: "Approval request expired" };
+    return { ok: true };
+};
 
 /* ── Create admin (superadmin-initiated, immediately active) ── */
 router.post("/create", authorizePermission("admin.create"), requireStepUp(), async (req, res, next) => {
@@ -129,6 +140,12 @@ router.patch("/:id", authorizePermission("admin.update"), async (req, res, next)
 /* ── Reset admin password ── */
 router.patch("/:id/reset-password", authorizePermission("admin.resetPassword"), requireStepUp(), async (req, res, next) => {
     try {
+        const approval = await ensureApproval({
+            approvalId: req.body?.approvalId,
+            actorId: req.userId,
+            actionType: "admin.reset-password",
+        });
+        if (!approval.ok) return res.status(400).json({ message: approval.message });
         const temporaryPassword = req.body.password || crypto.randomBytes(8).toString("base64url");
         const admin = await User.findOne({ _id: req.params.id, role: "admin" }).select("+password");
         if (!admin) return res.status(404).json({ message: "Admin not found" });
@@ -144,6 +161,12 @@ router.patch("/:id/reset-password", authorizePermission("admin.resetPassword"), 
 /* ── Deactivate admin ── */
 router.delete("/:id", authorizePermission("admin.deactivate"), requireStepUp(), async (req, res, next) => {
     try {
+        const approval = await ensureApproval({
+            approvalId: req.body?.approvalId,
+            actorId: req.userId,
+            actionType: "admin.deactivate",
+        });
+        if (!approval.ok) return res.status(400).json({ message: approval.message });
         const admin = await User.findOneAndUpdate(
             { _id: req.params.id, role: "admin" },
             { isActive: false },

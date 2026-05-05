@@ -5,7 +5,7 @@ import {
     FileBarChart, FileText, Home, Image, LayoutDashboard,
     LogOut, Menu, MessageSquare, PlusCircle, Search,
     ShieldAlert, User, Users, X, GraduationCap,
-    Settings,
+    Settings, ShieldCheck,
 } from "lucide-react";
 import AuthContext from "../../context/AuthCore";
 import { useNotifications } from "../../hooks/useNotifications";
@@ -44,6 +44,7 @@ const navItems = {
         { label: "Reports & Analytics", path: "/superadmin/reports", icon: FileBarChart },
         { label: "Audit Logs", path: "/superadmin/audit-logs", icon: FileText },
         { label: "Security Settings", path: "/superadmin/settings", icon: Settings },
+        { label: "Control Center", path: "/superadmin/control-center", icon: ShieldCheck },
         { label: "Profile", path: "/superadmin/profile", icon: User },
     ],
 };

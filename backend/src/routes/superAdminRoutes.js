@@ -6,6 +6,10 @@ import Department from "../models/Department.js";
 import GrievanceCategory from "../models/GrievanceCategory.js";
 import SiteConfig from "../models/SiteConfig.js";
 import AuditLog  from "../models/AuditLog.js";
+import ApprovalRequest from "../models/ApprovalRequest.js";
+import SecurityEvent from "../models/SecurityEvent.js";
+import BackupStatus from "../models/BackupStatus.js";
+import ComplianceRequest from "../models/ComplianceRequest.js";
 import { verifySuperAdmin } from "../middleware/authMiddleware.js";
 import { writeAuditLog }    from "../utils/audit.js";
 import { delCache, getCache, setCache } from "../utils/cache.js";
@@ -332,6 +336,48 @@ router.patch("/users/:id/status", authorizePermission("users.manage"), requireSt
     } catch (err) { next(err); }
 });
 
+router.post("/users/:id/force-logout", authorizePermission("users.manage"), requireStepUp(), async (req, res, next) => {
+    try {
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            { refreshTokenHash: null, activeSessions: [] },
+            { new: true }
+        ).select("-password -refreshTokenHash -resetToken -resetTokenExpire");
+        if (!user) return res.status(404).json({ message: "User not found" });
+        await SecurityEvent.create({
+            type: "force_logout",
+            severity: "high",
+            user: user._id,
+            message: `All sessions revoked for ${user.email}`,
+            metadata: { actorId: req.userId },
+            createdBy: req.userId,
+        });
+        await writeAuditLog(req, "USER_FORCE_LOGOUT", "User", user._id);
+        return res.json({ message: "All sessions revoked", user });
+    } catch (err) { next(err); }
+});
+
+router.post("/users/:id/unlock", authorizePermission("users.manage"), async (req, res, next) => {
+    try {
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            { lockUntil: null, loginAttempts: 0, isActive: true },
+            { new: true }
+        ).select("-password -refreshTokenHash -resetToken -resetTokenExpire");
+        if (!user) return res.status(404).json({ message: "User not found" });
+        await SecurityEvent.create({
+            type: "unusual_activity",
+            severity: "medium",
+            user: user._id,
+            message: `User ${user.email} was manually unlocked`,
+            metadata: { actorId: req.userId },
+            createdBy: req.userId,
+        });
+        await writeAuditLog(req, "USER_UNLOCKED", "User", user._id);
+        return res.json({ message: "User unlocked", user });
+    } catch (err) { next(err); }
+});
+
 router.patch("/users/:id/reset-password", authorizePermission("users.manage"), requireStepUp(), async (req, res, next) => {
     try {
         const temporaryPassword = req.body.password || crypto.randomBytes(8).toString("base64url");
@@ -356,6 +402,278 @@ router.patch("/users/:id/assignments", authorizePermission("users.manage"), asyn
         if (!user) return res.status(404).json({ message: "User not found" });
         await writeAuditLog(req, "USER_ASSIGNMENT_UPDATED", "User", user._id, update);
         return res.json({ message: "User assignment updated", user });
+    } catch (err) { next(err); }
+});
+
+/* ─── Permission templates and assignment ─── */
+router.get("/rbac/templates", authorizePermission("settings.update"), async (_req, res, next) => {
+    try {
+        const config = await getOrCreateConfig();
+        return res.json({ templates: config.roleTemplates || [] });
+    } catch (err) { next(err); }
+});
+
+router.put("/rbac/templates", authorizePermission("settings.update"), async (req, res, next) => {
+    try {
+        const templates = Array.isArray(req.body?.templates) ? req.body.templates : [];
+        const config = await getOrCreateConfig();
+        config.roleTemplates = templates;
+        await config.save();
+        await writeAuditLog(req, "RBAC_TEMPLATES_UPDATED", "SiteConfig", config._id, { count: templates.length });
+        return res.json({ message: "RBAC templates updated", templates: config.roleTemplates });
+    } catch (err) { next(err); }
+});
+
+router.patch("/rbac/users/:id/permissions", authorizePermission("users.manage"), async (req, res, next) => {
+    try {
+        const permissions = Array.isArray(req.body?.permissions) ? req.body.permissions : [];
+        const user = await User.findByIdAndUpdate(req.params.id, { permissions }, { new: true })
+            .select("-password -refreshTokenHash -resetToken -resetTokenExpire");
+        if (!user) return res.status(404).json({ message: "User not found" });
+        await writeAuditLog(req, "USER_PERMISSIONS_UPDATED", "User", user._id, { permissions });
+        return res.json({ message: "Permissions updated", user });
+    } catch (err) { next(err); }
+});
+
+/* ─── 4-eyes approval workflow ─── */
+router.post("/approvals", authorizePermission("users.manage"), async (req, res, next) => {
+    try {
+        const { actionType, targetEntity, targetId = null, reason, payload = {} } = req.body;
+        if (!actionType || !targetEntity || !reason) {
+            return res.status(400).json({ message: "actionType, targetEntity and reason are required" });
+        }
+        const request = await ApprovalRequest.create({
+            actionType,
+            targetEntity,
+            targetId,
+            reason,
+            payload,
+            requestedBy: req.userId,
+        });
+        await writeAuditLog(req, "APPROVAL_REQUEST_CREATED", "ApprovalRequest", request._id, { actionType, targetEntity });
+        return res.status(201).json({ message: "Approval request created", request });
+    } catch (err) { next(err); }
+});
+
+router.get("/approvals", authorizePermission("users.manage"), async (req, res, next) => {
+    try {
+        const status = req.query.status || "pending";
+        const requests = await ApprovalRequest.find({ status })
+            .populate("requestedBy", "name email role")
+            .populate("approvedBy", "name email role")
+            .sort({ createdAt: -1 });
+        return res.json({ requests });
+    } catch (err) { next(err); }
+});
+
+router.patch("/approvals/:id/decision", authorizePermission("users.manage"), requireStepUp(), async (req, res, next) => {
+    try {
+        const { decision, decisionNote = "" } = req.body;
+        if (!["approved", "rejected"].includes(decision)) return res.status(400).json({ message: "Invalid decision" });
+        const request = await ApprovalRequest.findById(req.params.id);
+        if (!request) return res.status(404).json({ message: "Approval request not found" });
+        if (request.requestedBy.toString() === req.userId) {
+            return res.status(400).json({ message: "Requester cannot approve own request" });
+        }
+        request.status = decision;
+        request.approvedBy = req.userId;
+        request.decisionNote = decisionNote;
+        await request.save();
+        await writeAuditLog(req, "APPROVAL_REQUEST_DECIDED", "ApprovalRequest", request._id, { decision });
+        return res.json({ message: "Decision recorded", request });
+    } catch (err) { next(err); }
+});
+
+/* ─── Incident center ─── */
+router.get("/incidents", authorizePermission("users.manage"), async (req, res, next) => {
+    try {
+        const status = req.query.status;
+        const query = status ? { status } : {};
+        const incidents = await SecurityEvent.find(query)
+            .populate("user", "name email role isActive lockUntil")
+            .sort({ createdAt: -1 })
+            .limit(200);
+        return res.json({ incidents });
+    } catch (err) { next(err); }
+});
+
+router.post("/incidents", authorizePermission("users.manage"), async (req, res, next) => {
+    try {
+        const { type, severity = "medium", user = null, message, metadata = {} } = req.body;
+        if (!type || !message) return res.status(400).json({ message: "type and message are required" });
+        const incident = await SecurityEvent.create({ type, severity, user, message, metadata, createdBy: req.userId });
+        await writeAuditLog(req, "SECURITY_INCIDENT_CREATED", "SecurityEvent", incident._id, { type, severity });
+        return res.status(201).json({ message: "Incident created", incident });
+    } catch (err) { next(err); }
+});
+
+router.patch("/incidents/:id/status", authorizePermission("users.manage"), async (req, res, next) => {
+    try {
+        const { status } = req.body;
+        if (!["open", "investigating", "resolved"].includes(status)) return res.status(400).json({ message: "Invalid status" });
+        const incident = await SecurityEvent.findByIdAndUpdate(req.params.id, { status }, { new: true });
+        if (!incident) return res.status(404).json({ message: "Incident not found" });
+        await writeAuditLog(req, "SECURITY_INCIDENT_STATUS_UPDATED", "SecurityEvent", incident._id, { status });
+        return res.json({ message: "Incident updated", incident });
+    } catch (err) { next(err); }
+});
+
+/* ─── Session/device management ─── */
+router.get("/sessions", authorizePermission("users.read"), async (_req, res, next) => {
+    try {
+        const users = await User.find({ role: { $in: ["admin", "superadmin"] } })
+            .select("name email role activeSessions")
+            .sort({ updatedAt: -1 });
+        return res.json({
+            sessions: users.flatMap((u) =>
+                (u.activeSessions || []).map((s) => ({
+                    userId: u._id,
+                    name: u.name,
+                    email: u.email,
+                    role: u.role,
+                    ...s,
+                }))
+            ),
+        });
+    } catch (err) { next(err); }
+});
+
+/* ─── Backup and compliance center ─── */
+router.get("/backup-status", authorizePermission("settings.update"), async (_req, res, next) => {
+    try {
+        let status = await BackupStatus.findOne({ environment: "production" });
+        if (!status) {
+            status = await BackupStatus.create({
+                environment: "production",
+                status: "healthy",
+                lastSuccessfulBackupAt: new Date(),
+                nextScheduledBackupAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            });
+        }
+        return res.json({ status });
+    } catch (err) { next(err); }
+});
+
+router.put("/backup-status", authorizePermission("settings.update"), async (req, res, next) => {
+    try {
+        const update = req.body || {};
+        const status = await BackupStatus.findOneAndUpdate(
+            { environment: "production" },
+            update,
+            { new: true, upsert: true, runValidators: true }
+        );
+        await writeAuditLog(req, "BACKUP_STATUS_UPDATED", "BackupStatus", status._id, update);
+        return res.json({ message: "Backup status updated", status });
+    } catch (err) { next(err); }
+});
+
+router.post("/compliance-requests", authorizePermission("users.manage"), async (req, res, next) => {
+    try {
+        const { requestType, subjectEmail, reason } = req.body;
+        if (!requestType || !subjectEmail || !reason) {
+            return res.status(400).json({ message: "requestType, subjectEmail and reason are required" });
+        }
+        const subjectUser = await User.findOne({ email: subjectEmail.toLowerCase().trim() }).select("_id");
+        const request = await ComplianceRequest.create({
+            requestType,
+            subjectEmail,
+            subjectUser: subjectUser?._id || null,
+            reason,
+            requestedBy: req.userId,
+        });
+        await writeAuditLog(req, "COMPLIANCE_REQUEST_CREATED", "ComplianceRequest", request._id, { requestType, subjectEmail });
+        return res.status(201).json({ message: "Compliance request created", request });
+    } catch (err) { next(err); }
+});
+
+router.get("/compliance-requests", authorizePermission("users.manage"), async (_req, res, next) => {
+    try {
+        const requests = await ComplianceRequest.find({})
+            .populate("requestedBy", "name email role")
+            .populate("completedBy", "name email role")
+            .sort({ createdAt: -1 });
+        return res.json({ requests });
+    } catch (err) { next(err); }
+});
+
+router.patch("/compliance-requests/:id", authorizePermission("users.manage"), async (req, res, next) => {
+    try {
+        const { status, resultNote = "" } = req.body;
+        if (!["open", "in_progress", "completed", "rejected"].includes(status)) {
+            return res.status(400).json({ message: "Invalid status" });
+        }
+        const request = await ComplianceRequest.findById(req.params.id);
+        if (!request) return res.status(404).json({ message: "Compliance request not found" });
+        request.status = status;
+        request.resultNote = resultNote;
+        if (status === "completed" || status === "rejected") request.completedBy = req.userId;
+        await request.save();
+        await writeAuditLog(req, "COMPLIANCE_REQUEST_UPDATED", "ComplianceRequest", request._id, { status });
+        return res.json({ message: "Compliance request updated", request });
+    } catch (err) { next(err); }
+});
+
+/* ─── SLA policy + notification policy center ─── */
+router.put("/settings/sla-matrix", authorizePermission("settings.update"), async (req, res, next) => {
+    try {
+        const matrix = Array.isArray(req.body?.slaMatrix) ? req.body.slaMatrix : [];
+        const config = await getOrCreateConfig();
+        config.slaMatrix = matrix;
+        await config.save();
+        await writeAuditLog(req, "SLA_MATRIX_UPDATED", "SiteConfig", config._id, { count: matrix.length });
+        return res.json({ message: "SLA matrix updated", slaMatrix: config.slaMatrix });
+    } catch (err) { next(err); }
+});
+
+router.put("/settings/notifications", authorizePermission("settings.update"), async (req, res, next) => {
+    try {
+        const config = await getOrCreateConfig();
+        const { notificationPolicies = {}, messageTemplates = {} } = req.body;
+        config.notificationPolicies = {
+            ...config.notificationPolicies.toObject(),
+            ...notificationPolicies,
+        };
+        config.messageTemplates = {
+            ...config.messageTemplates.toObject(),
+            ...messageTemplates,
+        };
+        await config.save();
+        await writeAuditLog(req, "NOTIFICATION_POLICY_UPDATED", "SiteConfig", config._id, req.body);
+        return res.json({
+            message: "Notification policy updated",
+            notificationPolicies: config.notificationPolicies,
+            messageTemplates: config.messageTemplates,
+        });
+    } catch (err) { next(err); }
+});
+
+/* ─── Operational dashboard health ─── */
+router.get("/operational-health", authorizePermission("reports.read"), async (_req, res, next) => {
+    try {
+        const now = new Date();
+        const backlog = await Grievance.countDocuments({ status: { $in: ["Pending", "InProgress", "Escalated"] } });
+        const breachedSlas = await Grievance.countDocuments({ status: { $nin: ["Resolved", "Closed"] }, slaDeadline: { $lt: now } });
+        const agg = await Grievance.aggregate([
+            { $match: { status: "Resolved", resolvedAt: { $ne: null } } },
+            {
+                $project: {
+                    firstResponseHours: { $divide: [{ $subtract: ["$updatedAt", "$createdAt"] }, 36e5] },
+                    resolutionHours: { $divide: [{ $subtract: ["$resolvedAt", "$createdAt"] }, 36e5] },
+                },
+            },
+        ]);
+        const avgFirstResponse = agg.length ? +(agg.reduce((s, i) => s + Math.max(0, i.firstResponseHours), 0) / agg.length).toFixed(2) : 0;
+        const avgResolution = agg.length ? +(agg.reduce((s, i) => s + Math.max(0, i.resolutionHours), 0) / agg.length).toFixed(2) : 0;
+
+        const workload = await Grievance.aggregate([
+            { $match: { status: { $in: ["Pending", "InProgress", "Escalated"] }, assignedTo: { $ne: null } } },
+            { $group: { _id: "$assignedTo", activeCases: { $sum: 1 } } },
+            { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "admin" } },
+            { $project: { _id: 1, activeCases: 1, name: { $arrayElemAt: ["$admin.name", 0] }, email: { $arrayElemAt: ["$admin.email", 0] } } },
+            { $sort: { activeCases: -1 } },
+        ]);
+
+        return res.json({ backlog, avgFirstResponse, avgResolution, breachedSlas, workload });
     } catch (err) { next(err); }
 });
 

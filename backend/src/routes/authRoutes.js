@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import SiteConfig from "../models/SiteConfig.js";
 import Notification from "../models/Notification.js"; // Bug #6 fix: needed for superadmin alerts
+import SecurityEvent from "../models/SecurityEvent.js";
 import {
     clearAuthCookies, refreshCookieNames,
     setAuthCookies, signAccessToken, signRefreshToken,
@@ -58,6 +59,14 @@ const loginForRole = (role) => async (req, res, next) => {
                 user.lastFailedLoginAt = new Date();
                 if (attempts >= maxAttempts) {
                     user.lockUntil = new Date(Date.now() + lockoutMinutes * 60 * 1000);
+                    await SecurityEvent.create({
+                        type: "account_locked",
+                        severity: "high",
+                        user: user._id,
+                        message: `${user.email} locked after repeated failed logins`,
+                        metadata: { attempts, role },
+                        createdBy: null,
+                    });
                     if (role === "admin" || role === "superadmin") {
                         const superAdmins = await User.find({ role: "superadmin", isActive: true }).select("_id");
                         if (superAdmins.length) {
@@ -83,9 +92,20 @@ const loginForRole = (role) => async (req, res, next) => {
 
         const accessToken = signAccessToken(user);
         const refreshToken = signRefreshToken(user);
+        const sessionId = crypto.randomUUID();
         user.refreshTokenHash = hashToken(refreshToken);
         user.loginAttempts = 0;
         user.lockUntil = null;
+        user.activeSessions = [
+            ...(user.activeSessions || []).slice(-9),
+            {
+                sessionId,
+                userAgent: req.headers["user-agent"] || "",
+                ipAddress: req.ip || "",
+                createdAt: new Date(),
+                lastSeenAt: new Date(),
+            },
+        ];
         await user.save({ validateBeforeSave: false });
         setAuthCookies(res, user, accessToken, refreshToken);
 
@@ -239,7 +259,7 @@ router.post("/refresh", async (req, res, next) => {
 /* ── Protected: logout (any logged-in user) ── */
 router.post("/logout", ...guardAny, async (req, res, next) => {
     try {
-        await User.findByIdAndUpdate(req.userId, { refreshTokenHash: null });
+        await User.findByIdAndUpdate(req.userId, { refreshTokenHash: null, activeSessions: [] });
         await writeAuditLog(req, "LOGOUT", "User", req.userId);
         clearAuthCookies(res);
         return res.json({ message: "Logged out successfully" });

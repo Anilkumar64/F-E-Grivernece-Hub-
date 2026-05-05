@@ -53,6 +53,42 @@ const siteConfigSchema = new mongoose.Schema(
             escalationHours: { type: Number, default: 48 },
             warningHours: { type: Number, default: 24 },
         },
+        roleTemplates: {
+            type: [{
+                name: { type: String, required: true },
+                description: { type: String, default: "" },
+                permissions: { type: [String], default: [] },
+            }],
+            default: [
+                { name: "Operations Admin", description: "Operational handling and escalations", permissions: ["grievance.read.department", "grievance.update.department", "grievance.assign", "grievance.escalate", "reports.read"] },
+                { name: "Audit Reviewer", description: "Read audit/reporting modules", permissions: ["reports.read", "audit.verify"] },
+                { name: "Read-only Analyst", description: "Read-only access for analytics", permissions: ["reports.read", "users.read"] },
+            ],
+        },
+        notificationPolicies: {
+            lockoutAlerts: { type: Boolean, default: true },
+            escalationAlerts: { type: Boolean, default: true },
+            adminSignupAlerts: { type: Boolean, default: true },
+            slaBreachAlerts: { type: Boolean, default: true },
+            emailEnabled: { type: Boolean, default: true },
+            inAppEnabled: { type: Boolean, default: true },
+        },
+        messageTemplates: {
+            lockoutAlert: { type: String, default: "Account {email} was locked after repeated failed login attempts." },
+            escalationAlert: { type: String, default: "Grievance {grievanceId} was escalated." },
+            adminSignupAlert: { type: String, default: "New admin signup pending approval: {email}" },
+            slaBreachAlert: { type: String, default: "SLA breach detected for grievance {grievanceId}." },
+        },
+        slaMatrix: {
+            type: [{
+                category: { type: mongoose.Schema.Types.ObjectId, ref: "GrievanceCategory", default: null },
+                priority: { type: String, enum: ["Low", "Medium", "High", "Critical"], required: true },
+                responseHours: { type: Number, default: 24 },
+                resolutionHours: { type: Number, default: 72 },
+                escalationRecipients: { type: [mongoose.Schema.Types.ObjectId], ref: "User", default: [] },
+            }],
+            default: [],
+        },
     },
     { timestamps: true }
 );
