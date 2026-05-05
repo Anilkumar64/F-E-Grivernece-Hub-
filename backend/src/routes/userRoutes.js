@@ -109,6 +109,7 @@ router.patch("/me/avatar", authenticate, authorize("admin", "superadmin"), userU
             { new: true }
         ).select("-password -refreshTokenHash -resetToken -resetTokenExpire").populate("department", "name code");
         if (!user) return res.status(404).json({ message: "User not found" });
+        await writeAuditLog(req, "PROFILE_PHOTO_UPDATED", "User", user._id);
         res.json({ message: "Profile photo updated", user });
     } catch (err) { next(err); }
 });
