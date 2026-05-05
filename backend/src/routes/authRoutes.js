@@ -18,7 +18,8 @@ import userUploads from "../middleware/userUploads.js"; // FIX B3: parse multipa
 const router = express.Router();
 const hashToken = (t) => crypto.createHash("sha256").update(t).digest("hex");
 const hashValue = (v) => crypto.createHash("sha256").update(v).digest("hex");
-const allowBodyRefreshToken = process.env.ALLOW_BODY_REFRESH_TOKEN === "true";
+const allowBodyRefreshToken =
+    process.env.ALLOW_BODY_REFRESH_TOKEN === "true" || process.env.NODE_ENV !== "production";
 
 const publicUser = (user) => ({
     _id: user._id,
@@ -38,10 +39,11 @@ const publicUser = (user) => ({
 const loginForRole = (role) => async (req, res, next) => {
     try {
         const { email, password } = req.body;
-        if (!email || !password)
+        if (typeof email !== "string" || typeof password !== "string" || !email.trim() || !password)
             return res.status(400).json({ message: "Email and password are required" });
 
-        const user = await User.findOne({ email: email.toLowerCase().trim(), role })
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail, role })
             .select("+password +refreshTokenHash +loginAttempts +lockUntil +lastFailedLoginAt")
             .populate("department", "name code");
         const config = await SiteConfig.findOne({ key: "global" }).select("security");

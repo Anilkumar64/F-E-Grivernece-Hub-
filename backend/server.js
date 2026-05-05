@@ -50,6 +50,7 @@ const isProd     = process.env.NODE_ENV === "production";
 /* ── CORS ── */
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173,http://localhost:5174")
     .split(",").map((o) => o.trim()).filter(Boolean);
+const allowedOriginSet = new Set(allowedOrigins);
 
 /* ── Global middleware ── */
 app.set("trust proxy", 1);
@@ -77,6 +78,30 @@ app.use(cors({
     },
     credentials: true,
 }));
+if (isProd) {
+    // Extra CSRF guard for cookie-authenticated state-changing requests.
+    app.use((req, res, next) => {
+        const mutatingMethod = !["GET", "HEAD", "OPTIONS"].includes(req.method);
+        if (!mutatingMethod) return next();
+        const hasAuthCookie = Object.keys(req.cookies || {}).some((k) => k.endsWith("AccessToken") || k.endsWith("RefreshToken"));
+        const usesBearerHeader = Boolean(req.headers.authorization?.startsWith("Bearer "));
+        if (!hasAuthCookie || usesBearerHeader) return next();
+
+        const origin = req.get("origin");
+        if (origin && allowedOriginSet.has(origin)) return next();
+
+        const referer = req.get("referer");
+        if (referer) {
+            try {
+                const refererOrigin = new URL(referer).origin;
+                if (allowedOriginSet.has(refererOrigin)) return next();
+            } catch {
+                // ignored; reject below
+            }
+        }
+        return res.status(403).json({ message: "Forbidden: invalid request origin" });
+    });
+}
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: process.env.FORM_BODY_LIMIT || "1mb" }));
 app.use(cookieParser());
