@@ -33,14 +33,18 @@ export const signRefreshToken = (user) =>
 export const cookieOptions = (maxAge = 7 * 24 * 60 * 60 * 1000) => ({
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    sameSite: process.env.COOKIE_SAMESITE || "lax",
+    domain: process.env.COOKIE_DOMAIN || undefined,
+    path: "/",
     maxAge,
 });
 
 const clearCookieOptions = () => ({
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    sameSite: process.env.COOKIE_SAMESITE || "lax",
+    domain: process.env.COOKIE_DOMAIN || undefined,
+    path: "/",
 });
 
 export const setAuthCookies = (res, user, accessToken, refreshToken) => {

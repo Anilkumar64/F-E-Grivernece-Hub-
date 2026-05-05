@@ -45,6 +45,7 @@ dotenv.config();
 const app        = express();
 const PORT       = process.env.PORT || 5000;
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
+const isProd     = process.env.NODE_ENV === "production";
 
 /* ── CORS ── */
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173,http://localhost:5174")
@@ -52,7 +53,22 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173,ht
 
 /* ── Global middleware ── */
 app.set("trust proxy", 1);
-app.use(helmet());
+app.disable("x-powered-by");
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: isProd ? {
+        useDefaults: true,
+        directives: {
+            defaultSrc: ["'self'"],
+            frameAncestors: ["'none'"],
+            objectSrc: ["'none'"],
+            imgSrc: ["'self'", "data:", "blob:"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            connectSrc: ["'self'", ...allowedOrigins],
+        },
+    } : false,
+}));
 app.use(compression());
 app.use(cors({
     origin: (origin, cb) => {
@@ -67,6 +83,16 @@ app.use(cookieParser());
 app.use(mongoSanitize());
 app.use(hpp());
 if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
+
+// Keep auth/token responses out of intermediary caches.
+app.use((req, res, next) => {
+    if (req.path.startsWith("/api/auth")) {
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+    }
+    next();
+});
 
 /* ── Static uploads ── */
 // Landing images are public

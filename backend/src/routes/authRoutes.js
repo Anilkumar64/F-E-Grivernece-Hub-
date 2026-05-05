@@ -18,6 +18,7 @@ import userUploads from "../middleware/userUploads.js"; // FIX B3: parse multipa
 const router = express.Router();
 const hashToken = (t) => crypto.createHash("sha256").update(t).digest("hex");
 const hashValue = (v) => crypto.createHash("sha256").update(v).digest("hex");
+const allowBodyRefreshToken = process.env.ALLOW_BODY_REFRESH_TOKEN === "true";
 
 const publicUser = (user) => ({
     _id: user._id,
@@ -224,11 +225,12 @@ router.post("/superadmin/login", authLimiter, loginForRole("superadmin"));
 /* ── Public: token refresh ── */
 router.post("/refresh", async (req, res, next) => {
     try {
-        const token =
+        const cookieToken =
             req.cookies?.studentRefreshToken ||
             req.cookies?.adminRefreshToken ||
-            req.cookies?.superadminRefreshToken ||
-            req.body?.refreshToken;
+            req.cookies?.superadminRefreshToken;
+        const bodyToken = req.body?.refreshToken;
+        const token = cookieToken || (allowBodyRefreshToken ? bodyToken : null);
 
         if (!token) return res.status(401).json({ message: "Refresh token missing" });
 
