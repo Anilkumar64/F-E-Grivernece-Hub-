@@ -40,6 +40,11 @@ footer { padding: 24px 32px; border-top: 1px solid var(--border); background: #f
 .landing-slider-dots { position: absolute; bottom: 16px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; }
 .landing-slider-dots button { width: 10px; height: 10px; border-radius: 999px; border: 0; background: rgba(255,255,255,.7); }
 .landing-slider-dots button.active { width: 24px; background: #2563eb; }
+.hero-mini-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.hero-mini-stats span { font-size: 12px; color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 999px; padding: 6px 10px; }
+.quick-flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.flow-card h3 { margin: 0 0 8px; font-size: 16px; }
+.flow-card p { margin: 0; color: #6b7280; }
 
 .app-shell { min-height: 100vh; display: flex; background: var(--bg); }
 .sidebar { position: fixed; inset: 0 auto 0 0; width: 260px; background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 30; transition: width .2s ease, transform .2s ease; }
@@ -147,6 +152,7 @@ tbody tr:hover { background: #f9fafb; }
   .public-nav div a:not(.secondary-btn) { display: none; }
   .hero, .features, .landing-section { padding: 32px 16px; }
   .landing-slider img { height: 220px; }
+  .quick-flow { grid-template-columns: 1fr; }
   .sidebar { transform: translateX(-100%); width: min(320px, 86vw); }
   .sidebar.open { transform: translateX(0); }
   .sidebar-backdrop { position: fixed; inset: 0; border: 0; background: rgba(17,24,39,.35); z-index: 25; }

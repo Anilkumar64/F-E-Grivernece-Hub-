@@ -66,6 +66,11 @@ export default function LandingPage() {
                     <Link className="primary-btn" to="/login">Student Login</Link>
                     <Link className="secondary-btn" to="/signup">Create Student Account</Link>
                 </div>
+                <div className="hero-mini-stats">
+                    <span>Real-time status updates</span>
+                    <span>Secure document upload</span>
+                    <span>Transparent resolution timeline</span>
+                </div>
             </section>
             {sliderImages.length > 0 && (
                 <section className="landing-section" aria-label="Campus highlights">
@@ -97,16 +102,20 @@ export default function LandingPage() {
                     );
                 })}
             </section>
-            {activeAnnouncements.length > 0 && (
-                <section className="landing-section card-grid">
-                    {activeAnnouncements.map((item) => (
-                        <article className="announcement-card" key={item._id || item.title}>
-                            <h2>{item.title}</h2>
-                            <p>{item.body}</p>
-                        </article>
-                    ))}
-                </section>
-            )}
+            <section className="landing-section quick-flow">
+                <article className="card flow-card">
+                    <h3>1. Login or Signup</h3>
+                    <p>Get instant access to your grievance dashboard with a student account.</p>
+                </article>
+                <article className="card flow-card">
+                    <h3>2. Submit with Details</h3>
+                    <p>Raise complaints with category, description, and supporting attachments.</p>
+                </article>
+                <article className="card flow-card">
+                    <h3>3. Track to Resolution</h3>
+                    <p>Follow every status change and admin reply until closure.</p>
+                </article>
+            </section>
             <section className="landing-section" id="contact">
                 <div className="card">
                     <h2>About</h2>
