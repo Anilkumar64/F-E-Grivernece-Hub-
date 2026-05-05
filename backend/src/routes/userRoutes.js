@@ -2,10 +2,12 @@ import express from "express";
 import crypto from "crypto";
 import User from "../models/User.js";
 import { guardStudent } from "../middleware/guards.js";
+import { authenticate, authorize } from "../middleware/authMiddleware.js";
 import { authLimiter } from "../middleware/rateLimiters.js";
 import { writeAuditLog } from "../utils/audit.js";
 import sendEmail from "../utils/sendEmail.js";
 import { generateOTP } from "../utils/generateOTP.js";
+import userUploads from "../middleware/userUploads.js";
 
 const router = express.Router();
 const hashValue = (v) => crypto.createHash("sha256").update(v).digest("hex");
