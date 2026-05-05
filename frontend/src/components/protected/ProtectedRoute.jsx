@@ -8,16 +8,35 @@ const loginPath = (roles) => {
     return "/login";
 };
 
+const homePath = (role) => {
+    if (role === "superadmin") return "/superadmin/dashboard";
+    if (role === "admin") return "/admin/dashboard";
+    return "/dashboard";
+};
+
 export default function ProtectedRoute({ allowedRoles = [] }) {
     const location = useLocation();
     const { authUser, loading } = useContext(AuthContext);
+    const hasToken = Boolean(localStorage.getItem("accessToken"));
 
-    if (loading) return <div className="page-shell"><div className="skeleton-card" /></div>;
-    if (!authUser) return <Navigate to={loginPath(allowedRoles)} state={{ from: location }} replace />;
-    if (allowedRoles.length && !allowedRoles.includes(authUser.role)) {
-        if (authUser.role === "superadmin") return <Navigate to="/superadmin/dashboard" replace />;
-        if (authUser.role === "admin") return <Navigate to="/admin/dashboard" replace />;
-        return <Navigate to="/dashboard" replace />;
+    // Still bootstrapping — show skeleton, don't redirect yet
+    if (loading) {
+        return (
+            <div className="page-shell">
+                <div className="skeleton-card" style={{ margin: 24 }} />
+            </div>
+        );
     }
+
+    // Not logged in → send to the correct login page, remembering where they came from
+    if (!authUser || !hasToken) {
+        return <Navigate to={loginPath(allowedRoles)} state={{ from: location }} replace />;
+    }
+
+    // Logged in but wrong role → redirect to their own dashboard
+    if (allowedRoles.length && !allowedRoles.includes(authUser.role)) {
+        return <Navigate to={homePath(authUser.role)} replace />;
+    }
+
     return <Outlet />;
 }

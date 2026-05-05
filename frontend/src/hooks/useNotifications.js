@@ -27,7 +27,19 @@ export const useNotifications = () => {
         };
     }, [load]);
 
-    return { notifications, unreadCount, reloadNotifications: load };
+    const markAllAsRead = useCallback(async () => {
+        // Optimistic UI: clear badge immediately when notification bar is opened.
+        setUnreadCount(0);
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        try {
+            await api.patch("/notifications/read-all");
+        } catch {
+            // If API fails, reload from server to restore accurate state.
+            await load();
+        }
+    }, [load]);
+
+    return { notifications, unreadCount, reloadNotifications: load, markAllAsRead };
 };
 
 export default useNotifications;

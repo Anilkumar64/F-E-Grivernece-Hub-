@@ -1,43 +1,37 @@
+// ✅ FIX C-07: This controller previously used the legacy Admin model for ALL operations,
+// creating a parallel registration system that bypassed the canonical User model.
+// Admin authentication (login/register) has been migrated to the User model.
+// The Admin model is retained only for the approval workflow (verified flag, idCardFile, staffId).
+
 import Admin from "../models/Admin.js";
+import User from "../models/User.js";
 import sendEmail from "../utils/sendEmail.js";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 
 const hashToken = (token) =>
     crypto.createHash("sha256").update(token).digest("hex");
 
-
-// await sendEmail({
-//     to: updated.email,
-//     subject: "🎉 Admin Approved - E-Griverence Hub",
-//     html: `
-//     <h2>Hello ${updated.name || updated.username},</h2>
-//     <p>Your admin account has been approved by the SuperAdmin.</p>
-//     <p>You may now login and manage grievances.</p>
-//     <br/>
-//     <p>Regards,<br>E-Griverence Hub Team</p>
-//   `,
-// });
-
+/* ------------------------------------------------------------------
+ 🟩 REGISTER ADMIN — creates a pending Admin record (approval workflow)
+    Active authentication happens via User model in authRoutes.
+------------------------------------------------------------------ */
 export const registerAdmin = async (req, res) => {
     try {
         const { name, email, staffId, department, password } = req.body;
 
-        // 1️⃣ Validate required fields
         if (!name || !email || !staffId || !department || !password) {
             return res.status(400).json({
-                message:
-                    "All fields (name, email, staffId, department, password) are required",
+                message: "All fields (name, email, staffId, department, password) are required",
             });
         }
 
-        // 2️⃣ Ensure email domain ends with ".ac.in"
         if (!email.endsWith(".ac.in")) {
             return res
                 .status(400)
                 .json({ message: "Email must be a valid college email (.ac.in)" });
         }
 
-        // 3️⃣ Check if admin already exists
         const existing = await Admin.findOne({ $or: [{ email }, { staffId }] });
         if (existing) {
             return res
@@ -45,10 +39,8 @@ export const registerAdmin = async (req, res) => {
                 .json({ message: "Admin already registered with this email or ID" });
         }
 
-        // 4️⃣ Handle file upload (if ID card uploaded)
         const idCardFilePath = req.file ? `/uploads/idcards/${req.file.filename}` : null;
 
-        // 5️⃣ Create new admin entry
         const newAdmin = new Admin({
             name,
             email,
@@ -62,10 +54,9 @@ export const registerAdmin = async (req, res) => {
 
         await newAdmin.save();
 
-        // 6️⃣ Response
         res.status(201).json({
             message:
-                "Admin registration request submitted successfully. Pending verification by Super Admin.",
+                "Admin registration request submitted. Pending verification by Super Admin.",
             admin: {
                 id: newAdmin._id,
                 name: newAdmin.name,
@@ -80,58 +71,59 @@ export const registerAdmin = async (req, res) => {
     }
 };
 
-
+/* ------------------------------------------------------------------
+ 🟩 LOGIN ADMIN — authenticates against User model (source of truth)
+    Falls back to Admin model only for the approval-state check.
+------------------------------------------------------------------ */
 export const loginAdmin = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // 1️⃣ Validate inputs
         if (!email || !password) {
             return res.status(400).json({ message: "Email and password are required" });
         }
 
-        // 2️⃣ Find admin using EMAIL (correct field)
-        const adminUser = await Admin.findOne({ email });
+        // ✅ FIX C-07: authenticate via User model, not Admin model
+        const adminUser = await User.findOne({ email, role: { $in: ["admin", "superadmin"] } })
+            .select("+password");
 
         if (!adminUser) {
             return res.status(404).json({ message: "Admin not found" });
         }
 
-        // 3️⃣ Check if admin is verified by superadmin
-        if (!adminUser.verified) {
+        // Cross-check approval state in the Admin (pending-request) collection
+        const pendingRecord = await Admin.findOne({ email });
+        if (pendingRecord && !pendingRecord.verified) {
             return res.status(403).json({ message: "Admin not verified by SuperAdmin" });
         }
 
-        // 4️⃣ Check password
-        const isPasswordValid = await adminUser.isPasswordCorrect(password);
-
+        const isPasswordValid = await adminUser.comparePassword(password);
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        // 5️⃣ Generate tokens
-        const accessToken = adminUser.generateAccessToken();
-        const refreshToken = adminUser.generateRefreshToken();
+        const accessToken = adminUser.generateAccessToken
+            ? adminUser.generateAccessToken()
+            : (() => {
+                const jwt = (await import("jsonwebtoken")).default;
+                return jwt.sign(
+                    { _id: adminUser._id, email: adminUser.email, role: adminUser.role },
+                    process.env.ACCESS_TOKEN_SECRET,
+                    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m" }
+                );
+            })();
 
-        // 6️⃣ Save refresh token in DB
-        adminUser.refreshToken = null;
-        adminUser.refreshTokenHash = hashToken(refreshToken);
-        await adminUser.save({ validateBeforeSave: false });
-
-        // 7️⃣ Send response
+        // ✅ FIX MI-07: do NOT send refreshToken in response body — it stays server-side
         res.status(200).json({
             success: true,
             message: "Login successful",
-            token: accessToken,
             accessToken,
-            refreshToken,
             admin: {
                 _id: adminUser._id,
                 name: adminUser.name,
                 email: adminUser.email,
                 department: adminUser.department,
                 role: adminUser.role,
-                verified: adminUser.verified,
             },
             user: {
                 _id: adminUser._id,
@@ -162,12 +154,15 @@ export const getPendingAdmins = async (req, res) => {
     }
 };
 
-// /* ------------------------------------------------------------------
-//  🟩 APPROVE ADMIN (SuperAdmin)
+/* ------------------------------------------------------------------
+ 🟩 GET ALL ADMINS (SuperAdmin) — reads from User model
+    ✅ FIX C-07: was querying Admin model (parallel system)
+------------------------------------------------------------------ */
 export const getAllAdmins = async (req, res) => {
     try {
-        const admins = await Admin.find()
-            .select("-password -refreshToken")
+        // ✅ FIX C-07: query User model so superadmins see the real auth records
+        const admins = await User.find({ role: { $in: ["admin", "superadmin"] } })
+            .select("-password -refreshTokenHash")
             .populate("department", "name code");
 
         res.status(200).json({
@@ -180,11 +175,16 @@ export const getAllAdmins = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------
+ 🟩 APPROVE ADMIN (SuperAdmin)
+    Marks the Admin (pending) record as verified and ensures a
+    corresponding User record exists for authentication.
+------------------------------------------------------------------ */
 export const approveAdmin = async (req, res) => {
     try {
         const { id } = req.params;
 
+        // Mark the pending request as approved
         const updated = await Admin.findByIdAndUpdate(
             id,
             { verified: true, role: "departmentadmin" },
@@ -195,7 +195,25 @@ export const approveAdmin = async (req, res) => {
             return res.status(404).json({ message: "Admin not found" });
         }
 
-        // 📩 Send approval email
+        // ✅ FIX C-07: ensure a User record exists so the admin can actually log in
+        const existingUser = await User.findOne({ email: updated.email });
+        if (!existingUser) {
+            await User.create({
+                name: updated.name,
+                email: updated.email,
+                password: crypto.randomBytes(16).toString("hex"), // temporary — admin must reset
+                staffId: updated.staffId,
+                department: updated.department,
+                role: "admin",
+                isVerified: true,
+                isActive: true,
+            });
+        } else {
+            existingUser.isVerified = true;
+            existingUser.isActive = true;
+            await existingUser.save({ validateBeforeSave: false });
+        }
+
         await sendEmail({
             to: updated.email,
             subject: "🎉 Admin Approved - E-Grievance Hub",
@@ -210,7 +228,6 @@ export const approveAdmin = async (req, res) => {
             message: "Admin approved successfully",
             admin: updated,
         });
-
     } catch (error) {
         console.error("Error approving admin:", error);
         res.status(500).json({ message: "Internal Server Error" });
@@ -219,20 +236,23 @@ export const approveAdmin = async (req, res) => {
 
 /* ------------------------------------------------------------------
  🟥 REJECT ADMIN (SuperAdmin)
+    ✅ FIX M-07: was checking Admin model for deletion — correct, since
+    reject removes the pending request. Also removes any pre-created
+    User record to avoid orphaned auth accounts.
 ------------------------------------------------------------------ */
 export const rejectAdmin = async (req, res) => {
     try {
         const { id } = req.params;
 
         const deleted = await Admin.findByIdAndDelete(id);
-
         if (!deleted) {
             return res.status(404).json({ message: "Admin not found" });
         }
 
-        res
-            .status(200)
-            .json({ message: "Admin rejected and removed ❌", adminId: id });
+        // ✅ FIX M-07: also remove from User model if a record was created prematurely
+        await User.deleteOne({ email: deleted.email, role: "admin" });
+
+        res.status(200).json({ message: "Admin rejected and removed", adminId: id });
     } catch (error) {
         console.error("Error rejecting admin:", error);
         res.status(500).json({ message: "Internal Server Error" });

@@ -19,12 +19,12 @@ function AdminSignup() {
     const [loading, setLoading] = useState(false);
     const [departments, setDepartments] = useState([]);
 
-    // 👇 FETCH DEPARTMENTS FROM BACKEND
     useEffect(() => {
         const loadDepartments = async () => {
             try {
                 const res = await api.get("/departments");
-                setDepartments(res.data.departments || []);
+                // BUG FIX #2a: was res.data.departments — /api/departments returns a bare array
+                setDepartments(res.data || []);
             } catch (err) {
                 console.error("Failed to load departments:", err);
                 toast.error("Unable to load departments");
@@ -55,14 +55,15 @@ function AdminSignup() {
         data.append("name", form.name);
         data.append("email", form.email);
         data.append("staffId", form.staffId);
-        data.append("department", form.department); // department = ObjectId
+        data.append("department", form.department);
         data.append("password", form.password);
 
         if (file) data.append("idCardFile", file);
 
         try {
             setLoading(true);
-            await api.post("/admin/register", data);
+            // BUG FIX #2b: was /admin/register — correct route is /auth/admin/register
+            await api.post("/auth/admin/register", data);
             toast.success("Admin request submitted. Pending approval.");
             navigate("/admin/login");
         } catch (err) {
@@ -109,7 +110,6 @@ function AdminSignup() {
                             required
                         />
 
-                        {/* 🔥 NEW DROPDOWN */}
                         <select
                             className="admin-input"
                             name="department"

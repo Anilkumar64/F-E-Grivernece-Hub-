@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "vitest run --reporter=verbose",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -27,6 +30,7 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^8.0.7",
     "pdfkit": "^0.18.0",
+    "react-router-dom": "^7.14.2",
     "redis": "^5.12.1",
     "zod": "^4.4.1"
   },
@@ -35,6 +39,10 @@
   "license": "ISC",
   "description": "its a egriverence",
   "devDependencies": {
-    "baseline-browser-mapping": "^2.10.24"
+    "@vitest/coverage-v8": "^4.1.5",
+    "baseline-browser-mapping": "^2.10.24",
+    "mongodb-memory-server": "^11.1.0",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.5"
   }
 }

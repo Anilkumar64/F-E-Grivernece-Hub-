@@ -14,7 +14,8 @@ function ApproveAdmins() {
             setLoading(true);
 
             const res = await api.get("/admin/pending");
-            const data = res.data.admins || res.data || [];
+            // BUG FIX #3a: was res.data.admins — backend returns { pending: [] }
+            const data = res.data.pending || [];
             setPendingAdmins(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error(err);
@@ -32,7 +33,8 @@ function ApproveAdmins() {
 
     const approveAdmin = async (id) => {
         try {
-            await api.patch(`/admin/approve/${id}`);
+            // BUG FIX #3b: was /admin/approve/:id — correct is /admin/:id/approve
+            await api.patch(`/admin/${id}/approve`);
             toast.success("Admin approved");
             fetchPendingAdmins();
         } catch (err) {
@@ -45,7 +47,8 @@ function ApproveAdmins() {
         if (!window.confirm("Reject and remove this admin request?")) return;
 
         try {
-            await api.delete(`/admin/reject/${id}`);
+            // BUG FIX #3c: was /admin/reject/:id — correct is /admin/:id/reject
+            await api.delete(`/admin/${id}/reject`);
             toast.success("Admin rejected and removed");
             fetchPendingAdmins();
         } catch (err) {
@@ -64,7 +67,8 @@ function ApproveAdmins() {
         if (!idCardFile) return null;
         if (idCardFile.startsWith("http")) return idCardFile;
 
-        const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4400";
+        // BUG FIX #3d: was localhost:4400 — backend runs on port 5000
+        const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
         return `${BASE_URL}${idCardFile.startsWith("/") ? "" : "/"}${idCardFile}`;
     };
 

@@ -11,6 +11,8 @@ export default function AdminGrievanceDetails() {
     const [status, setStatus] = useState("");
     const [message, setMessage] = useState("");
     const [comment, setComment] = useState("");
+    const [reopenDecision, setReopenDecision] = useState("approved");
+    const [reopenReason, setReopenReason] = useState("");
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -44,6 +46,17 @@ export default function AdminGrievanceDetails() {
         load();
     };
 
+    const reviewReopen = async (e) => {
+        e.preventDefault();
+        await api.patch(`/grievances/${grievance._id}/reopen-decision`, {
+            decision: reopenDecision,
+            reason: reopenReason,
+        });
+        toast.success("Reopen request reviewed");
+        setReopenReason("");
+        load();
+    };
+
     if (loading) return <Skeleton rows={4} />;
     if (!grievance) return <section className="page-section"><div className="card">Grievance not found</div></section>;
 
@@ -56,6 +69,7 @@ export default function AdminGrievanceDetails() {
                         <h1>{grievance.title}</h1>
                         <div><span className={`status-badge ${grievance.status}`}>{grievance.status}</span><span className={`priority-badge ${grievance.priority}`}>{grievance.priority}</span></div>
                         <p className="muted">Student: {grievance.submittedBy?.name} · {grievance.submittedBy?.email}</p>
+                        {grievance.isAcademicUrgent && <p className="pill danger">Academic Urgent</p>}
                         <p>{grievance.description}</p>
                     </div>
                     <form className="card" onSubmit={updateStatus}>
@@ -67,6 +81,24 @@ export default function AdminGrievanceDetails() {
                         <label>Required Comment<textarea value={message} onChange={(e) => setMessage(e.target.value)} /></label>
                         <button className="primary-btn">Update Status</button>
                     </form>
+                    {grievance.reopenRequested && (
+                        <form className="card" onSubmit={reviewReopen}>
+                            <h2>Reopen Request Review</h2>
+                            <p className="muted">{grievance.reopenReason || "No reason provided."}</p>
+                            <div className="form-grid">
+                                <label>Decision
+                                    <select value={reopenDecision} onChange={(e) => setReopenDecision(e.target.value)}>
+                                        <option value="approved">Approve</option>
+                                        <option value="rejected">Reject</option>
+                                    </select>
+                                </label>
+                                <label>Reason
+                                    <input value={reopenReason} onChange={(e) => setReopenReason(e.target.value)} />
+                                </label>
+                            </div>
+                            <button className="primary-btn">Submit Decision</button>
+                        </form>
+                    )}
                     <div className="card">
                         <h2>Discussion</h2>
                         {(grievance.comments || []).map((item) => <div className={`comment ${item.role}`} key={item._id}><strong>{item.postedBy?.name || item.role}</strong><p>{item.text}</p><span className="muted">{new Date(item.timestamp).toLocaleString()}</span></div>)}

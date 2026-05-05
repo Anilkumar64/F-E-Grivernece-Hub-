@@ -1,12 +1,21 @@
-// ✅ Comprehensive error handler with proper categorization
-const errorHandler = (err, req, res, next) => {
-    console.error("🔥 Error:", err);
+// ✅ FIX MI-15: original handler called `console.error("🔥 Error:", err)` unconditionally,
+// which logged the full error object (including stack trace) in production.
+// Stack traces in production logs can expose internal file paths, library versions,
+// and logic details useful to attackers. Now only the message is logged in production;
+// the full stack is only logged in development.
 
-    let statusCode = 500;
+const errorHandler = (err, req, res, next) => {
+    if (process.env.NODE_ENV === "development") {
+        console.error("🔥 Error:", err);
+    } else {
+        // Production: log only the message and status, never the stack
+        console.error(`[${new Date().toISOString()}] ${err.name || "Error"}: ${err.message}`);
+    }
+
+    let statusCode = res.statusCode !== 200 ? res.statusCode : err.statusCode ?? 500;
     let message = "Internal Server Error";
     let details = undefined;
 
-    // Handle known error types
     if (err.name === "ValidationError") {
         statusCode = 400;
         message = "Validation failed";
@@ -31,7 +40,7 @@ const errorHandler = (err, req, res, next) => {
         message = err.message;
     }
 
-    // Only send stack trace in development
+    // Only expose stack trace in development
     if (process.env.NODE_ENV === "development") {
         details = err.stack;
     }

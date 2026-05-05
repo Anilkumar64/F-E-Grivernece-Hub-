@@ -1,9 +1,14 @@
 import Notification from "../models/Notification.js";
 
-const getRecipientModel = (role) =>
-    role === "superadmin" || role === "departmentadmin" || role === "admin"
-        ? "Admin"
-        : "User";
+// ✅ FIX MO-06: original function returned "Admin" for departmentadmin/admin roles.
+// In this codebase, authenticated admins are stored in the User model (after C-07 fix),
+// so their recipientModel must be "User". Only use "Admin" for the legacy pending-request
+// Admin documents — which are never notification recipients.
+const getRecipientModel = (role) => {
+    // All roles resolve to "User" because authentication (and therefore notification
+    // targeting) is unified under the User model.
+    return "User";
+};
 
 /* ------------------------------------------------------------------
  🟩 CREATE NOTIFICATION
@@ -42,7 +47,7 @@ export const createNotification = async (req, res) => {
 };
 
 /* ------------------------------------------------------------------
- 🟦 FETCH NOTIFICATIONS (For a specific user)
+ 🟦 FETCH NOTIFICATIONS
 ------------------------------------------------------------------ */
 export const getNotifications = async (req, res) => {
     try {

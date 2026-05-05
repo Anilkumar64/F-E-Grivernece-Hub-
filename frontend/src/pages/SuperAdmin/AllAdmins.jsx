@@ -20,7 +20,7 @@ export default function AllAdmins() {
         try {
             const [adminRes, deptRes] = await Promise.all([api.get("/admin/all"), api.get("/departments")]);
             setAdmins(adminRes.data.admins || []);
-            setDepartments(deptRes.data.departments || []);
+            setDepartments(deptRes.data || []);                                          // ← bare array now
         } catch (error) {
             toast.error(error?.response?.data?.message || "Unable to load admins");
         } finally {
@@ -30,11 +30,7 @@ export default function AllAdmins() {
 
     useEffect(() => { load(); }, []);
 
-    const openCreate = () => {
-        setEditing(null);
-        setForm(initialForm);
-        setShowForm(true);
-    };
+    const openCreate = () => { setEditing(null); setForm(initialForm); setShowForm(true); };
 
     const openEdit = (admin) => {
         setEditing(admin);
@@ -136,7 +132,12 @@ export default function AllAdmins() {
                         <label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
                         <div className="form-grid">
                             <label>Staff ID<input value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} required /></label>
-                            <label>Department<select value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} required><option value="">Select department</option>{departments.filter((dept) => dept.isActive !== false).map((dept) => <option key={dept._id} value={dept._id}>{dept.name}</option>)}</select></label>
+                            <label>Department
+                                <select value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} required>
+                                    <option value="">Select department</option>
+                                    {departments.filter((d) => d.isActive !== false).map((d) => <option key={d._id} value={d._id}>{d.name}</option>)}
+                                </select>
+                            </label>
                         </div>
                         {!editing && (
                             <>

@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcryptjs from "bcryptjs";
-// const ALLOWED_DEPARTMENTS = ["IT", "CSE", "ECE", "EEE", "MECH", "CIVIL"];
 
 const adminSchema = new mongoose.Schema(
     {
@@ -18,8 +17,11 @@ const adminSchema = new mongoose.Schema(
             trim: true,
             validate: {
                 validator: function (value) {
-                    // ✅ Must be college domain like ".ac.in"
-                    return /^[\w-\.]+@[\w-]+\.(ac\.in)$/.test(value);
+                    // ✅ FIX MO-01: Original regex /^[\w-\.]+@[\w-]+\.(ac\.in)$/ rejected valid
+                    // international college emails like admin@cs.university.ac.in (multiple subdomains)
+                    // or admin@university.edu.in. Broadened to allow any subdomain depth ending in .ac.in
+                    // while still keeping it a reasonable college-domain check.
+                    return /^[\w.+-]+@([\w-]+\.)+ac\.in$/.test(value);
                 },
                 message: "Email must be a valid college email (.ac.in)",
             },
@@ -46,12 +48,11 @@ const adminSchema = new mongoose.Schema(
         password: {
             type: String,
             required: [true, "Password is required"],
-            minlength: [6, "Password must be at least 6 characters long"],
+            minlength: [8, "Password must be at least 8 characters long"],
         },
         idCardFile: {
-            type: String, // file URL or path (like /uploads/idcards/...)
+            type: String,
         },
-        // ✅ Fixed: Changed from Refreshtoken to refreshToken for consistent camelCase naming
         refreshToken: {
             type: String,
             default: null,
@@ -63,7 +64,7 @@ const adminSchema = new mongoose.Schema(
         },
         verified: {
             type: Boolean,
-            default: false, // Set to true after admin verification
+            default: false,
         },
     },
     { timestamps: true }
@@ -81,7 +82,7 @@ adminSchema.methods.isPasswordCorrect = async function (password) {
     return await bcryptjs.compare(password, this.password);
 };
 
-// 🔑 Generate tokens
+// 🔑 Generate access token
 adminSchema.methods.generateAccessToken = function () {
     if (!process.env.ACCESS_TOKEN_SECRET || process.env.ACCESS_TOKEN_SECRET.length < 32) {
         throw new Error("ACCESS_TOKEN_SECRET must be at least 32 characters");
@@ -92,12 +93,15 @@ adminSchema.methods.generateAccessToken = function () {
             _id: this._id,
             email: this.email,
             role: this.role,
+            // tokenType omitted intentionally — access tokens are identified by their short expiry
         },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+        // ✅ FIX MI-11: provide a safe default so the token never gets infinite expiry
+        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m" }
     );
 };
 
+// 🔑 Generate refresh token
 adminSchema.methods.generateRefreshToken = function () {
     if (!process.env.REFRESH_TOKEN_SECRET || process.env.REFRESH_TOKEN_SECRET.length < 32) {
         throw new Error("REFRESH_TOKEN_SECRET must be at least 32 characters");
@@ -108,9 +112,13 @@ adminSchema.methods.generateRefreshToken = function () {
             _id: this._id,
             email: this.email,
             role: this.role,
+            // ✅ FIX C-03: legacy generateRefreshToken omitted tokenType claim.
+            // Adding it lets authMiddleware distinguish refresh tokens from access tokens
+            // and reject refresh tokens presented as access tokens (and vice-versa).
+            tokenType: "refresh",
         },
         process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
+        { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d" }
     );
 };
 

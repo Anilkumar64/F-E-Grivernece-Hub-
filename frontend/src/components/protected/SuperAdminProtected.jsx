@@ -1,18 +1,4 @@
-import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
-
-export default function SuperAdminProtected() {
-    let superadmin = null;
-
-    try {
-        superadmin = JSON.parse(localStorage.getItem("superadmin"));
-    } catch {
-        return <Navigate to="/superadmin/login" replace />;
-    }
-
-    if (!superadmin || superadmin?.role !== "superadmin") {
-        return <Navigate to="/superadmin/login" replace />;
-    }
-
-    return <Outlet />;
-}
+// SuperAdminProtected.jsx is no longer used.
+// All role protection is handled by ProtectedRoute with allowedRoles={["superadmin"]}.
+// This file is kept only to avoid breaking any stale import — it re-exports ProtectedRoute.
+export { default } from "./ProtectedRoute";

@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
+import { nextGrievanceId } from "../utils/grievanceIdCounter.js";
 
 export const GRIEVANCE_STATUSES = ["Pending", "InProgress", "UnderReview", "Resolved", "Closed", "Escalated"];
 export const GRIEVANCE_PRIORITIES = ["Low", "Medium", "High", "Critical"];
+export const TERMINAL_STATUSES = new Set(["Resolved", "Closed"]);
 
 const attachmentSchema = new mongoose.Schema(
     {
@@ -41,6 +43,8 @@ const grievanceSchema = new mongoose.Schema(
         description: { type: String, required: true, trim: true, maxlength: 5000 },
         category: { type: mongoose.Schema.Types.ObjectId, ref: "GrievanceCategory", required: true, index: true },
         priority: { type: String, enum: GRIEVANCE_PRIORITIES, default: "Medium", index: true },
+        isAcademicUrgent: { type: Boolean, default: false, index: true },
+        urgentReason: { type: String, trim: true, default: "", maxlength: 300 },
         status: { type: String, enum: GRIEVANCE_STATUSES, default: "Pending", index: true },
         submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
         assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
@@ -52,6 +56,14 @@ const grievanceSchema = new mongoose.Schema(
         resolvedAt: { type: Date, default: null },
         feedbackRating: { type: Number, min: 1, max: 5, default: null },
         feedbackText: { type: String, trim: true, default: "", maxlength: 1000 },
+        reopenRequested: { type: Boolean, default: false, index: true },
+        reopenReason: { type: String, trim: true, default: "", maxlength: 1000 },
+        reopenedAt: { type: Date, default: null },
+        reopenDecision: { type: String, enum: ["pending", "approved", "rejected"], default: "pending", index: true },
+        reopenDecisionReason: { type: String, trim: true, default: "", maxlength: 1000 },
+        reopenReviewedAt: { type: Date, default: null },
+        reopenReviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+        closureRequested: { type: Boolean, default: false },
         isEscalated: { type: Boolean, default: false, index: true },
         escalatedAt: { type: Date, default: null },
         escalationReason: { type: String, trim: true, default: "" },
@@ -63,17 +75,14 @@ grievanceSchema.index({ createdAt: -1 });
 grievanceSchema.index({ department: 1, status: 1 });
 grievanceSchema.index({ grievanceId: "text", title: "text" });
 
+/* ── Atomic grievance ID generation (race-condition safe) ── */
 grievanceSchema.pre("validate", async function (next) {
     if (this.grievanceId) return next();
-    const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
-    const count = await mongoose.model("Grievance").countDocuments({
-        createdAt: { $gte: start, $lt: end },
-    });
-    this.grievanceId = `GRV-${datePart}-${String(count + 1).padStart(4, "0")}`;
+    try {
+        this.grievanceId = await nextGrievanceId();
+    } catch (err) {
+        return next(err);
+    }
     next();
 });
 

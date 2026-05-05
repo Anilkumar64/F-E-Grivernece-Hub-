@@ -19,7 +19,8 @@ const generateToken = (user) => {
             role: user.role,
         },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "7d" }
+        // ✅ FIX C-02: fallback was "7d" — access tokens must be short-lived
+        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m" }
     );
 };
 
@@ -36,32 +37,28 @@ export const registerUser = async (req, res) => {
             yearOfStudy,
         } = req.body;
 
-        // Basic validation
         if (!name || !email || !password) {
             return res
                 .status(400)
                 .json({ message: "Name, email and password are required" });
         }
 
-        if (password.length < 6) {
+        // ✅ FIX M-01: User model enforces minlength 8 — match it here
+        if (password.length < 8) {
             return res
                 .status(400)
-                .json({ message: "Password must be at least 6 characters" });
+                .json({ message: "Password must be at least 8 characters" });
         }
 
-        // Check if email already exists
         const exists = await User.findOne({ email });
         if (exists) {
             return res.status(400).json({ message: "Email already exists" });
         }
 
-        // Department: your schema expects ObjectId, but frontend is sending "CSE"/"IT"
-        // So for now, store null unless it's already a valid ObjectId
         const deptId = mongoose.Types.ObjectId.isValid(department)
             ? department
             : null;
 
-        // Password will be hashed by userSchema.pre("save")
         const newUser = new User({
             name,
             email,
@@ -95,22 +92,19 @@ export const loginUser = async (req, res) => {
                 .json({ message: "Email and password required" });
         }
 
-        // Find user by email
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }).select("+password");
         if (!user) {
             return res.status(401).json({ message: "Invalid email or password" });
         }
 
-        // Verify password
-        const isPasswordValid = await user.matchPassword(password);
+        // ✅ FIX M-02: User model has comparePassword, not matchPassword — use the correct method
+        const isPasswordValid = await user.comparePassword(password);
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Invalid email or password" });
         }
 
-        // Generate tokens
         const accessToken = generateToken(user);
 
-        // ✅ Standardized response format
         return res.status(200).json({
             success: true,
             message: "Login successful",
@@ -195,8 +189,9 @@ export const resetPassword = async (req, res) => {
             return res.status(400).json({ message: "Email, OTP and password are required" });
         }
 
-        if (password.length < 6) {
-            return res.status(400).json({ message: "Password must be at least 6 characters" });
+        // ✅ FIX M-01: consistent with User model minlength 8
+        if (password.length < 8) {
+            return res.status(400).json({ message: "Password must be at least 8 characters" });
         }
 
         const user = await User.findOne({

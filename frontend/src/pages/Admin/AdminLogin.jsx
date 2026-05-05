@@ -23,9 +23,9 @@ export default function AdminLogin() {
         <main className="auth-page">
             <form className="auth-card" onSubmit={submit}>
                 <h1>Department Admin Login</h1>
-                <label>Email<input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
+                <label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
                 <label>Password<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
-                <button className="primary-btn">Sign In</button>
+                <button type="submit" className="primary-btn">Sign In</button>
             </form>
         </main>
     );

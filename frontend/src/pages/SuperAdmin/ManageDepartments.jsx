@@ -19,8 +19,8 @@ export default function ManageDepartments() {
         setLoading(true);
         try {
             const [deptRes, adminRes] = await Promise.all([api.get("/departments"), api.get("/admin/all")]);
-            setDepartments(deptRes.data.departments || []);
-            setAdmins((adminRes.data.admins || []).filter((admin) => admin.role === "admin" && admin.isActive));
+            setDepartments(deptRes.data || []);                                          // ← bare array now
+            setAdmins((adminRes.data.admins || []).filter((a) => a.role === "admin" && a.isActive));
         } catch (error) {
             toast.error(error?.response?.data?.message || "Unable to load departments");
         } finally {
@@ -30,11 +30,7 @@ export default function ManageDepartments() {
 
     useEffect(() => { load(); }, []);
 
-    const openCreate = () => {
-        setEditing(null);
-        setForm(initialForm);
-        setShowForm(true);
-    };
+    const openCreate = () => { setEditing(null); setForm(initialForm); setShowForm(true); };
 
     const openEdit = (department) => {
         setEditing(department);
@@ -121,7 +117,12 @@ export default function ManageDepartments() {
                             <label>Code<input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} required /></label>
                         </div>
                         <label>Description<textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
-                        <label>Head Admin<select value={form.headAdmin} onChange={(e) => setForm({ ...form, headAdmin: e.target.value })}><option value="">Select admin</option>{admins.map((admin) => <option key={admin._id} value={admin._id}>{admin.name}</option>)}</select></label>
+                        <label>Head Admin
+                            <select value={form.headAdmin} onChange={(e) => setForm({ ...form, headAdmin: e.target.value })}>
+                                <option value="">Select admin</option>
+                                {admins.map((a) => <option key={a._id} value={a._id}>{a.name}</option>)}
+                            </select>
+                        </label>
                         <div className="split-actions">
                             <button type="button" className="secondary-btn" onClick={() => setShowForm(false)}>Cancel</button>
                             <button className="primary-btn">{editing ? "Save Changes" : "Create Department"}</button>
