@@ -10,10 +10,10 @@ export default function About() {
 
             <div className="about-wrapper">
                 <div className="about-container">
-                    <h1 className="about-title">About E-Grievance Hub</h1>
+                    <h1 className="about-title">About Kernel University</h1>
 
                     <p>
-                        E-Grievance Hub is a modern grievance management platform designed to
+                        Kernel University grievance portal is a modern grievance management platform designed to
                         help students raise issues efficiently and transparently.
                     </p>
 

@@ -14,8 +14,8 @@ export default function StudentNavbar() {
 
                 {/* Brand */}
                 <div className="navbar-brand" onClick={() => navigate("/")}>
-                    <div className="navbar-logo"></div>
-                    <span className="navbar-brand-text">E-Grievance Hub</span>
+                    <div className="navbar-logo ku-logo-shell">KU</div>
+                    <span className="navbar-brand-text">Kernel University</span>
                 </div>
 
                 {/* Desktop */}

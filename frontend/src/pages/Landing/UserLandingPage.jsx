@@ -40,7 +40,7 @@ export default function UserLandingPage() {
 
             {/* ABOUT SECTION */}
             <section id="about" className="ul-section">
-                <h2 className="ul-section-title">What is E-Grievance Hub?</h2>
+                <h2 className="ul-section-title">What is Kernel University Grievance Portal?</h2>
                 <p className="ul-section-desc">
                     A unified platform built for colleges to streamline the grievance process—
                     helping students raise issues easily, enabling admins to respond properly,

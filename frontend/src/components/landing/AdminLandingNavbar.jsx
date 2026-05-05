@@ -12,8 +12,8 @@ export default function AdminNavbar() {
         <nav className="admin-navbar">
             <div className="admin-nav-container">
                 <div className="admin-brand" onClick={() => navigate("/admin")}>
-                    <div className="admin-logo">A</div>
-                    <span className="admin-title">E-Grievance Hub</span>
+                    <div className="admin-logo">KU</div>
+                    <span className="admin-title">Kernel University</span>
                 </div>
                 <div className="admin-menu-desktop">
                     <Link to="/admin" className="admin-link">Home</Link>

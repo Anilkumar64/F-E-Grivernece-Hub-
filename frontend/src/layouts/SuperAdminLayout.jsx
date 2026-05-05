@@ -22,9 +22,9 @@ export default function SuperAdminLayout() {
             {/* ================= SIDE BAR ================= */}
             <aside className="sa-sidebar">
                 <div className="sa-logo">
-                    <div className="sa-logo-circle">E</div>
+                    <div className="sa-logo-circle">KU</div>
                     <div>
-                        <h3 className="sa-logo-title">E-Grievance Hub</h3>
+                        <h3 className="sa-logo-title">Kernel University</h3>
                         <p className="sa-logo-sub">SuperAdmin</p>
                     </div>
                 </div>

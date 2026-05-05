@@ -30,8 +30,8 @@ export default function AdminLandingPage() {
                                 <Link to="/admin/login" className="btn btn-primary">
                                     Admin Login
                                 </Link>
-                                <Link to="/superadmin/login" className="btn btn-outline">
-                                    SuperAdmin Login
+                                <Link to="/admin/about" className="btn btn-outline">
+                                    Learn More
                                 </Link>
                             </div>
 
@@ -105,15 +105,15 @@ export default function AdminLandingPage() {
                         <div className="cta-card">
                             <h2 className="cta-title">Access the Admin Panel</h2>
                             <p className="cta-text">
-                                Admin accounts are created and approved by SuperAdmin. Use your assigned credentials to log in.
+                                Use your assigned admin credentials to log in and manage department grievances.
                             </p>
 
                             <div className="cta-actions">
                                 <Link to="/admin/login" className="btn btn-primary">
                                     Admin Login
                                 </Link>
-                                <Link to="/superadmin/login" className="btn btn-outline">
-                                    SuperAdmin Portal
+                                <Link to="/admin/about" className="btn btn-outline">
+                                    About Admin Panel
                                 </Link>
                             </div>
                         </div>

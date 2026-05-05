@@ -20,7 +20,7 @@ export default function SuperAdminFooter() {
 
             {/* COPYRIGHT */}
             <div className="superadmin-footer-copy">
-                © {new Date().getFullYear()} E-Grievance Hub | SuperAdmin Panel
+                © {new Date().getFullYear()} Kernel University | SuperAdmin Panel
             </div>
 
         </footer>

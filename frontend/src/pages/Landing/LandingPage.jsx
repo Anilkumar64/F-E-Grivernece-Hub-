@@ -6,7 +6,7 @@ import api from "../../api/axiosInstance";
 const iconMap = { Send, Search, CheckCircle: CheckCircle2, CheckCircle2, FileText, Bell };
 
 const fallback = {
-    universityName: "University E-Grievance",
+    universityName: "Kernel University",
     heroTitle: "Submit. Track. Resolve.",
     heroSubtitle: "A transparent grievance platform for students and campus administrators.",
     features: [
@@ -24,6 +24,7 @@ const fallback = {
 export default function LandingPage() {
     const [config, setConfig] = useState(fallback);
     const [slideIndex, setSlideIndex] = useState(0);
+    const brandName = "Kernel University";
 
     useEffect(() => {
         api.get("/landing-config", { skipAuthRefresh: true })
@@ -49,7 +50,7 @@ export default function LandingPage() {
     return (
         <main className="landing">
             <nav className="public-nav">
-                <strong>{config.universityName}</strong>
+                <strong className="brand-inline"><span className="ku-logo-mark">KU</span>{brandName}</strong>
                 <div>
                     <a href="#home">Home</a>
                     <a href="#about">About</a>
@@ -123,7 +124,7 @@ export default function LandingPage() {
                     <p className="muted">{config.contactEmail}{config.contactPhone ? ` · ${config.contactPhone}` : ""}</p>
                 </div>
             </section>
-            <footer>{config.universityName} · Home · About · Contact · {new Date().getFullYear()}</footer>
+            <footer>{brandName} · Home · About · Contact · {new Date().getFullYear()}</footer>
         </main>
     );
 }

@@ -18,7 +18,7 @@ export default function AdminFooter() {
 
             {/* COPYRIGHT */}
             <div className="admin-footer-copy">
-                © {new Date().getFullYear()} E-Grievance Hub | Admin Panel
+                © {new Date().getFullYear()} Kernel University | Admin Panel
             </div>
 
         </footer>

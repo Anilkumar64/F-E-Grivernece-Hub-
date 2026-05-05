@@ -28,7 +28,7 @@ export default function AdminSidebar({ collapsed, onToggle }) {
 
             {/* HEADER */}
             <div className="admin-sidebar-header">
-                {!collapsed && <h2 className="admin-title">E-Grievance Hub</h2>}
+                {!collapsed && <h2 className="admin-title">Kernel University</h2>}
                 <button className="admin-toggle-btn" onClick={onToggle}>
                     {collapsed ? "»" : "«"}
                 </button>

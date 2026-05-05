@@ -11,10 +11,10 @@ export default function Footer() {
 
                 {/* Left: Brand */}
                 <div className="footer-brand">
-                    <div className="footer-logo">EG</div>
+                    <div className="footer-logo">KU</div>
 
                     <div>
-                        <h3 className="footer-title">E-Grievance Hub</h3>
+                        <h3 className="footer-title">Kernel University</h3>
                         <p className="footer-description">
                             A modern grievance management platform designed for transparency,
                             accountability, and seamless resolution across campuses.
@@ -25,7 +25,7 @@ export default function Footer() {
                 {/* Right: Meta */}
                 <div className="footer-meta">
                     <p className="footer-meta-copy">
-                        © {year} E-Grievance Hub — All Rights Reserved.
+                        © {year} Kernel University — All Rights Reserved.
                     </p>
                     <p className="footer-meta-line">
                         Built with <span className="footer-heart">♥</span> to empower students.

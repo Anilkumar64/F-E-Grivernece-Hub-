@@ -1,6 +1,5 @@
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter } from 'react-router-dom'
-import './App.css'
 import AppRoutes from './routes/AppRoutes'
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
