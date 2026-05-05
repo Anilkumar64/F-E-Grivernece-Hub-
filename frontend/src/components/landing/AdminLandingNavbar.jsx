@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "../../styles/AdminStyles/AdminNavbar.css";
+import { Menu, X } from "lucide-react";
 
 export default function AdminNavbar() {
     const [open, setOpen] = useState(false);
@@ -9,40 +9,40 @@ export default function AdminNavbar() {
     const toggleMenu = () => setOpen(prev => !prev);
 
     return (
-        <nav className="admin-navbar">
-            <div className="admin-nav-container">
-                <div className="admin-brand" onClick={() => navigate("/admin")}>
-                    <div className="admin-logo">KU</div>
-                    <span className="admin-title">Kernel University</span>
+        <nav className="sticky top-0 z-40 border-b border-gray-100 bg-white/80 backdrop-blur">
+            <div className="app-container flex h-16 items-center justify-between">
+                <div className="flex cursor-pointer items-center gap-3" onClick={() => navigate("/admin")}>
+                    <div className="ku-logo">KU</div>
+                    <span className="text-sm font-semibold tracking-tight text-gray-900">Kernel University</span>
                 </div>
-                <div className="admin-menu-desktop">
-                    <Link to="/admin" className="admin-link">Home</Link>
-                    <Link to="/admin/about" className="admin-link">About</Link>
-                    <Link to="/admin/login" className="admin-link">Admin Login</Link>
+                <div className="hidden items-center gap-6 text-sm font-medium text-gray-600 md:flex">
+                    <Link to="/admin" className="transition-all duration-200 hover:text-indigo-600">Home</Link>
+                    <Link to="/admin/about" className="transition-all duration-200 hover:text-indigo-600">About</Link>
+                    <Link to="/admin/login" className="ui-btn-primary">Admin Login</Link>
                 </div>
-                <button className="admin-nav-toggle" onClick={toggleMenu}>
-                    {open ? "✖" : "☰"}
+                <button className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 md:hidden" onClick={toggleMenu}>
+                    {open ? <X size={18} /> : <Menu size={18} />}
                 </button>
             </div>
             {open && (
-                <div className="admin-menu-mobile">
-                    <div className="admin-menu-mobile-inner">
+                <div className="border-t border-gray-100 bg-white md:hidden">
+                    <div className="app-container grid gap-2 py-3">
                         <Link
-                            className="admin-mobile-link"
+                            className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                             to="/admin"
                             onClick={() => setOpen(false)}
                         >
                             Home
                         </Link>
                         <Link
-                            className="admin-mobile-link"
+                            className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                             to="/admin/about"
                             onClick={() => setOpen(false)}
                         >
                             About
                         </Link>
                         <Link
-                            className="admin-mobile-link"
+                            className="ui-btn-primary"
                             to="/admin/login"
                             onClick={() => setOpen(false)}
                         >

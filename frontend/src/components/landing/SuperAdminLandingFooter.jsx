@@ -1,28 +1,18 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import "../../styles/SuperAdmin/SuperAdminFooter.css";
 
 export default function SuperAdminFooter() {
     return (
-        <footer className="superadmin-footer">
-
-            {/* SOCIAL ICONS */}
-            <div className="superadmin-footer-icons">
-                <a href="#"><i className="fab fa-facebook"></i></a>
-                <a href="#"><i className="fab fa-instagram"></i></a>
-                <a href="#"><i className="fab fa-twitter"></i></a>
-                <a href="#"><i className="fab fa-linkedin"></i></a>
-                <a href="#"><i className="fab fa-youtube"></i></a>
+        <footer className="border-t border-gray-100 bg-white">
+            <div className="app-container flex flex-col gap-3 py-6 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="ku-logo">KU</div>
+                    <span className="font-medium text-gray-700">Kernel University</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="ui-badge">SuperAdmin Panel</span>
+                    <span>© {new Date().getFullYear()} Kernel University</span>
+                </div>
             </div>
-
-            {/* NAV LINKS */}
-
-
-            {/* COPYRIGHT */}
-            <div className="superadmin-footer-copy">
-                © {new Date().getFullYear()} Kernel University | SuperAdmin Panel
-            </div>
-
         </footer>
     );
 }

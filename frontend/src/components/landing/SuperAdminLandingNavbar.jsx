@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "../../styles/SuperAdmin/SuperAdminNavbar.css";
+import { Menu, X } from "lucide-react";
 
 export default function SuperAdminNavbar() {
     const [open, setOpen] = useState(false);
@@ -9,45 +9,37 @@ export default function SuperAdminNavbar() {
     const toggleMenu = () => setOpen(prev => !prev);
 
     return (
-        <nav className="navbar superadmin-navbar">
-            <div className="navbar-inner">
-
-                {/* Left: Brand */}
-                <div className="navbar-brand" onClick={() => navigate("/superadmin")}>
-                    <div className="navbar-logo ku-logo-shell">KU</div>
-                    <span className="navbar-brand-text">Kernel University</span>
+        <nav className="sticky top-0 z-40 border-b border-gray-100 bg-white/80 backdrop-blur">
+            <div className="app-container flex h-16 items-center justify-between">
+                <div className="flex cursor-pointer items-center gap-3" onClick={() => navigate("/superadmin")}>
+                    <div className="ku-logo">KU</div>
+                    <span className="text-sm font-semibold tracking-tight text-gray-900">Kernel University</span>
                 </div>
 
-                {/* Desktop Right Side */}
-                <div className="nav-desktop">
-                    <Link to="/superadmin/login" className="nav-link">
+                <div className="hidden items-center gap-6 text-sm font-medium text-gray-600 md:flex">
+                    <Link to="/superadmin/login" className="ui-btn-primary">
                         Sign-In
                     </Link>
-                    <Link to="/admin/about" className="nav-link">
+                    <Link to="/admin/about" className="transition-all duration-200 hover:text-indigo-600">
                         About
                     </Link>
                 </div>
 
-                {/* Mobile toggle */}
-                <button className="nav-mobile-toggle" onClick={toggleMenu}>
-                    {open ? "✖" : "☰"}
+                <button className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 md:hidden" onClick={toggleMenu}>
+                    {open ? <X size={18} /> : <Menu size={18} />}
                 </button>
-
             </div>
 
-            {/* Mobile menu */}
             {open && (
-                <div className="nav-mobile-menu">
-                    <div className="nav-mobile-inner">
-
+                <div className="border-t border-gray-100 bg-white md:hidden">
+                    <div className="app-container grid gap-2 py-3">
                         <Link
                             to="/superadmin/login"
-                            className="nav-mobile-link"
+                            className="ui-btn-primary"
                             onClick={() => setOpen(false)}
                         >
                             SuperAdmin Sign In
                         </Link>
-
                     </div>
                 </div>
             )}
