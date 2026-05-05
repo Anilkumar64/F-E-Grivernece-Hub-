@@ -36,6 +36,23 @@ const siteConfigSchema = new mongoose.Schema(
         landing: { type: landingSchema, default: () => ({}) },
         adminBanner: { type: bannerSchema, default: () => ({}) },
         superAdminBanner: { type: bannerSchema, default: () => ({}) },
+        security: {
+            maxLoginAttempts: { type: Number, default: 5 },
+            lockoutMinutes: { type: Number, default: 15 },
+            stepUpWindowMinutes: { type: Number, default: 10 },
+        },
+        audit: {
+            retentionDays: { type: Number, default: 365 },
+            integrityChainEnabled: { type: Boolean, default: true },
+        },
+        reporting: {
+            defaultRangeDays: { type: Number, default: 30 },
+            allowCsvExport: { type: Boolean, default: true },
+        },
+        sla: {
+            escalationHours: { type: Number, default: 48 },
+            warningHours: { type: Number, default: 24 },
+        },
     },
     { timestamps: true }
 );

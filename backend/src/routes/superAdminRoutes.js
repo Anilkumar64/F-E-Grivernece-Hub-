@@ -9,6 +9,9 @@ import AuditLog  from "../models/AuditLog.js";
 import { verifySuperAdmin } from "../middleware/authMiddleware.js";
 import { writeAuditLog }    from "../utils/audit.js";
 import { delCache, getCache, setCache } from "../utils/cache.js";
+import { authorizePermission } from "../middleware/rbac.js";
+import { requireStepUp } from "../middleware/stepUp.js";
+import crypto from "crypto";
 
 const router = express.Router();
 router.use(...verifySuperAdmin);
@@ -133,6 +136,27 @@ router.get("/reports", async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+router.get("/reports/filtered", authorizePermission("reports.read"), async (req, res, next) => {
+    try {
+        const { status, priority, department, from, to } = req.query;
+        const query = {};
+        if (status) query.status = status;
+        if (priority) query.priority = priority;
+        if (department) query.department = department;
+        if (from || to) {
+            query.createdAt = {};
+            if (from) query.createdAt.$gte = new Date(from);
+            if (to) query.createdAt.$lte = new Date(to);
+        }
+        const grievances = await Grievance.find(query)
+            .populate("department", "name code")
+            .populate("createdBy", "name email role")
+            .sort({ createdAt: -1 })
+            .limit(500);
+        return res.json({ count: grievances.length, grievances });
+    } catch (err) { next(err); }
+});
+
 /* ─── Departments ─── */
 router.get("/departments", async (_req, res, next) => {
     try {
@@ -198,6 +222,140 @@ router.put("/site-config", async (req, res, next) => {
         if (superAdminBanner) config.superAdminBanner = { ...config.superAdminBanner.toObject(), ...superAdminBanner };
         await config.save();
         res.json(config);
+    } catch (err) { next(err); }
+});
+
+router.put("/settings/security", authorizePermission("settings.update"), async (req, res, next) => {
+    try {
+        const config = await getOrCreateConfig();
+        const { maxLoginAttempts, lockoutMinutes, stepUpWindowMinutes } = req.body;
+        config.security = {
+            ...config.security.toObject(),
+            ...(Number.isFinite(maxLoginAttempts) ? { maxLoginAttempts } : {}),
+            ...(Number.isFinite(lockoutMinutes) ? { lockoutMinutes } : {}),
+            ...(Number.isFinite(stepUpWindowMinutes) ? { stepUpWindowMinutes } : {}),
+        };
+        await config.save();
+        await writeAuditLog(req, "SECURITY_SETTINGS_UPDATED", "SiteConfig", config._id, req.body);
+        return res.json({ message: "Security settings updated", security: config.security });
+    } catch (err) { next(err); }
+});
+
+router.put("/settings/audit", authorizePermission("settings.update"), async (req, res, next) => {
+    try {
+        const config = await getOrCreateConfig();
+        const { retentionDays, integrityChainEnabled } = req.body;
+        config.audit = {
+            ...config.audit.toObject(),
+            ...(Number.isFinite(retentionDays) ? { retentionDays } : {}),
+            ...(typeof integrityChainEnabled === "boolean" ? { integrityChainEnabled } : {}),
+        };
+        await config.save();
+        await writeAuditLog(req, "AUDIT_SETTINGS_UPDATED", "SiteConfig", config._id, req.body);
+        return res.json({ message: "Audit settings updated", audit: config.audit });
+    } catch (err) { next(err); }
+});
+
+router.post("/audit/cleanup", authorizePermission("audit.cleanup"), requireStepUp(), async (req, res, next) => {
+    try {
+        const result = await AuditLog.deleteMany({ retentionUntil: { $lt: new Date() } });
+        await writeAuditLog(req, "AUDIT_RETENTION_CLEANUP", "AuditLog", null, { deletedCount: result.deletedCount });
+        return res.json({ message: "Audit cleanup completed", deletedCount: result.deletedCount });
+    } catch (err) { next(err); }
+});
+
+router.get("/audit/verify-integrity", authorizePermission("audit.verify"), async (req, res, next) => {
+    try {
+        const logs = await AuditLog.find({}).sort({ timestamp: 1 }).lean();
+        let previousHash = null;
+        const brokenAt = [];
+        for (const log of logs) {
+            const payload = JSON.stringify({
+                action: log.action,
+                performedBy: log.performedBy?.toString() || null,
+                targetEntity: log.targetEntity,
+                targetId: log.targetId?.toString() || null,
+                metadata: log.metadata || {},
+                ipAddress: log.ipAddress || "",
+                previousHash,
+            });
+            const expected = crypto.createHash("sha256").update(payload).digest("hex");
+            if (log.hash !== expected || log.previousHash !== previousHash) {
+                brokenAt.push(log._id);
+            }
+            previousHash = log.hash;
+        }
+        return res.json({ total: logs.length, valid: brokenAt.length === 0, brokenAt });
+    } catch (err) { next(err); }
+});
+
+/* ─── User lifecycle management (students/admins) ─── */
+router.get("/users", authorizePermission("users.read"), async (req, res, next) => {
+    try {
+        const { role, isActive, q, page = 1, limit = 20 } = req.query;
+        const query = {};
+        if (role) query.role = role;
+        if (typeof isActive !== "undefined") query.isActive = isActive === "true";
+        if (q) {
+            query.$or = [
+                { name: { $regex: q, $options: "i" } },
+                { email: { $regex: q, $options: "i" } },
+                { studentId: { $regex: q, $options: "i" } },
+                { staffId: { $regex: q, $options: "i" } },
+            ];
+        }
+        const skip = (Number(page) - 1) * Number(limit);
+        const [users, total] = await Promise.all([
+            User.find(query)
+                .select("-password -refreshTokenHash -resetToken -resetTokenExpire")
+                .populate("department", "name code")
+                .populate("course", "name code")
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(Number(limit)),
+            User.countDocuments(query),
+        ]);
+        return res.json({ total, page: Number(page), limit: Number(limit), users });
+    } catch (err) { next(err); }
+});
+
+router.patch("/users/:id/status", authorizePermission("users.manage"), requireStepUp(), async (req, res, next) => {
+    try {
+        const { isActive } = req.body;
+        if (typeof isActive !== "boolean") return res.status(400).json({ message: "isActive boolean is required" });
+        const user = await User.findByIdAndUpdate(req.params.id, { isActive }, { new: true })
+            .select("-password -refreshTokenHash -resetToken -resetTokenExpire")
+            .populate("department", "name code");
+        if (!user) return res.status(404).json({ message: "User not found" });
+        await writeAuditLog(req, "USER_STATUS_UPDATED", "User", user._id, { isActive });
+        return res.json({ message: "User status updated", user });
+    } catch (err) { next(err); }
+});
+
+router.patch("/users/:id/reset-password", authorizePermission("users.manage"), requireStepUp(), async (req, res, next) => {
+    try {
+        const temporaryPassword = req.body.password || crypto.randomBytes(8).toString("base64url");
+        const user = await User.findById(req.params.id).select("+password");
+        if (!user) return res.status(404).json({ message: "User not found" });
+        user.password = temporaryPassword;
+        user.refreshTokenHash = null;
+        await user.save();
+        await writeAuditLog(req, "USER_PASSWORD_RESET", "User", user._id);
+        return res.json({ message: "Password reset", temporaryPassword });
+    } catch (err) { next(err); }
+});
+
+router.patch("/users/:id/assignments", authorizePermission("users.manage"), async (req, res, next) => {
+    try {
+        const allowed = ["department", "course"];
+        const update = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
+        const user = await User.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true })
+            .select("-password -refreshTokenHash -resetToken -resetTokenExpire")
+            .populate("department", "name code")
+            .populate("course", "name code");
+        if (!user) return res.status(404).json({ message: "User not found" });
+        await writeAuditLog(req, "USER_ASSIGNMENT_UPDATED", "User", user._id, update);
+        return res.json({ message: "User assignment updated", user });
     } catch (err) { next(err); }
 });
 

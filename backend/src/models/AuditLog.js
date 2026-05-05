@@ -9,6 +9,9 @@ const auditLogSchema = new mongoose.Schema(
         metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
         ipAddress: { type: String, default: "" },
         timestamp: { type: Date, default: Date.now, index: true },
+        previousHash: { type: String, default: null, index: true },
+        hash: { type: String, required: true, index: true },
+        retentionUntil: { type: Date, index: true },
     },
     { versionKey: false }
 );

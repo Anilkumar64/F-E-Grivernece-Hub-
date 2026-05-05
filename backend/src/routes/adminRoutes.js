@@ -3,6 +3,8 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import Department from "../models/Department.js";
 import { guardSuperAdmin } from "../middleware/guards.js";
+import { authorizePermission } from "../middleware/rbac.js";
+import { requireStepUp } from "../middleware/stepUp.js";
 import { writeAuditLog } from "../utils/audit.js";
 import sendEmail from "../utils/sendEmail.js";
 
@@ -14,7 +16,7 @@ router.use(...guardSuperAdmin);
 const adminProjection = "-password -refreshTokenHash -resetToken -resetTokenExpire";
 
 /* ── Create admin (superadmin-initiated, immediately active) ── */
-router.post("/create", async (req, res, next) => {
+router.post("/create", authorizePermission("admin.create"), requireStepUp(), async (req, res, next) => {
     try {
         const { name, email, staffId, department, isActive = true } = req.body;
         const password = req.body.autoGeneratePassword
@@ -66,7 +68,7 @@ router.get("/pending", async (req, res, next) => {
 });
 
 /* ── Approve a self-registered admin ── */
-router.patch("/:id/approve", async (req, res, next) => {
+router.patch("/:id/approve", authorizePermission("admin.approve"), async (req, res, next) => {
     try {
         const admin = await User.findOneAndUpdate(
             { _id: req.params.id, role: "admin" },
@@ -89,7 +91,7 @@ router.patch("/:id/approve", async (req, res, next) => {
 });
 
 /* ── Reject (delete) a self-registered admin ── */
-router.delete("/:id/reject", async (req, res, next) => {
+router.delete("/:id/reject", authorizePermission("admin.reject"), async (req, res, next) => {
     try {
         const admin = await User.findOneAndDelete({ _id: req.params.id, role: "admin", isVerified: false });
         if (!admin) return res.status(404).json({ message: "Pending admin not found" });
@@ -107,9 +109,9 @@ router.delete("/:id/reject", async (req, res, next) => {
 });
 
 /* ── Update admin ── */
-router.patch("/:id", async (req, res, next) => {
+router.patch("/:id", authorizePermission("admin.update"), async (req, res, next) => {
     try {
-        const allowed = ["name", "email", "staffId", "department", "isActive"];
+        const allowed = ["name", "email", "staffId", "department", "isActive", "permissions"];
         const update = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
         const admin = await User.findOneAndUpdate(
             { _id: req.params.id, role: "admin" },
@@ -125,7 +127,7 @@ router.patch("/:id", async (req, res, next) => {
 });
 
 /* ── Reset admin password ── */
-router.patch("/:id/reset-password", async (req, res, next) => {
+router.patch("/:id/reset-password", authorizePermission("admin.resetPassword"), requireStepUp(), async (req, res, next) => {
     try {
         const temporaryPassword = req.body.password || crypto.randomBytes(8).toString("base64url");
         const admin = await User.findOne({ _id: req.params.id, role: "admin" }).select("+password");
@@ -140,7 +142,7 @@ router.patch("/:id/reset-password", async (req, res, next) => {
 });
 
 /* ── Deactivate admin ── */
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", authorizePermission("admin.deactivate"), requireStepUp(), async (req, res, next) => {
     try {
         const admin = await User.findOneAndUpdate(
             { _id: req.params.id, role: "admin" },

@@ -52,6 +52,13 @@ const userSchema = new mongoose.Schema(
         refreshTokenHash: { type: String, select: false, default: null },
         resetToken: { type: String, select: false, default: null },
         resetTokenExpire: { type: Date, select: false, default: null },
+        permissions: { type: [String], default: [] },
+        loginAttempts: { type: Number, default: 0, select: false },
+        lockUntil: { type: Date, default: null, select: false },
+        lastFailedLoginAt: { type: Date, default: null, select: false },
+        stepUpCodeHash: { type: String, default: null, select: false },
+        stepUpCodeExpiresAt: { type: Date, default: null, select: false },
+        stepUpVerifiedAt: { type: Date, default: null, select: false },
     },
     { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
