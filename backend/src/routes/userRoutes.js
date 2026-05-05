@@ -98,4 +98,18 @@ router.post("/reset-password", authLimiter, async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+/* ── Admin / SuperAdmin: update own profile photo ── */
+router.patch("/me/avatar", authenticate, authorize("admin", "superadmin"), userUploads.single("profilePhoto"), async (req, res, next) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: "Please select an image to upload" });
+        const user = await User.findByIdAndUpdate(
+            req.userId,
+            { profilePhoto: `/uploads/user_idcards/${req.file.filename}` },
+            { new: true }
+        ).select("-password -refreshTokenHash -resetToken -resetTokenExpire").populate("department", "name code");
+        if (!user) return res.status(404).json({ message: "User not found" });
+        res.json({ message: "Profile photo updated", user });
+    } catch (err) { next(err); }
+});
+
 export default router;
