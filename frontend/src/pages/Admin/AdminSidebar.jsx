@@ -1,25 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../../styles/AdminStyles/Adminsidebar.css";
-
+import AuthContext from "../../context/AuthCore";
 
 export default function AdminSidebar({ collapsed, onToggle }) {
     const navigate = useNavigate();
     const location = useLocation();
+    const { authUser, logout } = useContext(AuthContext);
 
-    const storedAdmin = (() => {
-        try {
-            return JSON.parse(localStorage.getItem("admin")) || null;
-        } catch {
-            return null;
-        }
-    })();
-
-    const name =
-        storedAdmin?.name ||
-        storedAdmin?.email?.split("@")[0] ||
-        "Admin";
-
+    const name = authUser?.name || authUser?.email?.split("@")[0] || "Admin";
     const initials = name
         .split(" ")
         .map((n) => n[0]?.toUpperCase())
@@ -34,13 +23,6 @@ export default function AdminSidebar({ collapsed, onToggle }) {
         { label: "Profile", path: "/admin/profile" },
     ];
 
-    const logout = () => {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("token");
-        localStorage.removeItem("admin");
-        navigate("/admin/login");
-    };
-
     return (
         <aside className={`admin-sidebar ${collapsed ? "collapsed" : ""}`}>
 
@@ -54,7 +36,17 @@ export default function AdminSidebar({ collapsed, onToggle }) {
 
             {/* PROFILE */}
             <div className="admin-profile">
-                <div className="admin-avatar">{initials}</div>
+                <div className="admin-avatar">
+                    {authUser?.profilePhoto ? (
+                        <img
+                            src={authUser.profilePhoto}
+                            alt={initials}
+                            className="admin-avatar-img"
+                        />
+                    ) : (
+                        initials
+                    )}
+                </div>
                 {!collapsed && (
                     <div>
                         <div className="admin-name">{name}</div>
@@ -68,8 +60,7 @@ export default function AdminSidebar({ collapsed, onToggle }) {
                 {menu.map((m) => (
                     <button
                         key={m.path}
-                        className={`admin-menu-item ${location.pathname === m.path ? "active" : ""
-                            }`}
+                        className={`admin-menu-item ${location.pathname === m.path ? "active" : ""}`}
                         onClick={() => navigate(m.path)}
                     >
                         {!collapsed ? m.label : <span className="dot" title={m.label}></span>}
