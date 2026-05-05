@@ -1,0 +1,574 @@
+/* ============================================================
+   AUDIT LOGS — Complete Activity Trail UI
+   ============================================================ */
+
+.al-root {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 0 56px;
+    font-family: "Inter", system-ui, sans-serif;
+}
+
+/* ── Header ── */
+.al-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.al-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 6px;
+}
+
+.al-subtitle {
+    font-size: 13.5px;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.al-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.al-toggle-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
+    background: white;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #374151;
+    transition: all 0.2s;
+}
+
+.al-toggle-btn:hover { border-color: #4f46e5; color: #4f46e5; }
+
+.al-toggle-btn.on {
+    border-color: #4f46e5;
+    background: #eef2ff;
+    color: #4f46e5;
+    font-weight: 600;
+}
+
+.al-refresh-btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    background: #4f46e5;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.al-refresh-btn:hover:not(:disabled) { background: #4338ca; }
+
+.al-refresh-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ── Stats ── */
+.al-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.al-stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s;
+}
+
+.al-stat-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+
+.al-stat-val {
+    font-size: 30px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+}
+
+.al-val-blue  { color: #2563eb; }
+.al-val-green { color: #059669; }
+.al-val-slate { color: #475569; }
+
+.al-stat-label {
+    font-size: 12px;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+/* ── Category tabs ── */
+.al-cat-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.al-cat-tab {
+    padding: 7px 18px;
+    border-radius: 20px;
+    border: 1.5px solid #e5e7eb;
+    background: white;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.al-cat-tab:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+    background: #eef2ff;
+}
+
+.al-cat-tab.active {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: white;
+    font-weight: 600;
+}
+
+/* ── Filters ── */
+.al-filters {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    margin-bottom: 16px;
+}
+
+.al-search-wrap {
+    display: flex;
+    flex: 1;
+    min-width: 200px;
+}
+
+.al-input {
+    height: 38px;
+    padding: 0 12px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 13.5px;
+    color: #374151;
+    outline: none;
+    background: #fafafa;
+    transition: border-color 0.2s, background 0.2s;
+    width: 100%;
+}
+
+.al-input:focus {
+    border-color: #4f46e5;
+    background: white;
+}
+
+.al-search-wrap .al-input {
+    border-radius: 8px 0 0 8px;
+}
+
+.al-search-btn {
+    height: 38px;
+    padding: 0 16px;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.al-search-btn:hover { background: #4338ca; }
+
+.al-select {
+    height: 38px;
+    padding: 0 10px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 13.5px;
+    color: #374151;
+    background: #fafafa;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.al-select:focus { border-color: #4f46e5; }
+
+.al-date-input { width: 142px; }
+
+.al-to-label {
+    font-size: 13px;
+    color: #9ca3af;
+    white-space: nowrap;
+}
+
+.al-clear-btn {
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1.5px solid #fca5a5;
+    background: #fef2f2;
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.al-clear-btn:hover { background: #fee2e2; }
+
+/* ── Table wrapper ── */
+.al-table-wrap {
+    background: white;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    overflow-x: auto;
+}
+
+/* ── Table ── */
+.al-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    min-width: 700px;
+}
+
+.al-table thead tr {
+    background: #f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.al-table th {
+    padding: 13px 16px;
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    white-space: nowrap;
+}
+
+/* ── Row ── */
+.al-row {
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+
+.al-row:last-child:not(.al-expand-row + .al-row) { border-bottom: none; }
+
+.al-row:hover { background: #f8fafc; }
+
+.al-row.al-row-open { background: #f0f4ff; }
+
+.al-row td {
+    padding: 13px 16px;
+    vertical-align: middle;
+}
+
+/* ── Action badge ── */
+.al-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.al-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── Actor cell ── */
+.al-actor {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.al-actor-name {
+    font-weight: 600;
+    color: #111827;
+    font-size: 13.5px;
+}
+
+.al-actor-email {
+    font-size: 11.5px;
+    color: #9ca3af;
+}
+
+.al-role-pill {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+    width: fit-content;
+    line-height: 1.4;
+}
+
+.al-system-label {
+    color: #9ca3af;
+    font-style: italic;
+    font-size: 13px;
+}
+
+/* ── Details cell ── */
+.al-details-cell {
+    max-width: 260px;
+}
+
+.al-entity {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    font-size: 13px;
+}
+
+.al-meta-preview {
+    display: block;
+    font-size: 11.5px;
+    color: #6b7280;
+    margin-top: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 240px;
+    font-family: monospace;
+}
+
+/* ── IP cell ── */
+.al-ip {
+    font-family: monospace;
+    font-size: 12.5px;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+/* ── Time cell ── */
+.al-time-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    white-space: nowrap;
+}
+
+.al-time-rel {
+    font-weight: 600;
+    color: #374151;
+    font-size: 13px;
+}
+
+.al-time-abs {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+/* ── Expanded row ── */
+.al-expand-row > td {
+    padding: 0;
+    background: #f8fafc;
+    border-bottom: 2px solid #c7d2fe;
+}
+
+.al-expand-body {
+    padding: 16px 20px 16px 24px;
+    border-left: 3px solid #4f46e5;
+    margin-left: 16px;
+}
+
+.al-expand-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 8px 28px;
+    margin-bottom: 14px;
+}
+
+.al-expand-grid div {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13px;
+}
+
+.al-expand-grid strong {
+    color: #6b7280;
+    min-width: 76px;
+    flex-shrink: 0;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding-top: 1px;
+}
+
+.al-expand-grid code {
+    font-family: monospace;
+    font-size: 12px;
+    color: #374151;
+    word-break: break-all;
+    background: #f1f5f9;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.al-expand-grid span {
+    color: #374151;
+    font-size: 12.5px;
+}
+
+/* ── Metadata block ── */
+.al-metadata-block strong {
+    display: block;
+    font-size: 11px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.al-metadata-block pre {
+    background: #1e1f2f;
+    color: #a5f3fc;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    overflow: auto;
+    max-height: 200px;
+    margin: 0;
+    line-height: 1.6;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Loading ── */
+.al-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 64px 20px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.al-spinner {
+    width: 38px;
+    height: 38px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #4f46e5;
+    border-radius: 50%;
+    animation: al-spin 0.75s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes al-spin {
+    to { transform: rotate(360deg); }
+}
+
+.al-empty {
+    padding: 64px 20px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 15px;
+}
+
+/* ── Pagination ── */
+.al-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 22px;
+}
+
+.al-page-btn {
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: 1.5px solid #e5e7eb;
+    background: white;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.al-page-btn:hover:not(:disabled) {
+    border-color: #4f46e5;
+    color: #4f46e5;
+    background: #eef2ff;
+}
+
+.al-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.al-page-info {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .al-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .al-header { flex-direction: column; }
+    .al-table th:nth-child(4),
+    .al-table td:nth-child(4) { display: none; }
+    .al-time-abs { display: none; }
+    .al-filters { gap: 8px; }
+}
+
+@media (max-width: 520px) {
+    .al-stats { grid-template-columns: repeat(2, 1fr); }
+    .al-table th:nth-child(3),
+    .al-table td:nth-child(3) { display: none; }
+}
