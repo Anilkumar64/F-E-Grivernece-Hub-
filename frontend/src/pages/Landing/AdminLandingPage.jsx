@@ -32,12 +32,11 @@ export default function AdminLandingPage() {
                             </p>
 
                             <div className="hero-actions">
-                                <Link to="/admin/AdminSignup" className="btn btn-primary">
-                                    Create Admin Account
-                                </Link>
-
-                                <Link to="/admin/login" className="btn btn-outline">
+                                <Link to="/admin/login" className="btn btn-primary">
                                     Admin Login
+                                </Link>
+                                <Link to="/superadmin/login" className="btn btn-outline">
+                                    SuperAdmin Login
                                 </Link>
                             </div>
 
@@ -184,18 +183,17 @@ export default function AdminLandingPage() {
                 <section className="section section-faq">
                     <div className="container faq-grid">
                         <div className="cta-card">
-                            <h2 className="cta-title">Join the Admin Panel</h2>
+                            <h2 className="cta-title">Access the Admin Panel</h2>
                             <p className="cta-text">
-                                Sign up or log in to manage and resolve student grievances efficiently.
+                                Admin accounts are created and approved by SuperAdmin. Use your assigned credentials to log in.
                             </p>
 
                             <div className="cta-actions">
-                                <Link to="/admin/signup" className="btn btn-primary">
-                                    Admin Signup
-                                </Link>
-
-                                <Link to="/admin/login" className="btn btn-outline-dark">
+                                <Link to="/admin/login" className="btn btn-primary">
                                     Admin Login
+                                </Link>
+                                <Link to="/superadmin/login" className="btn btn-outline">
+                                    SuperAdmin Portal
                                 </Link>
                             </div>
                         </div>

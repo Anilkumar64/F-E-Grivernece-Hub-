@@ -35,6 +35,11 @@ button { cursor: pointer; }
 .features, .landing-section { padding: 48px 32px; }
 .features article, .feature-card, .announcement-card { flex: 1 1 240px; border: 1px solid var(--border); border-radius: 12px; padding: 24px; background: #fff; }
 footer { padding: 24px 32px; border-top: 1px solid var(--border); background: #fff; color: var(--secondary); }
+.landing-slider { position: relative; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: #fff; }
+.landing-slider img { width: 100%; height: 380px; object-fit: cover; display: block; }
+.landing-slider-dots { position: absolute; bottom: 16px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; }
+.landing-slider-dots button { width: 10px; height: 10px; border-radius: 999px; border: 0; background: rgba(255,255,255,.7); }
+.landing-slider-dots button.active { width: 24px; background: #2563eb; }
 
 .app-shell { min-height: 100vh; display: flex; background: var(--bg); }
 .sidebar { position: fixed; inset: 0 auto 0 0; width: 260px; background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 30; transition: width .2s ease, transform .2s ease; }
@@ -141,6 +146,7 @@ tbody tr:hover { background: #f9fafb; }
   .public-nav { padding: 0 16px; }
   .public-nav div a:not(.secondary-btn) { display: none; }
   .hero, .features, .landing-section { padding: 32px 16px; }
+  .landing-slider img { height: 220px; }
   .sidebar { transform: translateX(-100%); width: min(320px, 86vw); }
   .sidebar.open { transform: translateX(0); }
   .sidebar-backdrop { position: fixed; inset: 0; border: 0; background: rgba(17,24,39,.35); z-index: 25; }

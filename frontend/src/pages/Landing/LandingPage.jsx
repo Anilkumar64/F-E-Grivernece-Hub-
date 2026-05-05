@@ -23,6 +23,7 @@ const fallback = {
 
 export default function LandingPage() {
     const [config, setConfig] = useState(fallback);
+    const [slideIndex, setSlideIndex] = useState(0);
 
     useEffect(() => {
         api.get("/landing-config", { skipAuthRefresh: true })
@@ -35,6 +36,15 @@ export default function LandingPage() {
 
     const activeAnnouncements = (config.announcements || []).filter((item) => item.isActive);
     const heroStyle = config.heroImage ? { backgroundImage: `linear-gradient(90deg, rgba(255,255,255,.94), rgba(239,246,255,.86)), url(${config.heroImage})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined;
+    const sliderImages = (config.sliderImages || []).filter(Boolean);
+
+    useEffect(() => {
+        if (sliderImages.length <= 1) return undefined;
+        const timer = setInterval(() => {
+            setSlideIndex((prev) => (prev + 1) % sliderImages.length);
+        }, 3500);
+        return () => clearInterval(timer);
+    }, [sliderImages.length]);
 
     return (
         <main className="landing">
@@ -43,8 +53,9 @@ export default function LandingPage() {
                 <div>
                     <a href="#home">Home</a>
                     <a href="#about">About</a>
-                    <a href="#contact">Contact</a>
-                    <Link className="secondary-btn" to="/login">Sign In</Link>
+                    <a href="#contact">Contact Us</a>
+                    <Link className="secondary-btn" to="/login">User Login</Link>
+                    <Link className="primary-btn" to="/signup">User Signup</Link>
                 </div>
             </nav>
             <section className="hero" id="home" style={heroStyle}>
@@ -53,9 +64,27 @@ export default function LandingPage() {
                 <p>{config.heroSubtitle}</p>
                 <div>
                     <Link className="primary-btn" to="/login">Student Login</Link>
-                    <Link className="secondary-btn" to="/admin/login">Admin Login</Link>
+                    <Link className="secondary-btn" to="/signup">Create Student Account</Link>
                 </div>
             </section>
+            {sliderImages.length > 0 && (
+                <section className="landing-section" aria-label="Campus highlights">
+                    <div className="landing-slider">
+                        <img src={sliderImages[slideIndex % sliderImages.length]} alt={`Campus slide ${slideIndex + 1}`} />
+                        <div className="landing-slider-dots">
+                            {sliderImages.map((_, idx) => (
+                                <button
+                                    key={`dot-${idx}`}
+                                    type="button"
+                                    className={idx === (slideIndex % sliderImages.length) ? "active" : ""}
+                                    aria-label={`Go to slide ${idx + 1}`}
+                                    onClick={() => setSlideIndex(idx)}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
             <section className="features" id="about">
                 {(config.features || fallback.features).slice(0, 6).map((feature) => {
                     const Icon = iconMap[feature.icon] || FileText;

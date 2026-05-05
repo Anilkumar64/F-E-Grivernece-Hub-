@@ -22,7 +22,6 @@ import MyDrafts from "../pages/User/MyDrafts";
 import TrackGrievance from "../pages/User/TrackGrievance";
 import Profile from "../pages/User/Profile";
 import AdminLogin from "../pages/Admin/AdminLogin";
-import AdminSignup from "../pages/Admin/AdminSignup";
 import AdminAbout from "../pages/Admin/AdminAbout";
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import AdminGrievances from "../pages/Admin/AdminGrievances";
@@ -61,9 +60,6 @@ export default function AppRoutes() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/admin" element={<AdminLandingPage />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
-                {/* ✅ FIX MO-09: was two routes (/admin/signup AND /admin/AdminSignup) for
-                    the same component. Keeping only the canonical lowercase path. */}
-                <Route path="/admin/signup" element={<AdminSignup />} />
                 <Route path="/admin/about" element={<AdminAbout />} />
                 <Route path="/superadmin" element={<SuperAdminLandingPage />} />
                 <Route path="/superadmin/login" element={<SuperAdminLogin />} />

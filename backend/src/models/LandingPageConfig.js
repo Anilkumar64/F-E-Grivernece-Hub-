@@ -27,6 +27,7 @@ const landingPageConfigSchema = new mongoose.Schema(
         heroTitle: { type: String, trim: true, default: "Submit. Track. Resolve." },
         heroSubtitle: { type: String, trim: true, default: "A transparent grievance platform for students and campus administrators." },
         heroImage: { type: String, trim: true, default: "" },
+        sliderImages: { type: [String], default: () => [] },
         features: {
             type: [featureSchema],
             default: () => [

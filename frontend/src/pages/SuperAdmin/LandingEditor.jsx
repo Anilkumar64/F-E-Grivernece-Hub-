@@ -67,6 +67,49 @@ export default function LandingEditor() {
                     </div>
 
                     <div className="card">
+                        <div className="page-heading">
+                            <h2>Hero Slider Images</h2>
+                            <label className="secondary-btn" style={{ cursor: "pointer" }}>
+                                Upload
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    style={{ display: "none" }}
+                                    onChange={async (e) => {
+                                        if (!e.target.files?.[0]) return;
+                                        try {
+                                            const data = new FormData();
+                                            data.append("image", e.target.files[0]);
+                                            const res = await api.post("/landing-config/upload", data);
+                                            const next = [...(form.sliderImages || []), res.data.url].slice(0, 8);
+                                            update({ sliderImages: next });
+                                            toast.success("Slider image added");
+                                        } catch (error) {
+                                            toast.error(error?.response?.data?.message || "Unable to upload slider image");
+                                        } finally {
+                                            e.target.value = "";
+                                        }
+                                    }}
+                                />
+                            </label>
+                        </div>
+                        <p className="muted">Add up to 8 rotating images for the public user landing page.</p>
+                        <div className="card-grid">
+                            {(form.sliderImages || []).map((url, index) => (
+                                <article className="feature-card" key={`${url}-${index}`}>
+                                    <img src={url} alt={`Slider ${index + 1}`} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 8 }} />
+                                    <button
+                                        className="danger-btn"
+                                        onClick={() => update({ sliderImages: (form.sliderImages || []).filter((_, i) => i !== index) })}
+                                    >
+                                        Remove
+                                    </button>
+                                </article>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="card">
                         <div className="page-heading"><h2>Feature Cards</h2><button className="secondary-btn" onClick={() => update({ features: [...features, emptyFeature].slice(0, 6) })}>Add</button></div>
                         {features.map((feature, index) => (
                             <div className="form-grid" key={feature._id || index}>
@@ -124,8 +167,13 @@ function LandingPreview({ config }) {
             <section className="hero">
                 <h1>{config.heroTitle}</h1>
                 <p>{config.heroSubtitle}</p>
-                <div><button className="primary-btn">Student Login</button><button className="secondary-btn">Admin Login</button></div>
+                <div><button className="primary-btn">User Login</button><button className="secondary-btn">User Signup</button></div>
             </section>
+            {!!(config.sliderImages || []).length && (
+                <section className="landing-section">
+                    <div className="card">Slider Images: {(config.sliderImages || []).length}</div>
+                </section>
+            )}
             <section className="features">
                 {(config.features || []).map((feature, index) => <article key={index}><h2>{feature.title}</h2><p>{feature.description}</p></article>)}
             </section>
