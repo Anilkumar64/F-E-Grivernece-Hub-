@@ -39,15 +39,15 @@
   }
 
   .ui-btn-primary {
-    @apply ui-btn bg-slate-900 text-white hover:bg-slate-800;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-slate-800;
   }
 
   .ui-btn-outline {
-    @apply ui-btn border border-gray-200 bg-white text-gray-700 hover:bg-gray-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-50;
   }
 
   .ui-btn-ghost {
-    @apply ui-btn bg-transparent text-gray-600 hover:bg-gray-100;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-gray-100;
   }
 
   .ui-badge {

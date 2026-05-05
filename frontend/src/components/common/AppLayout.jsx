@@ -4,7 +4,7 @@ import {
     Bell, BookOpen, Building2, CheckCircle2, ClipboardList,
     FileBarChart, FileText, Home, Image, LayoutDashboard,
     LogOut, Menu, MessageSquare, PlusCircle, Search,
-    ShieldAlert, User, Users, X, GraduationCap,
+    ShieldAlert, User, Users, GraduationCap,
     Settings, ShieldCheck,
 } from "lucide-react";
 import AuthContext from "../../context/AuthCore";
