@@ -10,6 +10,7 @@ import {
 import AuthContext from "../../context/AuthCore";
 import { useNotifications } from "../../hooks/useNotifications";
 import RouteTracker from "./RouteTracker";
+import Badge from "../ui/Badge";
 
 const iconSize = 20;
 
@@ -88,63 +89,77 @@ export default function AppLayout({ role }) {
         : "";
 
     return (
-        <div className="app-shell">
+        <div className="min-h-screen bg-gray-50">
             <RouteTracker />
-            <aside className={`sidebar ${open ? "open" : ""}`}>
-                <div className="sidebar-logo" onClick={() => navigate(dashboardPath[role])}>
-                    <div className="logo-mark">UG</div>
-                    <div className="sidebar-logo-text">
-                        <strong>University</strong>
-                        <span>E-Grievance</span>
+            <aside className={`fixed inset-y-0 left-0 z-40 w-72 transform bg-slate-900 text-white transition-transform duration-200 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+                <div className="border-b border-slate-800 px-6 py-5" onClick={() => navigate(dashboardPath[role])}>
+                    <div className="flex cursor-pointer items-center gap-3">
+                        <div className="ku-logo">KU</div>
+                        <div>
+                            <p className="text-sm font-semibold tracking-tight text-white">Kernel University</p>
+                            <p className="text-xs text-slate-300">Portal</p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="sidebar-user">
+                <div className="m-4 rounded-2xl border border-slate-800 bg-slate-800/60 p-3">
                     {profilePhotoSrc ? (
                         <img
                             src={profilePhotoSrc}
                             alt={`${authUser?.name || "User"} profile`}
-                            className="avatar"
-                            style={{ objectFit: "cover" }}
+                            className="h-10 w-10 rounded-full object-cover"
                         />
                     ) : (
-                        <div className="avatar">{initials}</div>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white">{initials}</div>
                     )}
-                    <div>
-                        <strong>{authUser?.name || "User"}</strong>
-                        {role === "student" && <span>{authUser?.studentId || authUser?.rollNumber || "Student"}</span>}
-                        {role === "admin" && <span>{authUser?.department?.name || "Department"}</span>}
-                        {role === "superadmin" && <span>Super Admin</span>}
-                        <small>{roleLabel[role]}</small>
+                    <div className="mt-2 min-w-0">
+                        <p className="truncate text-sm font-semibold text-white">{authUser?.name || "User"}</p>
+                        <p className="truncate text-xs text-slate-300">
+                            {role === "student" && (authUser?.studentId || authUser?.rollNumber || "Student")}
+                            {role === "admin" && (authUser?.department?.name || "Department")}
+                            {role === "superadmin" && "Super Admin"}
+                        </p>
+                        <Badge className="mt-2 bg-indigo-500/15 text-indigo-200">{roleLabel[role]}</Badge>
                     </div>
                 </div>
 
-                <nav className="sidebar-nav">
+                <nav className="space-y-1 px-3 pb-6">
                     {items.map(({ label, path, icon: Icon, badge }) => (
                         <NavLink key={path + label} to={path} onClick={() => setOpen(false)}
-                            className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}>
-                            {React.createElement(Icon, { size: iconSize })}
-                            <span>{label}</span>
-                            {badge && unreadCount > 0 && <em>{unreadCount}</em>}
+                            className={({ isActive }) =>
+                                `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-all duration-200 ${
+                                    isActive
+                                        ? "bg-indigo-600 text-white"
+                                        : "text-slate-200 hover:bg-slate-800 hover:text-white"
+                                }`
+                            }>
+                            {React.createElement(Icon, { size: iconSize, className: "shrink-0" })}
+                            <span className="truncate">{label}</span>
+                            {badge && unreadCount > 0 && (
+                                <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-semibold text-white">
+                                    {unreadCount}
+                                </span>
+                            )}
                         </NavLink>
                     ))}
                 </nav>
             </aside>
 
-            {open && <button className="sidebar-backdrop" aria-label="Close menu" onClick={() => setOpen(false)} />}
+            {open && <button className="fixed inset-0 z-30 bg-slate-900/40 lg:hidden" aria-label="Close menu" onClick={() => setOpen(false)} />}
 
-            <div className="main-shell">
-                <header className="topbar">
-                    <div className="topbar-left">
-                        <button className="icon-button mobile-only" aria-label="Open menu" onClick={() => setOpen(true)}>
+            <div className="lg:pl-72">
+                <header className="sticky top-0 z-20 border-b border-gray-100 bg-white/80 backdrop-blur">
+                    <div className="app-container flex h-16 items-center justify-between">
+                        <div className="flex items-center gap-3">
+                        <button className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}>
                             <Menu size={20} />
                         </button>
-                        <div className="breadcrumb">{titleFromPath(location.pathname)}</div>
+                        <div className="text-sm font-semibold capitalize tracking-tight text-gray-900">{titleFromPath(location.pathname)}</div>
                     </div>
-                    <div className="topbar-actions">
+                    <div className="flex items-center gap-2">
                         {/* Notifications dropdown */}
-                        <div className="profile-menu">
-                            <button className="icon-button badge-button" aria-label="Notifications"
+                        <div className="relative">
+                            <button className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600" aria-label="Notifications"
                                 onClick={async () => {
                                     const willOpen = !notificationsOpen;
                                     setNotificationsOpen(willOpen);
@@ -153,15 +168,15 @@ export default function AppLayout({ role }) {
                                     }
                                 }}>
                                 <Bell size={20} />
-                                {unreadCount > 0 && <span>{unreadCount}</span>}
+                                {unreadCount > 0 && <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">{unreadCount}</span>}
                             </button>
                             {notificationsOpen && (
-                                <div className="profile-dropdown notification-dropdown">
-                                    <button onClick={async () => { await markAllAsRead(); setNotificationsOpen(false); }}>
+                                <div className="absolute right-0 mt-2 grid w-80 gap-1 rounded-xl border border-gray-100 bg-white p-2 shadow-md">
+                                    <button className="rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50" onClick={async () => { await markAllAsRead(); setNotificationsOpen(false); }}>
                                         Mark all as read
                                     </button>
                                     {notifications.slice(0, 10).map((item) => (
-                                        <button key={item._id} onClick={() => {
+                                        <button className="rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50" key={item._id} onClick={() => {
                                             setNotificationsOpen(false);
                                             navigate(
                                                 item.grievance?.grievanceId
@@ -169,48 +184,44 @@ export default function AppLayout({ role }) {
                                                     : notifPath(role)
                                             );
                                         }}>
-                                            <Bell size={16} /> {item.message}
+                                            {item.message}
                                         </button>
                                     ))}
-                                    <button onClick={() => navigate(notifPath(role))}>View all</button>
+                                    <button className="rounded-lg px-3 py-2 text-left text-sm font-medium text-indigo-700 hover:bg-indigo-50" onClick={() => navigate(notifPath(role))}>View all</button>
                                 </div>
                             )}
                         </div>
 
                         {/* Profile dropdown */}
-                        <div className="profile-menu">
-                            <button className="avatar-button" onClick={() => setProfileOpen((v) => !v)}>
+                        <div className="relative">
+                            <button className="inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-indigo-50 text-sm font-semibold text-indigo-700" onClick={() => setProfileOpen((v) => !v)}>
                                 {profilePhotoSrc ? (
                                     <img
                                         src={profilePhotoSrc}
                                         alt={`${authUser?.name || "User"} profile`}
-                                        className="avatar-button"
-                                        style={{ objectFit: "cover" }}
+                                        className="h-10 w-10 object-cover"
                                     />
                                 ) : initials}
                             </button>
                             {profileOpen && (
-                                <div className="profile-dropdown">
-                                    <button onClick={() => { setProfileOpen(false); navigate(role === "student" ? "/profile" : `/${role}/profile`); }}>
+                                <div className="absolute right-0 mt-2 grid w-44 gap-1 rounded-xl border border-gray-100 bg-white p-2 shadow-md">
+                                    <button className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50" onClick={() => { setProfileOpen(false); navigate(role === "student" ? "/profile" : `/${role}/profile`); }}>
                                         <User size={16} /> Profile
                                     </button>
-                                    <button onClick={logout}>
+                                    <button className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-rose-600 hover:bg-rose-50" onClick={logout}>
                                         <LogOut size={16} /> Logout
                                     </button>
                                 </div>
                             )}
                         </div>
                     </div>
+                    </div>
                 </header>
 
-                <main className="content">
+                <main className="app-container py-6">
                     <Outlet />
                 </main>
             </div>
-
-            <button className="drawer-close" aria-label="Close menu" onClick={() => setOpen(false)}>
-                <X size={18} />
-            </button>
         </div>
     );
 }
