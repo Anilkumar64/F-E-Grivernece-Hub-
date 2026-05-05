@@ -4,6 +4,7 @@ import { Edit, KeyRound, Plus, Power } from "lucide-react";
 import api from "../../api/axiosInstance";
 import EmptyState from "../../components/common/EmptyState";
 import Skeleton from "../../components/common/Skeleton";
+import StepUpModal from "../../components/common/StepUpModal";
 
 const initialForm = { name: "", email: "", staffId: "", department: "", password: "", autoGeneratePassword: true, isActive: true };
 
@@ -14,6 +15,8 @@ export default function AllAdmins() {
     const [showForm, setShowForm] = useState(false);
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState(initialForm);
+    const [stepUpOpen, setStepUpOpen] = useState(false);
+    const [pendingAction, setPendingAction] = useState(null);
 
     const load = async () => {
         setLoading(true);
@@ -48,7 +51,7 @@ export default function AllAdmins() {
 
     const submit = async (e) => {
         e.preventDefault();
-        try {
+        const run = async () => {
             if (editing) {
                 await api.patch(`/admin/${editing._id}`, form);
                 toast.success("Admin updated");
@@ -58,27 +61,51 @@ export default function AllAdmins() {
             }
             setShowForm(false);
             load();
+        };
+        try {
+            await run();
         } catch (error) {
+            if (error?.response?.status === 403 && String(error?.response?.data?.message || "").toLowerCase().includes("step-up")) {
+                setPendingAction(() => run);
+                setStepUpOpen(true);
+                return;
+            }
             toast.error(error?.response?.data?.message || "Unable to save admin");
         }
     };
 
     const deactivate = async (id) => {
         if (!window.confirm("Deactivate this admin?")) return;
-        try {
+        const run = async () => {
             await api.delete(`/admin/${id}`);
             toast.success("Admin deactivated");
             load();
+        };
+        try {
+            await run();
         } catch (error) {
+            if (error?.response?.status === 403 && String(error?.response?.data?.message || "").toLowerCase().includes("step-up")) {
+                setPendingAction(() => run);
+                setStepUpOpen(true);
+                return;
+            }
             toast.error(error?.response?.data?.message || "Unable to deactivate admin");
         }
     };
 
     const resetPassword = async (id) => {
-        try {
+        const run = async () => {
             const res = await api.patch(`/admin/${id}/reset-password`);
             toast.success(`Temporary password: ${res.data.temporaryPassword}`);
+        };
+        try {
+            await run();
         } catch (error) {
+            if (error?.response?.status === 403 && String(error?.response?.data?.message || "").toLowerCase().includes("step-up")) {
+                setPendingAction(() => run);
+                setStepUpOpen(true);
+                return;
+            }
             toast.error(error?.response?.data?.message || "Unable to reset password");
         }
     };
@@ -153,6 +180,15 @@ export default function AllAdmins() {
                     </form>
                 </div>
             )}
+            <StepUpModal
+                open={stepUpOpen}
+                onClose={() => { setStepUpOpen(false); setPendingAction(null); }}
+                onVerified={async () => {
+                    if (!pendingAction) return;
+                    await pendingAction();
+                    setPendingAction(null);
+                }}
+            />
         </section>
     );
 }

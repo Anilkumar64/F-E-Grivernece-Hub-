@@ -5,6 +5,7 @@ import {
     FileBarChart, FileText, Home, Image, LayoutDashboard,
     LogOut, Menu, MessageSquare, PlusCircle, Search,
     ShieldAlert, User, Users, X, GraduationCap,
+    Settings,
 } from "lucide-react";
 import AuthContext from "../../context/AuthCore";
 import { useNotifications } from "../../hooks/useNotifications";
@@ -35,12 +36,14 @@ const navItems = {
     superadmin: [
         { label: "Dashboard", path: "/superadmin/dashboard", icon: LayoutDashboard },
         { label: "Manage Admins", path: "/superadmin/admins", icon: Users },
+        { label: "User Lifecycle", path: "/superadmin/users", icon: Users },
         { label: "Departments", path: "/superadmin/departments", icon: Building2 },
         { label: "Manage Courses", path: "/superadmin/courses", icon: GraduationCap },
         { label: "Complaint Categories", path: "/superadmin/categories", icon: BookOpen },
         { label: "Landing Page Editor", path: "/superadmin/landing-editor", icon: Image },
         { label: "Reports & Analytics", path: "/superadmin/reports", icon: FileBarChart },
         { label: "Audit Logs", path: "/superadmin/audit-logs", icon: FileText },
+        { label: "Security Settings", path: "/superadmin/settings", icon: Settings },
         { label: "Profile", path: "/superadmin/profile", icon: User },
     ],
 };

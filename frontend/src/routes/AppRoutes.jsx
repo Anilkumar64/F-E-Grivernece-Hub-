@@ -38,6 +38,8 @@ import ManageDepartments from "../pages/SuperAdmin/ManageDepartments";
 import ManageCourses from "../pages/SuperAdmin/ManageCourses";
 import ComplaintTypes from "../pages/SuperAdmin/ComplaintTypes";
 import SuperAdminReports from "../pages/SuperAdmin/SuperAdminReports";
+import SuperAdminUsers from "../pages/SuperAdmin/SuperAdminUsers";
+import SuperAdminSettings from "../pages/SuperAdmin/SuperAdminSettings";
 import SuperAdminLandingPage from "../pages/Landing/SuperAdminLandingPage";
 import LandingEditor from "../pages/SuperAdmin/LandingEditor";
 import AuditLogs from "../pages/SuperAdmin/AuditLogs";
@@ -108,6 +110,8 @@ export default function AppRoutes() {
                     <Route path="/superadmin/categories" element={<ComplaintTypes />} />
                     <Route path="/superadmin/landing-editor" element={<LandingEditor />} />
                     <Route path="/superadmin/reports" element={<SuperAdminReports />} />
+                    <Route path="/superadmin/users" element={<SuperAdminUsers />} />
+                    <Route path="/superadmin/settings" element={<SuperAdminSettings />} />
                     <Route path="/superadmin/audit-logs" element={<AuditLogs />} />
                     <Route path="/superadmin/notifications" element={<NotificationsPage />} />
                     <Route path="/superadmin/profile" element={<AdminProfile />} />
