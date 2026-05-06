@@ -4,6 +4,10 @@ import toast from "react-hot-toast";
 import { Download, Send } from "lucide-react";
 import api from "../../api/axiosInstance";
 import Skeleton from "../../components/common/Skeleton";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Badge from "../../components/ui/Badge";
 
 const apiOrigin = (import.meta.env.VITE_API_URL || "").trim();
 const resolveUrl = (path) => (apiOrigin ? `${apiOrigin}${path}` : path);
@@ -173,12 +177,12 @@ export default function TrackGrievance() {
 
     if (!id) {
         return (
-            <section className="page-section">
-                <div className="card" style={{ maxWidth: 560 }}>
-                    <h1>Track Grievance</h1>
-                    <p className="muted">Enter your grievance ID to open its tracking page.</p>
-                    <form className="inline-form" onSubmit={submitTrackById}>
-                        <input
+            <section className="space-y-6">
+                <Card className="mx-auto max-w-xl space-y-4">
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Track Grievance</h1>
+                    <p className="text-sm text-gray-600">Enter your grievance ID to open its tracking page.</p>
+                    <form className="flex flex-col gap-3 sm:flex-row" onSubmit={submitTrackById}>
+                        <Input
                             value={trackingId}
                             onChange={(e) => setTrackingId(e.target.value)}
                             placeholder="Example: GRV-2026-0001"
@@ -189,19 +193,15 @@ export default function TrackGrievance() {
                                 <option key={val} value={val} />
                             ))}
                         </datalist>
-                        <button className="primary-btn" type="submit">Track</button>
+                        <Button type="submit">Track</Button>
                     </form>
-                </div>
+                </Card>
             </section>
         );
     }
 
     if (loading) return <Skeleton rows={4} />;
-    if (!grievance) return (
-        <section className="page-section">
-            <div className="card">Grievance not found</div>
-        </section>
-    );
+    if (!grievance) return <section><Card>Grievance not found</Card></section>;
 
     const overdue = grievance.slaDeadline
         && new Date(grievance.slaDeadline) < new Date()
@@ -223,36 +223,36 @@ export default function TrackGrievance() {
     const slaProgress = end > start ? Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100)) : 0;
 
     return (
-        <section className="page-section">
-            <div className="detail-layout">
-                <div className="page-section">
-                    {/* ── Grievance details ── */}
-                    <div className="card">
+        <section className="space-y-6">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+                <div className="space-y-6">
+                    <Card className="space-y-4">
                         <button
-                            className="id-badge"
+                            className="inline-flex w-fit items-center rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700"
                             onClick={() => navigator.clipboard.writeText(grievance.grievanceId)}
+                            type="button"
                         >
                             {grievance.grievanceId}
                         </button>
-                        <h1>{grievance.title}</h1>
-                        <div>
-                            <span className={`status-badge ${grievance.status}`}>{grievance.status}</span>
-                            <span className={`priority-badge ${grievance.priority}`}>{grievance.priority}</span>
-                            {grievance.isAcademicUrgent && <span className="pill danger">Academic Urgent</span>}
+                        <h1 className="text-2xl font-bold tracking-tight text-gray-900">{grievance.title}</h1>
+                        <div className="flex flex-wrap gap-2">
+                            <Badge>{grievance.status}</Badge>
+                            <Badge className="bg-gray-100 text-gray-700">{grievance.priority}</Badge>
+                            {grievance.isAcademicUrgent && <Badge className="bg-rose-50 text-rose-700">Academic Urgent</Badge>}
                         </div>
-                        <p className="muted">
+                        <p className="text-sm text-gray-600">
                             {grievance.category?.name} · {grievance.department?.name} · {grievance.assignedTo?.name || "Unassigned"}
                         </p>
-                        <p>{grievance.description}</p>
+                        <p className="text-sm leading-relaxed text-gray-700">{grievance.description}</p>
                         {grievance.isAcademicUrgent && grievance.urgentReason && (
-                            <p className="muted"><strong>Urgency reason:</strong> {grievance.urgentReason}</p>
+                            <p className="text-sm text-gray-600"><strong>Urgency reason:</strong> {grievance.urgentReason}</p>
                         )}
-                        <p className="muted"><strong>Expected next action:</strong> {nextAction}</p>
-                        <h2>Evidence Center</h2>
-                        <div className="file-list">
+                        <p className="text-sm text-gray-600"><strong>Expected next action:</strong> {nextAction}</p>
+                        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Evidence Center</h2>
+                        <div className="flex flex-wrap gap-2">
                             {(grievance.attachments || []).map((file) => (
                                 <a
-                                    className="secondary-btn"
+                                    className="ui-btn-outline"
                                     key={file.url}
                                     href={resolveUrl(file.url)}
                                     target="_blank"
@@ -262,125 +262,126 @@ export default function TrackGrievance() {
                                 </a>
                             ))}
                         </div>
-                        <form className="inline-form" onSubmit={uploadEvidence}>
-                            <input
+                        <form className="grid gap-3 md:grid-cols-[1fr_auto]" onSubmit={uploadEvidence}>
+                            <Input
                                 type="file"
                                 multiple
                                 accept=".pdf,.jpg,.jpeg,.png"
                                 onChange={(e) => setEvidenceFiles(Array.from(e.target.files || []).slice(0, 3))}
                             />
-                            <button className="secondary-btn" disabled={uploadingEvidence}>
+                            <Button variant="outline" disabled={uploadingEvidence}>
                                 {uploadingEvidence ? "Uploading..." : "Add Follow-up Evidence"}
-                            </button>
+                            </Button>
                         </form>
-                        <button className="primary-btn" onClick={downloadPdf} disabled={downloadingPdf}>
+                        <Button onClick={downloadPdf} disabled={downloadingPdf}>
                             <Download size={18} /> {downloadingPdf ? "Downloading..." : "Download as PDF"}
-                        </button>
-                    </div>
+                        </Button>
+                    </Card>
 
-                    {/* ── Discussion ── */}
-                    <div className="card">
-                        <h2>Discussion</h2>
+                    <Card className="space-y-4">
+                        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Discussion</h2>
                         {(grievance.comments || []).map((item) => (
-                            <div className={`comment ${item.role}`} key={item._id}>
-                                <strong>{item.postedBy?.name || item.role}</strong>
-                                <p>{item.text}</p>
-                                <span className="muted">{new Date(item.timestamp).toLocaleString()}</span>
+                            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3" key={item._id}>
+                                <strong className="text-sm text-gray-900">{item.postedBy?.name || item.role}</strong>
+                                <p className="mt-1 text-sm text-gray-700">{item.text}</p>
+                                <span className="mt-1 block text-xs text-gray-500">{new Date(item.timestamp).toLocaleString()}</span>
                             </div>
                         ))}
-                        <form className="inline-form" onSubmit={sendComment}>
+                        <form className="grid gap-3 md:grid-cols-[1fr_auto]" onSubmit={sendComment}>
                             <textarea
+                                className="ui-input min-h-24"
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 placeholder="Write a comment..."
                             />
-                            <button className="primary-btn" disabled={submittingComment}>
+                            <Button disabled={submittingComment}>
                                 <Send size={18} /> {submittingComment ? "Sending…" : "Send"}
-                            </button>
+                            </Button>
                         </form>
-                    </div>
+                    </Card>
 
-                    {/* ── Feedback — only show if resolved AND not yet submitted ── */}
-                    {grievance.status === "Resolved" && !feedbackAlreadySubmitted && (  /* ✅ was missing !feedbackAlreadySubmitted */
-                        <form className="card" onSubmit={submitFeedback}>
-                            <h2>Feedback</h2>
-                            <label>
+                    {grievance.status === "Resolved" && !feedbackAlreadySubmitted && (
+                        <form className="ui-card space-y-3" onSubmit={submitFeedback}>
+                            <h2 className="text-lg font-semibold tracking-tight text-gray-900">Feedback</h2>
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">
                                 Rating
-                                <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+                                <select className="ui-input" value={rating} onChange={(e) => setRating(Number(e.target.value))}>
                                     {[1, 2, 3, 4, 5].map((n) => <option key={n}>{n}</option>)}
                                 </select>
                             </label>
-                            <label>
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">
                                 Comment
-                                <textarea name="feedbackText" defaultValue="" />
+                                <textarea className="ui-input min-h-24" name="feedbackText" defaultValue="" />
                             </label>
-                            <button className="primary-btn" disabled={submittingFeedback}>
+                            <Button disabled={submittingFeedback}>
                                 {submittingFeedback ? "Submitting…" : "Submit Feedback"}
-                            </button>
+                            </Button>
                         </form>
                     )}
 
-                    {/* ── Show submitted feedback read-only ── */}
                     {grievance.status === "Resolved" && feedbackAlreadySubmitted && (
-                        <div className="card">
-                            <h2>Your Feedback</h2>
-                            <p><strong>Rating:</strong> {grievance.feedbackRating} / 5</p>
-                            {grievance.feedbackText && <p><strong>Comment:</strong> {grievance.feedbackText}</p>}
-                        </div>
+                        <Card className="space-y-2">
+                            <h2 className="text-lg font-semibold tracking-tight text-gray-900">Your Feedback</h2>
+                            <p className="text-sm text-gray-700"><strong>Rating:</strong> {grievance.feedbackRating} / 5</p>
+                            {grievance.feedbackText && <p className="text-sm text-gray-700"><strong>Comment:</strong> {grievance.feedbackText}</p>}
+                        </Card>
                     )}
 
                     {(canRequestReopen || grievance.reopenRequested) && (
-                        <div className="card">
-                            <h2>Reopen / Appeal</h2>
+                        <Card className="space-y-3">
+                            <h2 className="text-lg font-semibold tracking-tight text-gray-900">Reopen / Appeal</h2>
                             {grievance.reopenRequested ? (
-                                <p className="muted">
+                                <p className="text-sm text-gray-600">
                                     Reopen request submitted{grievance.reopenReason ? `: ${grievance.reopenReason}` : ""}.
                                 </p>
                             ) : (
-                                <form className="inline-form" onSubmit={submitReopenRequest}>
+                                <form className="grid gap-3 md:grid-cols-[1fr_auto]" onSubmit={submitReopenRequest}>
                                     <textarea
+                                        className="ui-input min-h-24"
                                         value={reopenReason}
                                         onChange={(e) => setReopenReason(e.target.value)}
                                         placeholder="Explain why this grievance should be reopened..."
                                     />
-                                    <button className="primary-btn" disabled={requestingReopen}>
+                                    <Button disabled={requestingReopen}>
                                         {requestingReopen ? "Submitting..." : "Request Reopen"}
-                                    </button>
+                                    </Button>
                                 </form>
                             )}
                             {grievance.reopenDecision && grievance.reopenDecision !== "pending" && (
-                                <p className="muted">
+                                <p className="text-sm text-gray-600">
                                     Decision: <strong>{grievance.reopenDecision}</strong>
                                     {grievance.reopenDecisionReason ? ` (${grievance.reopenDecisionReason})` : ""}
                                 </p>
                             )}
-                        </div>
+                        </Card>
                     )}
                 </div>
 
-                {/* ── Timeline sidebar ── */}
-                <aside className="timeline-panel">
-                    <div className="card">
-                        <h2>Status Timeline</h2>
+                <aside className="space-y-6">
+                    <Card className="space-y-3">
+                        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Status Timeline</h2>
                         {(grievance.timeline || []).map((item) => (
-                            <div className="timeline-item" key={item._id}>
-                                <strong>{item.status}</strong>
-                                <p>{item.message || "Status updated"}</p>
-                                <span className="muted">{new Date(item.timestamp).toLocaleString()}</span>
+                            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3" key={item._id}>
+                                <strong className="text-sm text-gray-900">{item.status}</strong>
+                                <p className="text-sm text-gray-700">{item.message || "Status updated"}</p>
+                                <span className="text-xs text-gray-500">{new Date(item.timestamp).toLocaleString()}</span>
                             </div>
                         ))}
-                    </div>
-                    <div className="card">
-                        <h2>Expected Resolution</h2>
-                        <div style={{ height: 8, borderRadius: 8, background: "#e5e7eb", overflow: "hidden", marginBottom: 8 }}>
-                            <div style={{ width: `${slaProgress}%`, height: "100%", background: overdue ? "#dc2626" : "#2563eb" }} />
+                    </Card>
+                    <Card className="space-y-3">
+                        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Expected Resolution</h2>
+                        <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+                            <div
+                                className={`${overdue ? "bg-rose-600" : "bg-indigo-600"} h-full`}
+                                style={{ width: `${slaProgress}%` }}
+                            />
                         </div>
-                        <p className={overdue ? "pill danger" : "muted"}>
+                        <p className={overdue ? "rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700" : "text-sm text-gray-600"}>
                             {grievance.slaDeadline
                                 ? `Due by ${new Date(grievance.slaDeadline).toLocaleString()}`
                                 : "No SLA set"}
                         </p>
-                    </div>
+                    </Card>
                 </aside>
             </div>
         </section>

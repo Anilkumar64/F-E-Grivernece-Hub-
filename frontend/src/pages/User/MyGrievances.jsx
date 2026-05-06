@@ -4,6 +4,10 @@ import { Copy } from "lucide-react";
 import api from "../../api/axiosInstance";
 import EmptyState from "../../components/common/EmptyState";
 import Skeleton from "../../components/common/Skeleton";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Badge from "../../components/ui/Badge";
 
 const PAGE_SIZE = 10;
 const FILTERS_KEY = "student_my_grievances_filters_v1";
@@ -50,61 +54,67 @@ export default function MyGrievances() {
     const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     return (
-        <section className="page-section">
-            <div className="page-heading">
-                <div><h1>My Grievances</h1><p>Search, filter, and track your submitted grievances.</p></div>
-                <button className="primary-btn" onClick={() => navigate("/submit-grievance")}>Submit Grievance</button>
+        <section className="space-y-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">My Grievances</h1>
+                    <p className="text-sm text-gray-600">Search, filter, and track your submitted grievances.</p>
+                </div>
+                <Button onClick={() => navigate("/submit-grievance")}>Submit Grievance</Button>
             </div>
 
-            <div className="filter-row">
-                <input
+            <Card className="grid gap-3 md:grid-cols-4">
+                <Input
                     placeholder="Search by ID or title"
                     value={filters.search}
                     onChange={(e) => setFilter({ search: e.target.value })}
                 />
-                <select value={filters.status} onChange={(e) => setFilter({ status: e.target.value })}>
+                <select className="ui-input" value={filters.status} onChange={(e) => setFilter({ status: e.target.value })}>
                     <option value="">All Status</option>
                     {["Pending", "UnderReview", "InProgress", "Resolved", "Escalated", "Closed"].map((s) => <option key={s}>{s}</option>)}
                 </select>
-                <select value={filters.priority} onChange={(e) => setFilter({ priority: e.target.value })}>
+                <select className="ui-input" value={filters.priority} onChange={(e) => setFilter({ priority: e.target.value })}>
                     <option value="">All Priority</option>
                     {["Low", "Medium", "High", "Critical"].map((p) => <option key={p}>{p}</option>)}
                 </select>
-                <select value={filters.sort} onChange={(e) => setFilter({ sort: e.target.value })}>
+                <select className="ui-input" value={filters.sort} onChange={(e) => setFilter({ sort: e.target.value })}>
                     <option value="newest">Newest</option>
                     <option value="oldest">Oldest</option>
                 </select>
-            </div>
+            </Card>
 
             {loading ? <Skeleton rows={4} /> : !filtered.length ? (
                 <EmptyState icon="+" title="No grievances yet" actionLabel="Submit Grievance" onAction={() => navigate("/submit-grievance")} />
             ) : (
                 <>
-                    <div className="card-grid">
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {paginated.map((g) => (
-                            <article className="grievance-card" key={g._id}>
-                                <button className="id-badge" onClick={() => navigator.clipboard.writeText(g.grievanceId)}>
+                            <Card key={g._id} className="space-y-3">
+                                <button
+                                    className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 transition-all duration-200 hover:bg-gray-50"
+                                    onClick={() => navigator.clipboard.writeText(g.grievanceId)}
+                                    type="button"
+                                >
                                     <Copy size={14} /> {g.grievanceId}
                                 </button>
-                                <h2>{g.title}</h2>
-                                <p className="muted">{g.category?.name || "General"} · Submitted {new Date(g.createdAt).toLocaleDateString()}</p>
-                                <div>
-                                    <span className={`status-badge ${g.status}`}>{g.status}</span>
-                                    <span className={`priority-badge ${g.priority}`}>{g.priority}</span>
-                                    {g.isAcademicUrgent && <span className="pill danger">Academic Urgent</span>}
+                                <h2 className="text-base font-semibold tracking-tight text-gray-900">{g.title}</h2>
+                                <p className="text-sm text-gray-600">{g.category?.name || "General"} · Submitted {new Date(g.createdAt).toLocaleDateString()}</p>
+                                <div className="flex flex-wrap gap-2">
+                                    <Badge>{g.status}</Badge>
+                                    <Badge className="bg-gray-100 text-gray-700">{g.priority}</Badge>
+                                    {g.isAcademicUrgent && <Badge className="bg-rose-50 text-rose-700">Academic Urgent</Badge>}
                                 </div>
-                                <p className="muted">Last updated {new Date(g.updatedAt).toLocaleString()}</p>
-                                <button className="primary-btn" onClick={() => navigate(`/grievance/${g.grievanceId}`)}>View Details</button>
-                            </article>
+                                <p className="text-sm text-gray-500">Last updated {new Date(g.updatedAt).toLocaleString()}</p>
+                                <Button variant="outline" onClick={() => navigate(`/grievance/${g.grievanceId}`)}>View Details</Button>
+                            </Card>
                         ))}
                     </div>
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="split-actions" style={{ justifyContent: "center" }}>
-                            <button className="secondary-btn" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>← Prev</button>
-                            <span className="muted">Page {page} of {totalPages}</span>
-                            <button className="secondary-btn" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>Next →</button>
+                        <div className="flex items-center justify-center gap-3">
+                            <Button variant="outline" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Prev</Button>
+                            <span className="text-sm text-gray-600">Page {page} of {totalPages}</span>
+                            <Button variant="outline" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
                         </div>
                     )}
                 </>
