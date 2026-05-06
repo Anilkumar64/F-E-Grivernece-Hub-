@@ -4,6 +4,10 @@ import toast from "react-hot-toast";
 import api from "../../api/axiosInstance";
 import Skeleton from "../../components/common/Skeleton";
 import EmptyState from "../../components/common/EmptyState";
+import Modal from "../../components/ui/Modal";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Card from "../../components/ui/Card";
 
 const initialForm = { name: "", code: "", durationYears: 4, department: "" };
 
@@ -60,20 +64,21 @@ export default function ManageCourses() {
     };
 
     return (
-        <section className="page-section">
-            <div className="page-heading">
+        <section className="space-y-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                    <h1>Manage Courses</h1>
-                    <p>Add or delete course options used by Signup and Profile forms.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Manage Courses</h1>
+                    <p className="text-sm text-gray-600">Add or delete course options used by Signup and Profile forms.</p>
                 </div>
-                <button className="primary-btn" onClick={() => setShowForm(true)}>
+                <Button onClick={() => setShowForm(true)}>
                     <Plus size={18} /> Add Course
-                </button>
+                </Button>
             </div>
 
             {loading ? <Skeleton rows={4} /> : !courses.length ? (
                 <EmptyState icon="🎓" title="No courses found" actionLabel="Add Course" onAction={() => setShowForm(true)} />
             ) : (
+                <Card className="overflow-hidden p-0">
                 <div className="responsive-table">
                     <table>
                         <thead>
@@ -93,41 +98,37 @@ export default function ManageCourses() {
                                     <td>{course.durationYears} years</td>
                                     <td>{course.department?.name || "All Departments"}</td>
                                     <td>
-                                        <button className="danger-btn" onClick={() => removeCourse(course._id)}>
+                                        <Button variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50" onClick={() => removeCourse(course._id)}>
                                             <Trash2 size={14} /> Delete
-                                        </button>
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
+                </Card>
             )}
 
-            {showForm && (
-                <div className="modal-backdrop">
-                    <form className="modal" onSubmit={submit}>
-                        <div className="page-heading">
-                            <h2>Add Course</h2>
-                            <button type="button" className="ghost-btn" onClick={() => setShowForm(false)}>Close</button>
+            <Modal open={showForm} onClose={() => setShowForm(false)}>
+                    <form className="space-y-4" onSubmit={submit}>
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-xl font-semibold tracking-tight text-gray-900">Add Course</h2>
+                            <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>Close</Button>
                         </div>
-                        <label>Course Name
-                            <input
-                                value={form.name}
-                                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                required
-                            />
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">Course Name
+                            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                         </label>
-                        <div className="form-grid">
-                            <label>Code
-                                <input
+                        <div className="grid gap-3 md:grid-cols-2">
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">Code
+                                <Input
                                     value={form.code}
                                     onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
                                     required
                                 />
                             </label>
-                            <label>Duration (years)
-                                <input
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">Duration (years)
+                                <Input
                                     type="number"
                                     min="1"
                                     max="8"
@@ -137,8 +138,8 @@ export default function ManageCourses() {
                                 />
                             </label>
                         </div>
-                        <label>Department (optional)
-                            <select
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">Department (optional)
+                            <select className="ui-input"
                                 value={form.department}
                                 onChange={(e) => setForm({ ...form, department: e.target.value })}
                             >
@@ -148,13 +149,12 @@ export default function ManageCourses() {
                                 ))}
                             </select>
                         </label>
-                        <div className="split-actions">
-                            <button type="button" className="secondary-btn" onClick={() => setShowForm(false)}>Cancel</button>
-                            <button className="primary-btn">Create Course</button>
+                        <div className="flex justify-end gap-3">
+                            <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                            <Button>Create Course</Button>
                         </div>
                     </form>
-                </div>
-            )}
+            </Modal>
         </section>
     );
 }

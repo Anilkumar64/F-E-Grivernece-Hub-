@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import api from "../../api/axiosInstance";
+import Button from "../ui/Button";
+import Input from "../ui/Input";
+import Modal from "../ui/Modal";
 
 export default function StepUpModal({ open, onClose, onVerified }) {
     const [code, setCode] = useState("");
@@ -38,34 +41,34 @@ export default function StepUpModal({ open, onClose, onVerified }) {
     };
 
     return (
-        <div className="modal-backdrop">
-            <form className="modal" onSubmit={verifyCode}>
-                <div className="page-heading">
-                    <h2>Step-up Verification</h2>
-                    <button type="button" className="ghost-btn" onClick={onClose}>Close</button>
+        <Modal open={open} onClose={onClose}>
+            <form className="space-y-4" onSubmit={verifyCode}>
+                <div className="flex items-center justify-between gap-3">
+                    <h2 className="text-xl font-semibold tracking-tight text-gray-900">Step-up Verification</h2>
+                    <Button type="button" variant="ghost" onClick={onClose}>Close</Button>
                 </div>
-                <p className="muted">Request a verification code and enter it to continue sensitive actions.</p>
-                <div className="split-actions">
-                    <button type="button" className="secondary-btn" onClick={requestCode} disabled={sending}>
+                <p className="text-sm text-gray-600">Request a verification code and enter it to continue sensitive actions.</p>
+                <div className="flex">
+                    <Button type="button" variant="outline" onClick={requestCode} disabled={sending}>
                         {sending ? "Sending..." : "Send Code"}
-                    </button>
+                    </Button>
                 </div>
-                <label>Verification Code
-                    <input
+                <label className="grid gap-2 text-sm font-medium text-gray-700">Verification Code
+                    <Input
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
                         placeholder="Enter 6-digit code"
                         required
                     />
                 </label>
-                <div className="split-actions">
-                    <button type="button" className="secondary-btn" onClick={onClose}>Cancel</button>
-                    <button className="primary-btn" disabled={verifying}>
+                <div className="flex justify-end gap-3">
+                    <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button disabled={verifying}>
                         {verifying ? "Verifying..." : "Verify & Continue"}
-                    </button>
+                    </Button>
                 </div>
             </form>
-        </div>
+        </Modal>
     );
 }
 

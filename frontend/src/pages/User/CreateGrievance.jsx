@@ -4,6 +4,10 @@ import toast from "react-hot-toast";
 import { Copy, FileText, X } from "lucide-react";
 import api from "../../api/axiosInstance";
 import AuthContext from "../../context/AuthCore";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Badge from "../../components/ui/Badge";
 
 const DRAFT_KEY = "student_grievance_draft_v1";
 const DRAFTS_KEY = "student_grievance_drafts_v2";
@@ -200,112 +204,101 @@ export default function CreateGrievance() {
 
     if (submitted) {
         return (
-            <section className="page-section">
-                <div className="card">
-                    <h1>Grievance Submitted</h1>
-                    <p>Your grievance has been recorded successfully.</p>
-                    <p className="muted">
+            <section className="space-y-6">
+                <Card className="space-y-4">
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Grievance Submitted</h1>
+                    <p className="text-sm text-gray-700">Your grievance has been recorded successfully.</p>
+                    <p className="text-sm text-gray-600">
                         Assigned Department: {submitted.department?.name || "-"} | Estimated SLA:{" "}
                         {submitted.slaDeadline ? new Date(submitted.slaDeadline).toLocaleString() : "-"}
                     </p>
-                    <p className="muted">Next: department admin reviews your grievance and updates timeline/comments.</p>
-                    <button className="id-badge" onClick={() => navigator.clipboard.writeText(submitted.grievanceId)}>
+                    <p className="text-sm text-gray-600">Next: department admin reviews your grievance and updates timeline/comments.</p>
+                    <button className="inline-flex w-fit items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700" type="button" onClick={() => navigator.clipboard.writeText(submitted.grievanceId)}>
                         <Copy size={14} /> {submitted.grievanceId}
                     </button>
-                    <div className="split-actions">
-                        <button className="primary-btn" onClick={() => navigate(`/grievance/${submitted.grievanceId}`)}>View Details</button>
-                        <button className="secondary-btn" onClick={() => navigate("/my-grievances")}>My Grievances</button>
+                    <div className="flex gap-3">
+                        <Button onClick={() => navigate(`/grievance/${submitted.grievanceId}`)}>View Details</Button>
+                        <Button variant="outline" onClick={() => navigate("/my-grievances")}>My Grievances</Button>
                     </div>
-                </div>
+                </Card>
             </section>
         );
     }
 
     return (
-        <section className="page-section">
-            <div className="page-heading">
+        <section className="space-y-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                    <h1>Submit Grievance</h1>
-                    <p>Provide clear details so the right department can respond quickly.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Submit Grievance</h1>
+                    <p className="text-sm text-gray-600">Provide clear details so the right department can respond quickly.</p>
                 </div>
-                <div className="split-actions">
-                    <button type="button" className="secondary-btn" onClick={saveDraftNow}>Save Draft</button>
-                    <button type="button" className="ghost-btn" onClick={clearDraft}>Clear Draft</button>
+                <div className="flex gap-3">
+                    <Button type="button" variant="outline" onClick={saveDraftNow}>Save Draft</Button>
+                    <Button type="button" variant="ghost" onClick={clearDraft}>Clear Draft</Button>
                 </div>
             </div>
-            <form className="form-panel" onSubmit={submit}>
-                <div className="card" style={{ padding: 12 }}>
-                    <strong>Form Validation</strong>
-                    <div className="file-list" style={{ marginTop: 8 }}>
+            <form className="space-y-4" onSubmit={submit}>
+                <Card className="space-y-2 p-4">
+                    <strong className="text-sm text-gray-900">Form Validation</strong>
+                    <div className="flex flex-wrap gap-2">
                         {validations.map((v) => (
-                            <span key={v.label} className={`pill ${v.ok ? "success" : "danger"}`}>{v.label}</span>
+                            <Badge key={v.label} className={v.ok ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}>{v.label}</Badge>
                         ))}
                     </div>
-                </div>
-                <label>Title<input maxLength={100} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
-                <label>Description<textarea minLength={50} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required /></label>
-                <p className={descriptionCount < 50 ? "muted" : "pill success"}>{descriptionCount}/50 minimum characters</p>
-                <div className="form-grid">
-                    <label>Category
-                        <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required>
-                            <option value="">Select category</option>
-                            {categories.map((c) => <option key={c._id} value={c._id}>{c.name} - {c.department?.name}</option>)}
-                        </select>
-                        {suggestedCategory && (
-                            <small className="muted">
-                                Suggested category: <strong>{suggestedCategory.name}</strong>{" "}
-                                <button
-                                    type="button"
-                                    className="ghost-btn"
-                                    onClick={() => setForm({ ...form, category: suggestedCategory._id })}
-                                >
-                                    Use Suggestion
-                                </button>
-                            </small>
-                        )}
-                        {loadingCategories && <small className="muted">Loading categories...</small>}
-                        {!categories.length && (
-                            <small className="muted">
-                                No categories found for your department. Please contact admin/superadmin to add complaint categories.
-                            </small>
-                        )}
+                </Card>
+                <Card className="space-y-4">
+                    <label className="grid gap-2 text-sm font-medium text-gray-700">Title<Input maxLength={100} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></label>
+                    <label className="grid gap-2 text-sm font-medium text-gray-700">Description<textarea className="ui-input min-h-28" minLength={50} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required /></label>
+                    <p className={descriptionCount < 50 ? "text-sm text-gray-500" : "inline-flex w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"}>{descriptionCount}/50 minimum characters</p>
+                    <div className="grid gap-3 md:grid-cols-2">
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">Category
+                            <select className="ui-input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required>
+                                <option value="">Select category</option>
+                                {categories.map((c) => <option key={c._id} value={c._id}>{c.name} - {c.department?.name}</option>)}
+                            </select>
+                            {suggestedCategory && (
+                                <small className="text-xs text-gray-500">
+                                    Suggested category: <strong>{suggestedCategory.name}</strong>{" "}
+                                    <button type="button" className="ml-1 text-indigo-600 hover:text-indigo-500" onClick={() => setForm({ ...form, category: suggestedCategory._id })}>
+                                        Use Suggestion
+                                    </button>
+                                </small>
+                            )}
+                            {loadingCategories && <small className="text-xs text-gray-500">Loading categories...</small>}
+                            {!categories.length && (
+                                <small className="text-xs text-gray-500">
+                                    No categories found for your department. Please contact admin/superadmin to add complaint categories.
+                                </small>
+                            )}
+                        </label>
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">Priority
+                            <select className="ui-input" value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })}>
+                                {["Low", "Medium", "High", "Critical"].map((p) => <option key={p}>{p}</option>)}
+                            </select>
+                        </label>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                        <input type="checkbox" checked={form.isAcademicUrgent} onChange={(e) => setForm({ ...form, isAcademicUrgent: e.target.checked })} />
+                        Mark as urgent academic issue (placement/exam/hall-ticket/fee blocker)
                     </label>
-                    <label>Priority
-                        <select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })}>
-                            {["Low", "Medium", "High", "Critical"].map((p) => <option key={p}>{p}</option>)}
-                        </select>
+                    {form.isAcademicUrgent && (
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">Urgency Reason
+                            <textarea className="ui-input min-h-24" maxLength={300} placeholder="Briefly explain why this needs urgent handling..." value={form.urgentReason} onChange={(e) => setForm({ ...form, urgentReason: e.target.value })} />
+                        </label>
+                    )}
+                    <label className="grid gap-2 text-sm font-medium text-gray-700">Supporting Evidence
+                        <Input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => addFiles(e.target.files)} />
                     </label>
-                </div>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={form.isAcademicUrgent}
-                        onChange={(e) => setForm({ ...form, isAcademicUrgent: e.target.checked })}
-                    />
-                    Mark as urgent academic issue (placement/exam/hall-ticket/fee blocker)
-                </label>
-                {form.isAcademicUrgent && (
-                    <label>Urgency Reason
-                        <textarea
-                            maxLength={300}
-                            placeholder="Briefly explain why this needs urgent handling..."
-                            value={form.urgentReason}
-                            onChange={(e) => setForm({ ...form, urgentReason: e.target.value })}
-                        />
-                    </label>
-                )}
-                <label>Supporting Evidence
-                    <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => addFiles(e.target.files)} />
-                </label>
-                <div className="file-list">
-                    {files.map((file, i) => (
-                        <span className="pill" key={`${file.name}-${i}`}>
-                            <FileText size={14} /> {file.name} ({Math.max(1, Math.round(file.size / 1024))} KB)
-                            <button type="button" className="ghost-btn" onClick={() => setFiles(files.filter((_, j) => j !== i))}><X size={14} /></button>
-                        </span>
-                    ))}
-                </div>
-                <button className="primary-btn">Submit Grievance</button>
+                    <div className="flex flex-wrap gap-2">
+                        {files.map((file, i) => (
+                            <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700" key={`${file.name}-${i}`}>
+                                <FileText size={14} /> {file.name} ({Math.max(1, Math.round(file.size / 1024))} KB)
+                                <button type="button" className="text-gray-500 hover:text-gray-700" onClick={() => setFiles(files.filter((_, j) => j !== i))}><X size={14} /></button>
+                            </span>
+                        ))}
+                    </div>
+                    <Button disabled={!valid}>Submit Grievance</Button>
+                </Card>
             </form>
         </section>
     );

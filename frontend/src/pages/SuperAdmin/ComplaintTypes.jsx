@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import api from "../../api/axiosInstance";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Badge from "../../components/ui/Badge";
 
 export default function ComplaintTypes() {
     const [categories, setCategories] = useState([]);
@@ -27,21 +31,24 @@ export default function ComplaintTypes() {
     };
 
     return (
-        <section className="page-section">
-            <div className="page-heading"><h1>Complaint Categories</h1></div>
-            <form className="filter-row" onSubmit={submit}>
-                <input
+        <section className="space-y-6">
+            <div>
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Complaint Categories</h1>
+            </div>
+            <Card className="space-y-3">
+            <form className="grid gap-3 md:grid-cols-5" onSubmit={submit}>
+                <Input
                     placeholder="Name"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     required
                 />
-                <input
+                <Input
                     placeholder="Description"
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
-                <select
+                <select className="ui-input"
                     value={form.department}
                     onChange={(e) => setForm({ ...form, department: e.target.value })}
                     required
@@ -51,14 +58,16 @@ export default function ComplaintTypes() {
                         <option value={d._id} key={d._id}>{d.name}</option>
                     ))}
                 </select>
-                <input
+                <Input
                     type="number"
                     min="1"
                     value={form.slaHours}
                     onChange={(e) => setForm({ ...form, slaHours: Number(e.target.value) })}
                 />
-                <button className="primary-btn">Add</button>
+                <Button>Add</Button>
             </form>
+            </Card>
+            <Card className="overflow-hidden p-0">
             <div className="responsive-table">
                 <table>
                     <thead>
@@ -73,12 +82,13 @@ export default function ComplaintTypes() {
                             <tr key={c._id}>
                                 <td>{c.name}</td>
                                 <td>{c.department?.name}</td>
-                                <td>{c.slaHours}</td>
+                                <td><Badge className="bg-gray-100 text-gray-700">{c.slaHours}h</Badge></td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+            </Card>
         </section>
     );
 }

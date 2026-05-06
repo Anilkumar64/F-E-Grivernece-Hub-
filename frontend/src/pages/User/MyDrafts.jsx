@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EmptyState from "../../components/common/EmptyState";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
 
 const DRAFTS_KEY = "student_grievance_drafts_v2";
 
@@ -25,29 +27,29 @@ export default function MyDrafts() {
     };
 
     return (
-        <section className="page-section">
-            <div className="page-heading">
+        <section className="space-y-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                    <h1>My Drafts</h1>
-                    <p>Resume, edit, or delete saved grievance drafts.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">My Drafts</h1>
+                    <p className="text-sm text-gray-600">Resume, edit, or delete saved grievance drafts.</p>
                 </div>
-                <button className="primary-btn" onClick={() => navigate("/submit-grievance")}>New Grievance</button>
+                <Button onClick={() => navigate("/submit-grievance")}>New Grievance</Button>
             </div>
 
             {!drafts.length ? (
                 <EmptyState icon="📝" title="No drafts saved yet" actionLabel="Create Draft" onAction={() => navigate("/submit-grievance")} />
             ) : (
-                <div className="card-grid">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {drafts.map((d) => (
-                        <article className="card" key={d.id}>
-                            <h2>{d.title || "Untitled Draft"}</h2>
-                            <p className="muted">{(d.description || "").slice(0, 140) || "No description yet"}</p>
-                            <p className="muted">Updated: {d.updatedAt ? new Date(d.updatedAt).toLocaleString() : "-"}</p>
-                            <div className="split-actions">
-                                <button className="primary-btn" onClick={() => navigate(`/submit-grievance?draft=${d.id}`)}>Resume</button>
-                                <button className="danger-btn" onClick={() => removeDraft(d.id)}>Delete</button>
+                        <Card className="space-y-3" key={d.id}>
+                            <h2 className="text-base font-semibold tracking-tight text-gray-900">{d.title || "Untitled Draft"}</h2>
+                            <p className="text-sm text-gray-600">{(d.description || "").slice(0, 140) || "No description yet"}</p>
+                            <p className="text-xs text-gray-500">Updated: {d.updatedAt ? new Date(d.updatedAt).toLocaleString() : "-"}</p>
+                            <div className="flex gap-3">
+                                <Button onClick={() => navigate(`/submit-grievance?draft=${d.id}`)}>Resume</Button>
+                                <Button variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50" onClick={() => removeDraft(d.id)}>Delete</Button>
                             </div>
-                        </article>
+                        </Card>
                     ))}
                 </div>
             )}
