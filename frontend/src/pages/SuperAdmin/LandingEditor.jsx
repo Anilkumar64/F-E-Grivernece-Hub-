@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import api from "../../api/axiosInstance";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Badge from "../../components/ui/Badge";
 
 const emptyFeature = { icon: "FileText", title: "", description: "" };
 const emptyAnnouncement = { title: "", body: "", isActive: true };
@@ -36,45 +40,52 @@ export default function LandingEditor() {
 
     const previewConfig = useMemo(() => form, [form]);
 
-    if (!form) return <section className="page-section"><div className="skeleton-stack"><div className="skeleton-card" /><div className="skeleton-card" /></div></section>;
+    if (!form) {
+        return (
+            <section className="space-y-4">
+                <Card className="h-28 animate-pulse bg-gray-100" />
+                <Card className="h-96 animate-pulse bg-gray-100" />
+            </section>
+        );
+    }
 
     return (
-        <section className="page-section">
-            <div className="page-heading">
+        <section className="space-y-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                    <h1>Landing Page Editor</h1>
-                    <p>Customize the student-facing landing page and preview changes live.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Landing Page Editor</h1>
+                    <p className="text-sm text-gray-600">Customize the student-facing landing page and preview changes live.</p>
                 </div>
-                <div className="split-actions">
-                    <button className="secondary-btn" onClick={() => save(false)}>Save Draft</button>
-                    <button className="primary-btn" onClick={() => save(true)}>Save & Publish</button>
+                <div className="flex items-center gap-3">
+                    <Button variant="outline" onClick={() => save(false)}>Save Draft</Button>
+                    <Button onClick={() => save(true)}>Save & Publish</Button>
                 </div>
             </div>
 
-            <div className="editor-grid">
-                <div className="form-panel">
-                    <div className="card">
-                        <h2>Hero</h2>
-                        <div className="form-grid">
-                            <label>University Name<input value={form.universityName || ""} onChange={(e) => update({ universityName: e.target.value })} /></label>
-                            <label>Hero Title<input value={form.heroTitle || ""} onChange={(e) => update({ heroTitle: e.target.value })} /></label>
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
+                <div className="space-y-6">
+                    <Card className="space-y-4">
+                        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Hero</h2>
+                        <div className="grid gap-3 md:grid-cols-2">
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">University Name<Input value={form.universityName || ""} onChange={(e) => update({ universityName: e.target.value })} /></label>
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">Hero Title<Input value={form.heroTitle || ""} onChange={(e) => update({ heroTitle: e.target.value })} /></label>
                         </div>
-                        <label>Hero Subtitle<textarea value={form.heroSubtitle || ""} onChange={(e) => update({ heroSubtitle: e.target.value })} /></label>
-                        <div className="form-grid">
-                            <label>Hero Background Image<input type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadImage("heroImage", e.target.files[0])} /></label>
-                            <label>University Logo<input type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadImage("universityLogo", e.target.files[0])} /></label>
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">Hero Subtitle<textarea className="ui-input min-h-20" value={form.heroSubtitle || ""} onChange={(e) => update({ heroSubtitle: e.target.value })} /></label>
+                        <div className="grid gap-3 md:grid-cols-2">
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">Hero Background Image<input className="ui-input" type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadImage("heroImage", e.target.files[0])} /></label>
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">University Logo<input className="ui-input" type="file" accept="image/*" onChange={(e) => e.target.files[0] && uploadImage("universityLogo", e.target.files[0])} /></label>
                         </div>
-                    </div>
+                    </Card>
 
-                    <div className="card">
-                        <div className="page-heading">
-                            <h2>Hero Slider Images</h2>
-                            <label className="secondary-btn" style={{ cursor: "pointer" }}>
+                    <Card className="space-y-4">
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-lg font-semibold tracking-tight text-gray-900">Hero Slider Images</h2>
+                            <label className="ui-btn-outline cursor-pointer">
                                 Upload
                                 <input
                                     type="file"
                                     accept="image/*"
-                                    style={{ display: "none" }}
+                                    className="hidden"
                                     onChange={async (e) => {
                                         if (!e.target.files?.[0]) return;
                                         try {
@@ -93,68 +104,69 @@ export default function LandingEditor() {
                                 />
                             </label>
                         </div>
-                        <p className="muted">Add up to 8 rotating images for the public user landing page.</p>
-                        <div className="card-grid">
+                        <p className="text-sm text-gray-600">Add up to 8 rotating images for the public user landing page.</p>
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                             {(form.sliderImages || []).map((url, index) => (
-                                <article className="feature-card" key={`${url}-${index}`}>
-                                    <img src={url} alt={`Slider ${index + 1}`} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 8 }} />
-                                    <button
-                                        className="danger-btn"
+                                <article className="space-y-2 rounded-xl border border-gray-100 bg-gray-50 p-3" key={`${url}-${index}`}>
+                                    <img src={url} alt={`Slider ${index + 1}`} className="h-28 w-full rounded-lg object-cover" />
+                                    <Button
+                                        variant="outline"
+                                        className="w-full border-rose-200 text-rose-700 hover:bg-rose-50"
                                         onClick={() => update({ sliderImages: (form.sliderImages || []).filter((_, i) => i !== index) })}
                                     >
                                         Remove
-                                    </button>
+                                    </Button>
                                 </article>
                             ))}
                         </div>
-                    </div>
+                    </Card>
 
-                    <div className="card">
-                        <div className="page-heading"><h2>Feature Cards</h2><button className="secondary-btn" onClick={() => update({ features: [...features, emptyFeature].slice(0, 6) })}>Add</button></div>
+                    <Card className="space-y-4">
+                        <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold tracking-tight text-gray-900">Feature Cards</h2><Button variant="outline" onClick={() => update({ features: [...features, emptyFeature].slice(0, 6) })}>Add</Button></div>
                         {features.map((feature, index) => (
-                            <div className="form-grid" key={feature._id || index}>
-                                <label>Icon<input value={feature.icon || ""} onChange={(e) => update({ features: features.map((item, i) => i === index ? { ...item, icon: e.target.value } : item) })} /></label>
-                                <label>Title<input value={feature.title || ""} onChange={(e) => update({ features: features.map((item, i) => i === index ? { ...item, title: e.target.value } : item) })} /></label>
-                                <label>Description<input value={feature.description || ""} onChange={(e) => update({ features: features.map((item, i) => i === index ? { ...item, description: e.target.value } : item) })} /></label>
-                                <button className="danger-btn" onClick={() => update({ features: features.filter((_, i) => i !== index) })}>Remove</button>
+                            <div className="grid gap-3 rounded-xl border border-gray-100 p-3 md:grid-cols-4" key={feature._id || index}>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Icon<Input value={feature.icon || ""} onChange={(e) => update({ features: features.map((item, i) => i === index ? { ...item, icon: e.target.value } : item) })} /></label>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Title<Input value={feature.title || ""} onChange={(e) => update({ features: features.map((item, i) => i === index ? { ...item, title: e.target.value } : item) })} /></label>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Description<Input value={feature.description || ""} onChange={(e) => update({ features: features.map((item, i) => i === index ? { ...item, description: e.target.value } : item) })} /></label>
+                                <Button variant="outline" className="self-end border-rose-200 text-rose-700 hover:bg-rose-50" onClick={() => update({ features: features.filter((_, i) => i !== index) })}>Remove</Button>
                             </div>
                         ))}
-                    </div>
+                    </Card>
 
-                    <div className="card">
-                        <div className="page-heading"><h2>Announcements</h2><button className="secondary-btn" onClick={() => update({ announcements: [...announcements, emptyAnnouncement] })}>Add</button></div>
+                    <Card className="space-y-4">
+                        <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold tracking-tight text-gray-900">Announcements</h2><Button variant="outline" onClick={() => update({ announcements: [...announcements, emptyAnnouncement] })}>Add</Button></div>
                         {announcements.map((announcement, index) => (
-                            <div className="form-panel" key={announcement._id || index}>
-                                <label>Title<input value={announcement.title || ""} onChange={(e) => update({ announcements: announcements.map((item, i) => i === index ? { ...item, title: e.target.value } : item) })} /></label>
-                                <label>Body<textarea value={announcement.body || ""} onChange={(e) => update({ announcements: announcements.map((item, i) => i === index ? { ...item, body: e.target.value } : item) })} /></label>
-                                <label><input type="checkbox" checked={announcement.isActive} onChange={(e) => update({ announcements: announcements.map((item, i) => i === index ? { ...item, isActive: e.target.checked } : item) })} /> Active</label>
-                                <button className="danger-btn" onClick={() => update({ announcements: announcements.filter((_, i) => i !== index) })}>Remove</button>
+                            <div className="space-y-3 rounded-xl border border-gray-100 p-3" key={announcement._id || index}>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Title<Input value={announcement.title || ""} onChange={(e) => update({ announcements: announcements.map((item, i) => i === index ? { ...item, title: e.target.value } : item) })} /></label>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Body<textarea className="ui-input min-h-20" value={announcement.body || ""} onChange={(e) => update({ announcements: announcements.map((item, i) => i === index ? { ...item, body: e.target.value } : item) })} /></label>
+                                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={announcement.isActive} onChange={(e) => update({ announcements: announcements.map((item, i) => i === index ? { ...item, isActive: e.target.checked } : item) })} /> Active</label>
+                                <Button variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50" onClick={() => update({ announcements: announcements.filter((_, i) => i !== index) })}>Remove</Button>
                             </div>
                         ))}
-                    </div>
+                    </Card>
 
-                    <div className="card">
-                        <h2>Contact & About</h2>
-                        <label>About Text<textarea value={form.aboutText || ""} onChange={(e) => update({ aboutText: e.target.value })} /></label>
-                        <div className="form-grid">
-                            <label>Contact Email<input value={form.contactEmail || ""} onChange={(e) => update({ contactEmail: e.target.value })} /></label>
-                            <label>Contact Phone<input value={form.contactPhone || ""} onChange={(e) => update({ contactPhone: e.target.value })} /></label>
+                    <Card className="space-y-4">
+                        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Contact & About</h2>
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">About Text<textarea className="ui-input min-h-24" value={form.aboutText || ""} onChange={(e) => update({ aboutText: e.target.value })} /></label>
+                        <div className="grid gap-3 md:grid-cols-2">
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">Contact Email<Input value={form.contactEmail || ""} onChange={(e) => update({ contactEmail: e.target.value })} /></label>
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">Contact Phone<Input value={form.contactPhone || ""} onChange={(e) => update({ contactPhone: e.target.value })} /></label>
                         </div>
-                    </div>
+                    </Card>
                 </div>
 
-                <div className="card">
-                    <div className="page-heading">
-                        <h2>Live Preview</h2>
-                        <div className="split-actions">
-                            <button className={previewMode === "desktop" ? "primary-btn" : "secondary-btn"} onClick={() => setPreviewMode("desktop")}>Desktop</button>
-                            <button className={previewMode === "mobile" ? "primary-btn" : "secondary-btn"} onClick={() => setPreviewMode("mobile")}>Mobile</button>
+                <Card className="space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Live Preview</h2>
+                        <div className="flex gap-2">
+                            <Button variant={previewMode === "desktop" ? "primary" : "outline"} onClick={() => setPreviewMode("desktop")}>Desktop</Button>
+                            <Button variant={previewMode === "mobile" ? "primary" : "outline"} onClick={() => setPreviewMode("mobile")}>Mobile</Button>
                         </div>
                     </div>
-                    <div className={`preview-frame ${previewMode}`}>
+                    <div className={`overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 ${previewMode === "mobile" ? "mx-auto max-w-sm" : ""}`}>
                         <LandingPreview config={previewConfig} />
                     </div>
-                </div>
+                </Card>
             </div>
         </section>
     );
@@ -162,21 +174,30 @@ export default function LandingEditor() {
 
 function LandingPreview({ config }) {
     return (
-        <div className="landing">
-            <nav className="public-nav"><strong>{config.universityName}</strong><div><span>Home</span><span>About</span><span>Contact</span><button className="secondary-btn">Sign In</button></div></nav>
-            <section className="hero">
-                <h1>{config.heroTitle}</h1>
-                <p>{config.heroSubtitle}</p>
-                <div><button className="primary-btn">User Login</button><button className="secondary-btn">User Signup</button></div>
+        <div className="space-y-4 p-4">
+            <nav className="flex items-center justify-between rounded-xl border border-gray-100 bg-white px-4 py-3">
+                <strong className="text-sm text-gray-900">{config.universityName}</strong>
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                    <span>Home</span><span>About</span><span>Contact</span><Button variant="outline" className="px-3 py-1 text-xs">Sign In</Button>
+                </div>
+            </nav>
+            <section className="space-y-3 rounded-xl border border-gray-100 bg-white p-4">
+                <h1 className="text-xl font-bold tracking-tight text-gray-900">{config.heroTitle}</h1>
+                <p className="text-sm text-gray-600">{config.heroSubtitle}</p>
+                <div className="flex gap-2"><Button className="px-3 py-1 text-xs">User Login</Button><Button variant="outline" className="px-3 py-1 text-xs">User Signup</Button></div>
             </section>
             {!!(config.sliderImages || []).length && (
-                <section className="landing-section">
-                    <div className="card">Slider Images: {(config.sliderImages || []).length}</div>
+                <section>
+                    <Card><span className="text-sm text-gray-700">Slider Images: {(config.sliderImages || []).length}</span></Card>
                 </section>
             )}
-            <section className="features">
-                {(config.features || []).map((feature, index) => <article key={index}><h2>{feature.title}</h2><p>{feature.description}</p></article>)}
+            <section className="grid gap-3 md:grid-cols-2">
+                {(config.features || []).map((feature, index) => <article className="rounded-xl border border-gray-100 bg-white p-3" key={index}><h2 className="text-sm font-semibold text-gray-900">{feature.title}</h2><p className="text-xs text-gray-600">{feature.description}</p></article>)}
             </section>
+            <div className="flex items-center gap-2">
+                <Badge>Preview</Badge>
+                <span className="text-xs text-gray-500">Draft mode</span>
+            </div>
         </div>
     );
 }
