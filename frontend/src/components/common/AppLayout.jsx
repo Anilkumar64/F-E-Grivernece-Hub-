@@ -87,6 +87,12 @@ export default function AppLayout({ role }) {
     const profilePhotoSrc = rawPhoto
         ? (rawPhoto.startsWith("http") ? rawPhoto : `${apiOrigin}${rawPhoto}`)
         : "";
+    const profileSubline =
+        role === "student"
+            ? (authUser?.course?.name || authUser?.department?.name || "Student")
+            : role === "admin"
+                ? (authUser?.department?.name || "Department")
+                : "System Administration";
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -103,23 +109,26 @@ export default function AppLayout({ role }) {
                 </div>
 
                 <div className="m-4 rounded-2xl border border-slate-800 bg-slate-800/60 p-3">
-                    {profilePhotoSrc ? (
-                        <img
-                            src={profilePhotoSrc}
-                            alt={`${authUser?.name || "User"} profile`}
-                            className="h-10 w-10 rounded-full object-cover"
-                        />
-                    ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white">{initials}</div>
-                    )}
-                    <div className="mt-2 min-w-0">
-                        <p className="truncate text-sm font-semibold text-white">{authUser?.name || "User"}</p>
-                        <p className="truncate text-xs text-slate-300">
-                            {role === "student" && (authUser?.studentId || authUser?.rollNumber || "Student")}
-                            {role === "admin" && (authUser?.department?.name || "Department")}
-                            {role === "superadmin" && "Super Admin"}
-                        </p>
-                        <Badge className="mt-2 bg-indigo-500/15 text-indigo-200">{roleLabel[role]}</Badge>
+                    <div className="flex items-center gap-3">
+                        {profilePhotoSrc ? (
+                            <img
+                                src={profilePhotoSrc}
+                                alt={`${authUser?.name || "User"} profile`}
+                                className="h-11 w-11 rounded-full object-cover ring-2 ring-indigo-500/40"
+                            />
+                        ) : (
+                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white ring-2 ring-indigo-500/40">{initials}</div>
+                        )}
+                        <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-white">{authUser?.name || "User"}</p>
+                            <p className="truncate text-xs text-slate-300">{profileSubline}</p>
+                        </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                        <Badge className="bg-indigo-500/15 text-indigo-200">{roleLabel[role]}</Badge>
+                        {role === "admin" && (
+                            <span className="truncate text-xs text-slate-400">{authUser?.staffId || "Department Profile"}</span>
+                        )}
                     </div>
                 </div>
 
