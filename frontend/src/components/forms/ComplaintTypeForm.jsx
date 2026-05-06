@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axiosInstance";
 import toast from "react-hot-toast";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+import Input from "../ui/Input";
 
 export default function ComplaintTypeForm() {
     const { id } = useParams(); // if present => edit mode
@@ -22,7 +25,6 @@ export default function ComplaintTypeForm() {
         if (isEdit) {
             fetchComplaintType();
         }
-        // eslint-disable-next-line
     }, [id]);
 
     const fetchComplaintType = async () => {
@@ -83,38 +85,35 @@ export default function ComplaintTypeForm() {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-64">
-                <p className="text-gray-500">Loading...</p>
-            </div>
+            <Card className="mx-auto max-w-2xl">
+                <p className="text-sm text-gray-500">Loading...</p>
+            </Card>
         );
     }
 
     return (
-        <div className="max-w-xl mx-auto bg-white shadow rounded-xl p-6">
-            <h2 className="text-2xl font-semibold mb-4">
+        <Card className="mx-auto max-w-2xl space-y-5">
+            <h2 className="text-2xl font-semibold tracking-tight text-gray-900">
                 {isEdit ? "Edit Complaint Type" : "Add Complaint Type"}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Name */}
                 <div>
-                    <label className="block text-sm font-medium mb-1">
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
                         Name <span className="text-red-500">*</span>
                     </label>
-                    <input
+                    <Input
                         name="name"
                         type="text"
                         value={form.name}
                         onChange={handleChange}
                         placeholder="Ex: Hostel, Cafeteria, Academics"
-                        className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring focus:ring-blue-300"
                         required
                     />
                 </div>
 
-                {/* Description */}
                 <div>
-                    <label className="block text-sm font-medium mb-1">
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
                         Description
                     </label>
                     <textarea
@@ -123,19 +122,18 @@ export default function ComplaintTypeForm() {
                         onChange={handleChange}
                         rows={3}
                         placeholder="Optional description or instructions"
-                        className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring focus:ring-blue-300"
+                        className="ui-input"
                     />
                 </div>
 
-                {/* Active */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2">
                     <input
                         id="isActive"
                         type="checkbox"
                         name="isActive"
                         checked={form.isActive}
                         onChange={handleChange}
-                        className="w-4 h-4"
+                        className="h-4 w-4"
                     />
                     <label
                         htmlFor="isActive"
@@ -145,21 +143,19 @@ export default function ComplaintTypeForm() {
                     </label>
                 </div>
 
-                {/* Actions */}
-                <div className="flex justify-between mt-4">
-                    <button
+                <div className="mt-4 flex justify-between gap-3">
+                    <Button
                         type="button"
                         onClick={() =>
                             navigate("/superadmin/complaint-types")
                         }
-                        className="px-4 py-2 text-sm border rounded-lg text-gray-700 hover:bg-gray-100"
+                        variant="outline"
                     >
                         Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="submit"
                         disabled={saving}
-                        className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
                     >
                         {saving
                             ? isEdit
@@ -168,9 +164,9 @@ export default function ComplaintTypeForm() {
                             : isEdit
                                 ? "Update"
                                 : "Save"}
-                    </button>
+                    </Button>
                 </div>
             </form>
-        </div>
+        </Card>
     );
 }

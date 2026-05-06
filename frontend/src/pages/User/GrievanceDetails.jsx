@@ -2,9 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axiosInstance";
 import toast from "react-hot-toast";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
 
 export default function GrievanceDetails() {
-    const { id } = useParams(); // ALWAYS trackingId (your backend logic)
+    const { id } = useParams();
     const navigate = useNavigate();
 
     const [grievance, setGrievance] = useState(null);
@@ -31,7 +34,6 @@ export default function GrievanceDetails() {
 
     useEffect(() => {
         fetchGrievance();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     // ================================
@@ -81,8 +83,15 @@ export default function GrievanceDetails() {
     // ================================
     // RENDER START
     // ================================
-    if (loading) return <div className="gd-loading">Loading…</div>;
-    if (!grievance) return <div className="gd-empty">Grievance not found</div>;
+    if (loading) {
+        return (
+            <section className="space-y-4">
+                <Card className="h-28 animate-pulse bg-gray-100" />
+                <Card className="h-64 animate-pulse bg-gray-100" />
+            </section>
+        );
+    }
+    if (!grievance) return <Card>Grievance not found</Card>;
 
     const {
         title,
@@ -98,129 +107,114 @@ export default function GrievanceDetails() {
     } = grievance;
 
     return (
-        <div className="gd-page">
+        <section className="space-y-6">
+            <Card className="space-y-4">
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">{title}</h1>
 
-            {/* HEADER */}
-            <div className="gd-header">
-                <h1>{title}</h1>
-
-                <div className="gd-status-row">
-                    <span className={`gd-badge ${status?.toLowerCase()}`}>
-                        {status}
-                    </span>
-                    <span className="gd-priority">
-                        Priority: {priority}
-                    </span>
-                    <span className="gd-tracking">
-                        Tracking: {trackingId}
-                    </span>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Badge>{status}</Badge>
+                    <Badge className="bg-gray-100 text-gray-700">Priority: {priority}</Badge>
+                    <Badge className="bg-indigo-50 text-indigo-700">Tracking: {trackingId}</Badge>
                 </div>
 
-                <p className="gd-desc">{description}</p>
+                <p className="text-sm leading-relaxed text-gray-700">{description}</p>
 
-                <button className="gd-btn" onClick={() => navigate("/user/my-grievances")}>
-                    ← Back
-                </button>
-
-                <button className="gd-btn outline" onClick={handleRequestClose}>
-                    Request Close
-                </button>
-            </div>
-
-            {/* RIGHT SIDEBAR */}
-            <aside className="gd-side">
-                <div className="gd-card">
-                    <h3>Submitted</h3>
-                    <p>{new Date(createdAt).toLocaleString()}</p>
+                <div className="flex flex-wrap gap-3">
+                    <Button variant="outline" onClick={() => navigate("/user/my-grievances")}>
+                        Back
+                    </Button>
+                    <Button onClick={handleRequestClose}>Request Close</Button>
                 </div>
+            </Card>
 
-                <div className="gd-card">
-                    <h3>Assigned Admin</h3>
-                    {adminAssigned ? (
-                        <>
-                            <p>{adminAssigned.name}</p>
-                            <p className="muted">{adminAssigned.email}</p>
-                            <p className="muted">Dept: {adminAssigned.department?.name || "—"}</p>
-                        </>
-                    ) : (
-                        <p className="muted">Not assigned yet</p>
-                    )}
-                </div>
-
-                <div className="gd-card">
-                    <h3>Attachments</h3>
-                    {attachments.length ? (
-                        attachments.map((file, idx) => (
-                            <a
-                                key={idx}
-                                href={file.url || file}
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                Attachment {idx + 1}
-                            </a>
-                        ))
-                    ) : (
-                        <p className="muted">No Attachments</p>
-                    )}
-                </div>
-            </aside>
-
-            {/* TIMELINE + COMMENTS */}
-            <div className="gd-content">
-
-                {/* TIMELINE */}
-                <div className="gd-block">
-                    <h2>Timeline</h2>
-                    {history.length === 0 ? (
-                        <p className="muted">No timeline updates yet</p>
-                    ) : (
-                        <ul className="gd-timeline">
-                            {history.map((h, i) => (
-                                <li key={i}>
-                                    <strong>{h.action}</strong>
-                                    <p>{h.message}</p>
-                                    <span className="muted">
-                                        {new Date(h.time).toLocaleString()}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-
-                {/* COMMENTS */}
-                <div className="gd-block">
-                    <h2>Comments</h2>
-
-                    <div className="gd-comment-list">
-                        {comments.length === 0 ? (
-                            <p className="muted">No comments yet</p>
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+                <div className="space-y-6">
+                    <Card className="space-y-3">
+                        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Timeline</h2>
+                        {history.length === 0 ? (
+                            <p className="text-sm text-gray-600">No timeline updates yet</p>
                         ) : (
-                            comments.map((c) => (
-                                <div className="gd-comment" key={c._id}>
-                                    <strong>{c.authorName || "User"}</strong>
-                                    <p>{c.text}</p>
-                                    <span className="muted">
-                                        {new Date(c.createdAt).toLocaleString()}
-                                    </span>
-                                </div>
-                            ))
+                            <ul className="space-y-3">
+                                {history.map((h, i) => (
+                                    <li className="rounded-xl border border-gray-100 bg-gray-50 p-3" key={i}>
+                                        <strong className="text-sm text-gray-900">{h.action}</strong>
+                                        <p className="text-sm text-gray-700">{h.message}</p>
+                                        <span className="text-xs text-gray-500">{new Date(h.time).toLocaleString()}</span>
+                                    </li>
+                                ))}
+                            </ul>
                         )}
-                    </div>
+                    </Card>
 
-                    <form onSubmit={handleAddComment} className="gd-comment-form">
-                        <textarea
-                            value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
-                            placeholder="Write your comment..."
-                        />
-                        <button className="gd-btn" disabled={sendingComment}>
-                            {sendingComment ? "Sending..." : "Send"}
-                        </button>
-                    </form>
+                    <Card className="space-y-4">
+                        <h2 className="text-lg font-semibold tracking-tight text-gray-900">Comments</h2>
+                        <div className="space-y-3">
+                            {comments.length === 0 ? (
+                                <p className="text-sm text-gray-600">No comments yet</p>
+                            ) : (
+                                comments.map((c) => (
+                                    <div className="rounded-xl border border-gray-100 bg-gray-50 p-3" key={c._id}>
+                                        <strong className="text-sm text-gray-900">{c.authorName || "User"}</strong>
+                                        <p className="text-sm text-gray-700">{c.text}</p>
+                                        <span className="text-xs text-gray-500">{new Date(c.createdAt).toLocaleString()}</span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <form onSubmit={handleAddComment} className="grid gap-3 md:grid-cols-[1fr_auto]">
+                            <textarea
+                                className="ui-input min-h-24"
+                                value={commentText}
+                                onChange={(e) => setCommentText(e.target.value)}
+                                placeholder="Write your comment..."
+                            />
+                            <Button disabled={sendingComment}>
+                                {sendingComment ? "Sending..." : "Send"}
+                            </Button>
+                        </form>
+                    </Card>
                 </div>
+
+                <aside className="space-y-4">
+                    <Card className="space-y-1">
+                        <h3 className="text-sm font-semibold text-gray-900">Submitted</h3>
+                        <p className="text-sm text-gray-600">{new Date(createdAt).toLocaleString()}</p>
+                    </Card>
+
+                    <Card className="space-y-1">
+                        <h3 className="text-sm font-semibold text-gray-900">Assigned Admin</h3>
+                        {adminAssigned ? (
+                            <>
+                                <p className="text-sm text-gray-700">{adminAssigned.name}</p>
+                                <p className="text-sm text-gray-500">{adminAssigned.email}</p>
+                                <p className="text-sm text-gray-500">Dept: {adminAssigned.department?.name || "—"}</p>
+                            </>
+                        ) : (
+                            <p className="text-sm text-gray-500">Not assigned yet</p>
+                        )}
+                    </Card>
+
+                    <Card className="space-y-2">
+                        <h3 className="text-sm font-semibold text-gray-900">Attachments</h3>
+                        {attachments.length ? (
+                            attachments.map((file, idx) => (
+                                <a
+                                    className="block text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                                    key={idx}
+                                    href={file.url || file}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Attachment {idx + 1}
+                                </a>
+                            ))
+                        ) : (
+                            <p className="text-sm text-gray-500">No attachments</p>
+                        )}
+                    </Card>
+                </aside>
             </div>
-        </div>
+        </section>
     );
 }
