@@ -101,15 +101,19 @@ router.post("/reset-password", authLimiter, async (req, res, next) => {
 /* ── Admin / SuperAdmin: update own profile photo ── */
 router.patch("/me/avatar", authenticate, authorize("admin", "superadmin"), userUploads.single("profilePhoto"), async (req, res, next) => {
     try {
-        if (!req.file) return res.status(400).json({ message: "Please select an image to upload" });
+        const shouldRemove = String(req.body?.removeProfilePhoto || "").toLowerCase() === "true";
+        if (!req.file && !shouldRemove) {
+            return res.status(400).json({ message: "Please select an image to upload" });
+        }
+        const nextPhoto = shouldRemove ? "" : `/uploads/user_idcards/${req.file.filename}`;
         const user = await User.findByIdAndUpdate(
             req.userId,
-            { profilePhoto: `/uploads/user_idcards/${req.file.filename}` },
+            { profilePhoto: nextPhoto },
             { new: true }
         ).select("-password -refreshTokenHash -resetToken -resetTokenExpire").populate("department", "name code");
         if (!user) return res.status(404).json({ message: "User not found" });
-        await writeAuditLog(req, "PROFILE_PHOTO_UPDATED", "User", user._id);
-        res.json({ message: "Profile photo updated", user });
+        await writeAuditLog(req, shouldRemove ? "PROFILE_PHOTO_REMOVED" : "PROFILE_PHOTO_UPDATED", "User", user._id);
+        res.json({ message: shouldRemove ? "Profile photo removed" : "Profile photo updated", user });
     } catch (err) { next(err); }
 });
 

@@ -79,6 +79,9 @@ router.patch("/profile", authenticate, authorize("student"), userUploads.single(
         }
 
         if (req.file) update.profilePhoto = `/uploads/user_idcards/${req.file.filename}`;
+        if (String(req.body?.removeProfilePhoto || "").toLowerCase() === "true") {
+            update.profilePhoto = "";
+        }
 
         const user = await User.findByIdAndUpdate(req.userId, update, { new: true, runValidators: true })
             .select("-password -refreshTokenHash -resetToken")

@@ -4,6 +4,11 @@ import { Edit, Plus, Power } from "lucide-react";
 import api from "../../api/axiosInstance";
 import EmptyState from "../../components/common/EmptyState";
 import Skeleton from "../../components/common/Skeleton";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Modal from "../../components/ui/Modal";
+import Input from "../../components/ui/Input";
+import Badge from "../../components/ui/Badge";
 
 const initialForm = { name: "", code: "", description: "", headAdmin: "" };
 
@@ -72,64 +77,62 @@ export default function ManageDepartments() {
     };
 
     return (
-        <section className="page-section">
-            <div className="page-heading">
+        <section className="space-y-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                    <h1>Departments</h1>
-                    <p>Manage academic and operational departments.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Departments</h1>
+                    <p className="text-sm text-gray-600">Manage academic and operational departments.</p>
                 </div>
-                <button className="primary-btn" onClick={openCreate}><Plus size={18} /> Add Department</button>
+                <Button onClick={openCreate}><Plus size={18} /> Add Department</Button>
             </div>
 
             {loading ? <Skeleton rows={4} /> : !departments.length ? (
                 <EmptyState icon="🏛" title="No departments yet" subtext="Add departments to start routing grievances." actionLabel="Add Department" onAction={openCreate} />
             ) : (
-                <div className="card-grid">
+                <div className="grid gap-4 md:grid-cols-2">
                     {departments.map((department) => (
-                        <article className="department-card" key={department._id}>
-                            <div className="page-heading">
+                        <Card className="space-y-3" key={department._id}>
+                            <div className="flex items-start justify-between gap-3">
                                 <div>
-                                    <h2>{department.name}</h2>
-                                    <p>{department.code}</p>
+                                    <h2 className="text-lg font-semibold tracking-tight text-gray-900">{department.name}</h2>
+                                    <p className="text-sm text-gray-500">{department.code}</p>
                                 </div>
-                                <span className={`pill ${department.isActive ? "success" : ""}`}>{department.isActive ? "Active" : "Inactive"}</span>
+                                <Badge className={department.isActive ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-700"}>{department.isActive ? "Active" : "Inactive"}</Badge>
                             </div>
-                            <p>{department.description || "No description added."}</p>
-                            <div className="summary-grid">
-                                <div><span className="muted">Head Admin</span><strong>{department.headAdmin?.name || "-"}</strong></div>
-                                <div><span className="muted">Active Grievances</span><strong>{department.grievanceCount || 0}</strong></div>
+                            <p className="text-sm text-gray-700">{department.description || "No description added."}</p>
+                            <div className="grid grid-cols-2 gap-3 rounded-xl bg-gray-50 p-3">
+                                <div><span className="text-xs text-gray-500">Head Admin</span><p className="text-sm font-semibold text-gray-900">{department.headAdmin?.name || "-"}</p></div>
+                                <div><span className="text-xs text-gray-500">Active Grievances</span><p className="text-sm font-semibold text-gray-900">{department.grievanceCount || 0}</p></div>
                             </div>
-                            <div className="split-actions">
-                                <button className="secondary-btn" onClick={() => openEdit(department)}><Edit size={16} /> Edit</button>
-                                {department.isActive !== false && <button className="danger-btn" onClick={() => deactivate(department._id)}><Power size={16} /> Deactivate</button>}
+                            <div className="flex gap-3">
+                                <Button variant="outline" onClick={() => openEdit(department)}><Edit size={16} /> Edit</Button>
+                                {department.isActive !== false && <Button variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50" onClick={() => deactivate(department._id)}><Power size={16} /> Deactivate</Button>}
                             </div>
-                        </article>
+                        </Card>
                     ))}
                 </div>
             )}
 
-            {showForm && (
-                <div className="modal-backdrop">
-                    <form className="modal" onSubmit={submit}>
-                        <div className="page-heading"><h2>{editing ? "Edit Department" : "Add Department"}</h2><button type="button" className="ghost-btn" onClick={() => setShowForm(false)}>Close</button></div>
-                        <div className="form-grid">
-                            <label>Name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
-                            <label>Code<input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} required /></label>
+            <Modal open={showForm} onClose={() => setShowForm(false)}>
+                    <form className="space-y-4" onSubmit={submit}>
+                        <div className="flex items-center justify-between gap-3"><h2 className="text-xl font-semibold tracking-tight text-gray-900">{editing ? "Edit Department" : "Add Department"}</h2><Button type="button" variant="ghost" onClick={() => setShowForm(false)}>Close</Button></div>
+                        <div className="grid gap-3 md:grid-cols-2">
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">Name<Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">Code<Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} required /></label>
                         </div>
-                        <label>Description<textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
-                        <label>Head Admin
-                            <select value={form.headAdmin} onChange={(e) => setForm({ ...form, headAdmin: e.target.value })}>
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">Description<textarea className="ui-input min-h-24" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">Head Admin
+                            <select className="ui-input" value={form.headAdmin} onChange={(e) => setForm({ ...form, headAdmin: e.target.value })}>
                                 <option value="">Select admin</option>
                                 {admins.map((a) => <option key={a._id} value={a._id}>{a.name}</option>)}
                             </select>
                         </label>
-                        <div className="split-actions">
-                            <button type="button" className="secondary-btn" onClick={() => setShowForm(false)}>Cancel</button>
-                            <button className="primary-btn">{editing ? "Save Changes" : "Create Department"}</button>
+                        <div className="flex justify-end gap-3">
+                            <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                            <Button>{editing ? "Save Changes" : "Create Department"}</Button>
                         </div>
                     </form>
-                </div>
-            )}
+            </Modal>
         </section>
     );
 }

@@ -5,6 +5,11 @@ import api from "../../api/axiosInstance";
 import EmptyState from "../../components/common/EmptyState";
 import Skeleton from "../../components/common/Skeleton";
 import StepUpModal from "../../components/common/StepUpModal";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
+import Modal from "../../components/ui/Modal";
+import Input from "../../components/ui/Input";
 
 const initialForm = { name: "", email: "", staffId: "", department: "", password: "", autoGeneratePassword: true, isActive: true };
 
@@ -111,18 +116,19 @@ export default function AllAdmins() {
     };
 
     return (
-        <section className="page-section">
-            <div className="page-heading">
+        <section className="space-y-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                    <h1>Manage Admins</h1>
-                    <p>Create and manage department admin accounts.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Manage Admins</h1>
+                    <p className="text-sm text-gray-600">Create and manage department admin accounts.</p>
                 </div>
-                <button className="primary-btn" onClick={openCreate}><Plus size={18} /> Add Admin</button>
+                <Button onClick={openCreate}><Plus size={18} /> Add Admin</Button>
             </div>
 
             {loading ? <Skeleton rows={4} /> : !admins.length ? (
                 <EmptyState icon="+" title="No admins yet" subtext="Create your first department admin." actionLabel="Add Admin" onAction={openCreate} />
             ) : (
+                <Card className="overflow-hidden p-0">
                 <div className="responsive-table">
                     <table>
                         <thead><tr><th>Name</th><th>Email</th><th>Staff ID</th><th>Department</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
@@ -134,13 +140,13 @@ export default function AllAdmins() {
                                     <td>{admin.staffId || "-"}</td>
                                     <td>{admin.department?.name || "-"}</td>
                                     <td>{admin.role === "superadmin" ? "Super Admin" : "Department Admin"}</td>
-                                    <td><span className={`pill ${admin.isActive ? "success" : ""}`}>{admin.isActive ? "Active" : "Inactive"}</span></td>
+                                    <td><Badge className={admin.isActive ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-700"}>{admin.isActive ? "Active" : "Inactive"}</Badge></td>
                                     <td>
                                         {admin.role === "admin" && (
-                                            <div className="split-actions">
-                                                <button className="secondary-btn" onClick={() => openEdit(admin)}><Edit size={16} /> Edit</button>
-                                                <button className="secondary-btn" onClick={() => resetPassword(admin._id)}><KeyRound size={16} /> Reset</button>
-                                                <button className="danger-btn" onClick={() => deactivate(admin._id)}><Power size={16} /> Deactivate</button>
+                                            <div className="flex gap-2">
+                                                <Button variant="outline" onClick={() => openEdit(admin)}><Edit size={16} /> Edit</Button>
+                                                <Button variant="outline" onClick={() => resetPassword(admin._id)}><KeyRound size={16} /> Reset</Button>
+                                                <Button variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50" onClick={() => deactivate(admin._id)}><Power size={16} /> Deactivate</Button>
                                             </div>
                                         )}
                                     </td>
@@ -149,18 +155,18 @@ export default function AllAdmins() {
                         </tbody>
                     </table>
                 </div>
+                </Card>
             )}
 
-            {showForm && (
-                <div className="modal-backdrop">
-                    <form className="modal" onSubmit={submit}>
-                        <div className="page-heading"><h2>{editing ? "Edit Admin" : "Add Admin"}</h2><button type="button" className="ghost-btn" onClick={() => setShowForm(false)}>Close</button></div>
-                        <label>Full Name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
-                        <label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
-                        <div className="form-grid">
-                            <label>Staff ID<input value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} required /></label>
-                            <label>Department
-                                <select value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} required>
+            <Modal open={showForm} onClose={() => setShowForm(false)}>
+                    <form className="space-y-4" onSubmit={submit}>
+                        <div className="flex items-center justify-between gap-3"><h2 className="text-xl font-semibold tracking-tight text-gray-900">{editing ? "Edit Admin" : "Add Admin"}</h2><Button type="button" variant="ghost" onClick={() => setShowForm(false)}>Close</Button></div>
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">Full Name<Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">Email<Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+                        <div className="grid gap-3 md:grid-cols-2">
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">Staff ID<Input value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} required /></label>
+                            <label className="grid gap-2 text-sm font-medium text-gray-700">Department
+                                <select className="ui-input" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} required>
                                     <option value="">Select department</option>
                                     {departments.filter((d) => d.isActive !== false).map((d) => <option key={d._id} value={d._id}>{d.name}</option>)}
                                 </select>
@@ -168,18 +174,17 @@ export default function AllAdmins() {
                         </div>
                         {!editing && (
                             <>
-                                <label><input type="checkbox" checked={form.autoGeneratePassword} onChange={(e) => setForm({ ...form, autoGeneratePassword: e.target.checked })} /> Auto-generate password</label>
-                                {!form.autoGeneratePassword && <label>Password<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label>}
+                                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.autoGeneratePassword} onChange={(e) => setForm({ ...form, autoGeneratePassword: e.target.checked })} /> Auto-generate password</label>
+                                {!form.autoGeneratePassword && <label className="grid gap-2 text-sm font-medium text-gray-700">Password<Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label>}
                             </>
                         )}
-                        <label><input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} /> Active</label>
-                        <div className="split-actions">
-                            <button type="button" className="secondary-btn" onClick={() => setShowForm(false)}>Cancel</button>
-                            <button className="primary-btn">{editing ? "Save Changes" : "Create Admin"}</button>
+                        <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} /> Active</label>
+                        <div className="flex justify-end gap-3">
+                            <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                            <Button>{editing ? "Save Changes" : "Create Admin"}</Button>
                         </div>
                     </form>
-                </div>
-            )}
+            </Modal>
             <StepUpModal
                 open={stepUpOpen}
                 onClose={() => { setStepUpOpen(false); setPendingAction(null); }}

@@ -3,6 +3,9 @@ import toast from "react-hot-toast";
 import api from "../../api/axiosInstance";
 import Skeleton from "../../components/common/Skeleton";
 import StepUpModal from "../../components/common/StepUpModal";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
 
 export default function SuperAdminUsers() {
     const [users, setUsers] = useState([]);
@@ -80,43 +83,42 @@ export default function SuperAdminUsers() {
     };
 
     return (
-        <section className="page-section">
-            <div className="page-heading">
+        <section className="space-y-6">
+            <div className="space-y-1">
                 <div>
-                    <h1>User Lifecycle Management</h1>
-                    <p>Search users, suspend/reactivate accounts, reset passwords, and manage assignments.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">User Lifecycle Management</h1>
+                    <p className="text-sm text-gray-600">Search users, suspend/reactivate accounts, reset passwords, and manage assignments.</p>
                 </div>
             </div>
 
-            <div className="form-grid">
-                <label>Role
-                    <select value={filters.role} onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}>
+            <Card className="grid gap-3 md:grid-cols-3">
+                <label className="grid gap-2 text-sm font-medium text-gray-700">Role
+                    <select className="ui-input" value={filters.role} onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}>
                         <option value="">All roles</option>
                         <option value="student">Student</option>
                         <option value="admin">Admin</option>
                         <option value="superadmin">Super Admin</option>
                     </select>
                 </label>
-                <label>Status
-                    <select value={filters.isActive} onChange={(e) => setFilters((f) => ({ ...f, isActive: e.target.value }))}>
+                <label className="grid gap-2 text-sm font-medium text-gray-700">Status
+                    <select className="ui-input" value={filters.isActive} onChange={(e) => setFilters((f) => ({ ...f, isActive: e.target.value }))}>
                         <option value="">All</option>
                         <option value="true">Active</option>
                         <option value="false">Inactive</option>
                     </select>
                 </label>
-                <label>Search
-                    <input
+                <label className="grid gap-2 text-sm font-medium text-gray-700">Search
+                    <input className="ui-input"
                         value={filters.q}
                         onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
                         placeholder="Name, email, student/staff ID"
                     />
                 </label>
-            </div>
-            <div className="split-actions">
-                <button className="secondary-btn" onClick={load}>Apply Filters</button>
-            </div>
+            </Card>
+            <div><Button variant="outline" onClick={load}>Apply Filters</Button></div>
 
             {loading ? <Skeleton rows={5} /> : (
+                <Card className="overflow-hidden p-0">
                 <div className="responsive-table">
                     <table>
                         <thead>
@@ -137,7 +139,7 @@ export default function SuperAdminUsers() {
                                     <td>{user.email}</td>
                                     <td>{user.role}</td>
                                     <td>
-                                        <select
+                                        <select className="ui-input"
                                             value={user.department?._id || ""}
                                             onChange={(e) => updateAssignments(user, e.target.value, user.course?._id || "")}
                                         >
@@ -146,7 +148,7 @@ export default function SuperAdminUsers() {
                                         </select>
                                     </td>
                                     <td>
-                                        <select
+                                        <select className="ui-input"
                                             value={user.course?._id || ""}
                                             onChange={(e) => updateAssignments(user, user.department?._id || "", e.target.value)}
                                         >
@@ -155,16 +157,16 @@ export default function SuperAdminUsers() {
                                         </select>
                                     </td>
                                     <td>
-                                        <span className={`pill ${user.isActive ? "success" : ""}`}>{user.isActive ? "Active" : "Inactive"}</span>
+                                        <Badge className={user.isActive ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-700"}>{user.isActive ? "Active" : "Inactive"}</Badge>
                                     </td>
                                     <td>
-                                        <div className="split-actions">
-                                            <button className="secondary-btn" onClick={() => toggleStatus(user)}>
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" onClick={() => toggleStatus(user)}>
                                                 {user.isActive ? "Suspend" : "Reactivate"}
-                                            </button>
-                                            <button className="secondary-btn" onClick={() => resetPassword(user)}>
+                                            </Button>
+                                            <Button variant="outline" onClick={() => resetPassword(user)}>
                                                 Reset Password
-                                            </button>
+                                            </Button>
                                         </div>
                                     </td>
                                 </tr>
@@ -172,6 +174,7 @@ export default function SuperAdminUsers() {
                         </tbody>
                     </table>
                 </div>
+                </Card>
             )}
 
             <StepUpModal
