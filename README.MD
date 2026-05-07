@@ -2,6 +2,43 @@
 
 A production-oriented full-stack grievance platform for universities, built with React, Express, MongoDB, and Redis.
 
+## Quick Start (60 seconds)
+
+### Option A: Docker (recommended)
+
+```bash
+git clone <your-repo-url>
+cd E-Griverence
+docker compose up -d --build
+```
+
+Open:
+- [http://localhost:5173](http://localhost:5173) (frontend)
+- [http://localhost:5000/api/health](http://localhost:5000/api/health) (backend health)
+
+### Option B: Local development
+
+```bash
+git clone <your-repo-url>
+cd E-Griverence
+cd backend && cp .env.example .env && npm install
+cd ../frontend && npm install
+```
+
+Run backend:
+
+```bash
+cd backend
+npm start
+```
+
+Run frontend (new terminal):
+
+```bash
+cd frontend
+npm run frontend
+```
+
 This project is designed to demonstrate:
 - Role-based product design across three personas (`student`, `admin`, `superadmin`)
 - Security-first backend engineering (JWT rotation, rate limits, audit trail, secure headers)
