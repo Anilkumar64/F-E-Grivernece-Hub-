@@ -6,6 +6,7 @@ import api from "../../api/axiosInstance";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+import BrandMark from "../../components/common/BrandMark";
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState("");
@@ -32,7 +33,7 @@ export default function ForgotPassword() {
                 <Card className="w-full max-w-md space-y-6">
                     <div className="space-y-2 text-center">
                         <div className="mx-auto mb-2 flex w-fit items-center gap-2">
-                            <span className="ku-logo">KU</span>
+                            <BrandMark showName={false} />
                         </div>
                         <h2 className="text-2xl font-bold tracking-tight text-gray-900">Reset Password</h2>
                         <p className="text-sm text-gray-600">Enter your email to receive a reset code.</p>

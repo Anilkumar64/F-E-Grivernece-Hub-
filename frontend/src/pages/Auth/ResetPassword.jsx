@@ -6,6 +6,7 @@ import api from "../../api/axiosInstance";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+import BrandMark from "../../components/common/BrandMark";
 
 export default function ResetPassword() {
     const [params] = useSearchParams();
@@ -52,7 +53,7 @@ export default function ResetPassword() {
                 <Card className="w-full max-w-md space-y-6">
                     <div className="space-y-2 text-center">
                         <div className="mx-auto mb-2 flex w-fit items-center gap-2">
-                            <span className="ku-logo">KU</span>
+                            <BrandMark showName={false} />
                         </div>
                         <h2 className="text-2xl font-bold tracking-tight text-gray-900">Enter Reset Code</h2>
                         <p className="text-sm text-gray-600">Use the code sent to your email.</p>

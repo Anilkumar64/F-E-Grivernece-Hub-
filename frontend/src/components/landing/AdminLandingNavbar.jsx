@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import BrandMark from "../common/BrandMark";
 
 export default function AdminNavbar() {
     const [open, setOpen] = useState(false);
@@ -12,8 +13,7 @@ export default function AdminNavbar() {
         <nav className="sticky top-0 z-40 border-b border-gray-100 bg-white/80 backdrop-blur">
             <div className="app-container flex h-16 items-center justify-between">
                 <div className="flex cursor-pointer items-center gap-3" onClick={() => navigate("/admin")}>
-                    <div className="ku-logo">KU</div>
-                    <span className="text-sm font-semibold tracking-tight text-gray-900">Kernel University</span>
+                    <BrandMark />
                 </div>
                 <div className="hidden items-center gap-6 text-sm font-medium text-gray-600 md:flex">
                     <Link to="/admin" className="transition-all duration-200 hover:text-indigo-600">Home</Link>

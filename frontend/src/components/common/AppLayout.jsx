@@ -11,6 +11,7 @@ import AuthContext from "../../context/AuthCore";
 import { useNotifications } from "../../hooks/useNotifications";
 import RouteTracker from "./RouteTracker";
 import Badge from "../ui/Badge";
+import { resolveBrandAsset, useBranding } from "../../hooks/useBranding";
 
 const iconSize = 20;
 
@@ -78,6 +79,7 @@ export default function AppLayout({ role }) {
     const [profileOpen, setProfileOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const { authUser, logout } = useContext(AuthContext);
+    const { universityName, universityLogo } = useBranding();
     const { notifications, unreadCount, markAllAsRead } = useNotifications();
     const location = useLocation();
     const navigate = useNavigate();
@@ -100,9 +102,15 @@ export default function AppLayout({ role }) {
             <aside className={`fixed inset-y-0 left-0 z-40 w-72 transform bg-slate-900 text-white transition-transform duration-200 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
                 <div className="border-b border-slate-800 px-6 py-5" onClick={() => navigate(dashboardPath[role])}>
                     <div className="flex cursor-pointer items-center gap-3">
-                        <div className="ku-logo">KU</div>
+                        {universityLogo ? (
+                            <img src={resolveBrandAsset(universityLogo)} alt={`${universityName} logo`} className="h-10 w-10 rounded-lg object-cover" />
+                        ) : (
+                            <div className="ku-logo">
+                                {(universityName || "KU").split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() || "").join("") || "KU"}
+                            </div>
+                        )}
                         <div>
-                            <p className="text-sm font-semibold tracking-tight text-white">Kernel University</p>
+                            <p className="text-sm font-semibold tracking-tight text-white">{universityName}</p>
                             <p className="text-xs text-slate-300">Portal</p>
                         </div>
                     </div>

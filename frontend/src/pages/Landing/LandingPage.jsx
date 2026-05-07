@@ -5,6 +5,8 @@ import api from "../../api/axiosInstance";
 import Card from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
+import BrandMark from "../../components/common/BrandMark";
+import { resolveBrandAsset } from "../../hooks/useBranding";
 
 const iconMap = { Send, Search, CheckCircle: CheckCircle2, CheckCircle2, FileText, Bell };
 
@@ -27,7 +29,6 @@ const fallback = {
 export default function LandingPage() {
     const [config, setConfig] = useState(fallback);
     const [slideIndex, setSlideIndex] = useState(0);
-    const brandName = "Kernel University";
 
     useEffect(() => {
         api.get("/landing-config", { skipAuthRefresh: true })
@@ -55,8 +56,7 @@ export default function LandingPage() {
             <nav className="sticky top-0 z-40 border-b border-gray-100 bg-white/80 backdrop-blur">
                 <div className="app-container flex h-16 items-center justify-between">
                     <strong className="flex items-center gap-3 text-sm font-semibold tracking-tight text-gray-900">
-                        <span className="ku-logo">KU</span>
-                        {brandName}
+                        <BrandMark />
                     </strong>
                     <div className="hidden items-center gap-6 text-sm font-medium text-gray-600 md:flex">
                         <a href="#home" className="transition-all duration-200 hover:text-indigo-600">Home</a>
@@ -70,6 +70,13 @@ export default function LandingPage() {
             <section className="app-container grid gap-6 py-8">
                 <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm lg:p-8" id="home" style={heroStyle}>
                     <div className="space-y-5">
+                        {!!config.universityLogo && (
+                            <img
+                                src={resolveBrandAsset(config.universityLogo)}
+                                alt={`${config.universityName} logo`}
+                                className="h-14 w-14 rounded-xl border border-gray-200 bg-white object-cover"
+                            />
+                        )}
                         {activeAnnouncements.length > 0 && <Badge>{activeAnnouncements[0].title}</Badge>}
                         <h1 className="max-w-4xl text-3xl font-bold tracking-tight text-gray-900 lg:text-5xl">{config.heroTitle}</h1>
                         <p className="max-w-3xl text-base leading-relaxed text-gray-600">{config.heroSubtitle}</p>
@@ -139,8 +146,7 @@ export default function LandingPage() {
             <footer className="border-t border-gray-100 bg-white">
                 <div className="app-container flex items-center justify-between py-6 text-sm text-gray-500">
                     <div className="flex items-center gap-3">
-                        <span className="ku-logo">KU</span>
-                        <span className="font-medium text-gray-700">{brandName}</span>
+                        <BrandMark />
                     </div>
                     <span>Home · About · Contact · {new Date().getFullYear()}</span>
                 </div>

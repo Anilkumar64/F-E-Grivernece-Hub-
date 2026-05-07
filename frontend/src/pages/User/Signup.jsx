@@ -5,6 +5,7 @@ import api from "../../api/axiosInstance";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+import BrandMark from "../../components/common/BrandMark";
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -63,8 +64,7 @@ const Signup = () => {
                 <Card className="mx-auto w-full max-w-4xl">
                     <div className="mb-6 space-y-2">
                         <div className="flex w-fit items-center gap-2">
-                            <span className="ku-logo">KU</span>
-                            <span className="text-sm font-medium text-gray-600">Kernel University</span>
+                            <BrandMark />
                         </div>
                         <h2 className="text-2xl font-bold tracking-tight text-gray-900">Create Student Account</h2>
                         <p className="text-sm text-gray-600">Register once to submit and track grievances digitally.</p>

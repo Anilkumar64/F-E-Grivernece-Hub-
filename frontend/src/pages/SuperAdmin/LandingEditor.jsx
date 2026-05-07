@@ -176,7 +176,16 @@ function LandingPreview({ config }) {
     return (
         <div className="space-y-4 p-4">
             <nav className="flex items-center justify-between rounded-xl border border-gray-100 bg-white px-4 py-3">
-                <strong className="text-sm text-gray-900">{config.universityName}</strong>
+                <strong className="flex items-center gap-2 text-sm text-gray-900">
+                    {config.universityLogo ? (
+                        <img src={config.universityLogo} alt={`${config.universityName} logo`} className="h-8 w-8 rounded-lg border border-gray-200 object-cover" />
+                    ) : (
+                        <span className="ku-logo">
+                            {(config.universityName || "KU").split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() || "").join("") || "KU"}
+                        </span>
+                    )}
+                    {config.universityName}
+                </strong>
                 <div className="flex items-center gap-3 text-xs text-gray-600">
                     <span>Home</span><span>About</span><span>Contact</span><Button variant="outline" className="px-3 py-1 text-xs">Sign In</Button>
                 </div>

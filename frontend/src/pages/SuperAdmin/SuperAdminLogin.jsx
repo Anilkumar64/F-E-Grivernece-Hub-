@@ -5,6 +5,7 @@ import AuthContext from "../../context/AuthCore";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+import BrandMark from "../../components/common/BrandMark";
 
 export default function SuperAdminLogin() {
     const { loginSuperAdmin } = useContext(AuthContext);
@@ -28,7 +29,7 @@ export default function SuperAdminLogin() {
                 <Card className="w-full max-w-md space-y-6">
                     <div className="space-y-2 text-center">
                         <div className="mx-auto mb-2 flex w-fit items-center gap-2">
-                            <span className="ku-logo">KU</span>
+                            <BrandMark showName={false} />
                         </div>
                         <h1 className="text-2xl font-bold tracking-tight text-gray-900">Super Admin Login</h1>
                         <p className="text-sm text-gray-600">Control governance, analytics, and system-wide configuration.</p>
