@@ -1,48 +1,164 @@
 # University E-Grievance Management System
 
-Full-stack MERN grievance platform with student, department-admin, and super-admin RBAC.
+A production-oriented full-stack grievance platform for universities, built with React, Express, MongoDB, and Redis.
 
-## Setup
+This project is designed to demonstrate:
+- Role-based product design across three personas (`student`, `admin`, `superadmin`)
+- Security-first backend engineering (JWT rotation, rate limits, audit trail, secure headers)
+- Operational readiness (health checks, containerized deployment, graceful shutdown, background jobs)
 
-1. Install backend dependencies: `cd backend && npm install`
-2. Install frontend dependencies: `cd frontend && npm install`
-3. Copy env: `cp backend/.env.example backend/.env`
-4. Create the first super admin: `cd backend && node createSuperAdmin.js`
-5. Start backend: `cd backend && npm start`
-6. Start frontend: `cd frontend && npm run frontend`
+## Why this project matters
 
-Docker: `docker compose up --build`
+Manual grievance handling is slow, opaque, and hard to audit.  
+This system provides a transparent workflow from complaint creation to resolution, with strict access controls and accountability through immutable audit logging.
 
-## Roles
+## Core Features
 
-- Student: submit grievances, view own list, track timeline, comment, feedback after resolution.
-- Department Admin: view only department grievances, update statuses, comment, monitor SLA warnings.
-- Super Admin: manage admins, departments, categories, audit logs, reports, and all grievances.
+- End-to-end grievance lifecycle: create, assign, update status, comment, resolve, feedback
+- Multi-role RBAC:
+  - `Student`: submit and track own grievances
+  - `Department Admin`: manage grievances within assigned department
+  - `Super Admin`: governance controls, reports, audit logs, user/admin management
+- Authentication and session security:
+  - Short-lived access tokens
+  - Refresh-token flow with httpOnly cookies
+  - Role-aware login and access guards
+- Auditability and compliance:
+  - Action logging with hash-chain style audit records
+  - Activity tracking endpoint
+  - Retention support in audit records
+- Operational tooling:
+  - CSV reporting
+  - Health (`/api/health`) and readiness (`/api/ready`) endpoints
+  - SLA escalation scheduler via `node-cron`
+  - Redis-backed cache for high-read endpoints
 
-## Main API Routes
+## Tech Stack
 
-| Area | Routes |
-| --- | --- |
-| Auth | `POST /api/auth/student/login`, `POST /api/auth/admin/login`, `POST /api/auth/superadmin/login`, `POST /api/auth/logout`, `GET /api/auth/me` |
-| Grievances | `POST /api/grievances`, `GET /api/grievances/mine`, `GET /api/grievances/:id`, `GET /api/grievances`, `PATCH /api/grievances/:id/status`, `POST /api/grievances/:id/comments`, `POST /api/grievances/:id/feedback`, `GET /api/grievances/analytics` |
-| Admins | `POST /api/admin/create`, `GET /api/admin/all`, `PATCH /api/admin/:id`, `DELETE /api/admin/:id` |
-| Departments | `GET /api/departments`, `POST /api/departments`, `PATCH /api/departments/:id`, `DELETE /api/departments/:id` |
-| Categories | `GET /api/categories`, `POST /api/categories`, `PATCH /api/categories/:id`, `DELETE /api/categories/:id` |
-| Notifications | `GET /api/notifications/mine`, `PATCH /api/notifications/:id/read`, `PATCH /api/notifications/read-all` |
-| Audit/Reports | `GET /api/audit-logs`, `GET /api/reports/grievances.csv` |
-| Health | `GET /api/health`, `GET /api/ready` |
+- Frontend: `React`, `Vite`, `React Router`, `Axios`, `Tailwind CSS`
+- Backend: `Node.js`, `Express`, `Mongoose`, `JWT`, `Nodemailer`
+- Data & Infra: `MongoDB`, `Redis`, `Docker Compose`
+- Testing: `Vitest`, `Supertest`, `mongodb-memory-server`
 
-## Frontend Routes
+## Architecture Overview
 
-- Public: `/`, `/login`, `/signup`, `/admin/login`, `/superadmin/login`
-- Student: `/dashboard`, `/submit-grievance`, `/my-grievances`, `/grievance/:id`, `/notifications`, `/profile`
-- Admin: `/admin/dashboard`, `/admin/grievances`, `/admin/pending`, `/admin/resolved`, `/admin/grievance/:id`, `/admin/notifications`, `/admin/profile`
-- Super Admin: `/superadmin/dashboard`, `/superadmin/admins`, `/superadmin/departments`, `/superadmin/categories`, `/superadmin/reports`, `/superadmin/audit-logs`, `/superadmin/profile`
+- `frontend` (Vite app on port `5173`)
+  - Proxies `/api` and `/uploads` calls to backend
+- `backend` (Express API on port `5000`)
+  - Handles auth, grievances, admin operations, reports, audit logs
+- `mongo` (MongoDB service)
+  - Primary persistent datastore
+- `redis` (Redis service)
+  - Cache layer and fast read optimization
 
-## Production Notes
+## API Surface (high level)
 
-- JWT access tokens expire in 15 minutes; refresh tokens are stored in httpOnly role-specific cookies.
-- Auth, API, and upload routes are rate-limited.
-- Helmet, CORS whitelist, HPP, Mongo sanitize, and compression are enabled.
-- SLA escalation runs every 30 minutes with `node-cron`.
-- Redis caches department/category lists and analytics for 5 minutes when `REDIS_URL` is available.
+- Auth: `/api/auth/*`
+- Grievances: `/api/grievances/*`
+- Admin management: `/api/admin/*`, `/api/superadmin/*`
+- Master data: `/api/departments/*`, `/api/categories/*`, `/api/courses/*`
+- Notifications: `/api/notifications/*`
+- Audit + Reports: `/api/audit-logs/*`, `/api/reports/*`
+
+## Run with Docker (recommended)
+
+### 1) Prerequisites
+
+- Docker Desktop (or Docker Engine + Compose plugin)
+
+### 2) Start the full stack
+
+```bash
+docker compose up -d --build
+```
+
+### 3) Verify services
+
+```bash
+docker compose ps
+curl http://localhost:5000/api/health
+curl http://localhost:5173/api/health
+```
+
+### 4) Access app
+
+- Frontend: [http://localhost:5173](http://localhost:5173)
+- Backend: [http://localhost:5000](http://localhost:5000)
+
+### 5) Stop stack
+
+```bash
+docker compose down
+```
+
+## Run locally (without Docker)
+
+### Backend
+
+```bash
+cd backend
+cp .env.example .env
+npm install
+npm start
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run frontend
+```
+
+## Environment Variables
+
+Use `backend/.env.example` as the source of truth.  
+At minimum, configure:
+
+- `MONGODB_URL`
+- `ACCESS_TOKEN_SECRET`
+- `REFRESH_TOKEN_SECRET`
+- `ALLOWED_ORIGINS`
+- `FRONTEND_URL`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `SMTP_FROM`
+
+## Security and Reliability Highlights
+
+- Helmet security headers
+- CORS allowlist
+- Input hardening via `express-mongo-sanitize` and `hpp`
+- Route-level rate limiting
+- Secure cookie-based refresh flow
+- Graceful shutdown handling for process signals
+- API readiness checks for container orchestration
+
+## Project Structure
+
+```text
+E-Griverence/
+  frontend/      # React + Vite client
+  backend/       # Express API + Mongo models + jobs + middleware
+  docker-compose.yml
+```
+
+## Suggested recruiter demo flow
+
+1. Login as `student`, submit a grievance, attach context.
+2. Login as `admin`, assign/update status and add comments.
+3. Login as `superadmin`, review analytics/reporting and audit logs.
+4. Show Dockerized reproducibility with `docker compose up -d --build`.
+
+## Roadmap
+
+- Add CI pipeline with automated tests and lint checks
+- Add OpenAPI/Swagger docs for endpoint discoverability
+- Add cloud object storage for uploads (S3-compatible)
+- Add observability dashboard (structured logs + metrics)
+
+## License
+
+This project is currently intended for portfolio/demo and internal academic workflow use.
