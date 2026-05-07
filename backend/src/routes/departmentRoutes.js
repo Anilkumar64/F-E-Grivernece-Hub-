@@ -1,5 +1,6 @@
 import express from "express";
 import Department from "../models/Department.js";
+import Course from "../models/Course.js";
 import { guardSuperAdmin } from "../middleware/guards.js";
 import { writeAuditLog } from "../utils/audit.js";
 import { delCache, getCache, setCache } from "../utils/cache.js";
@@ -14,14 +15,21 @@ const pick = (obj, keys) =>
     Object.fromEntries(Object.entries(obj).filter(([k]) => keys.includes(k)));
 
 /* ── Public: list all departments ── */
-router.get("/", async (_req, res, next) => {
+router.get("/", async (req, res, next) => {
     try {
-        const cached = await getCache("departments:all");
+        const hasCourses = req.query.hasCourses === "true";
+        const cacheKey = hasCourses ? "departments:with-courses" : "departments:all";
+        const cached = await getCache(cacheKey);
         if (cached) return res.json(cached);
-        const departments = await Department.find()
+        let query = Department.find();
+        if (hasCourses) {
+            const deptIds = await Course.distinct("department");
+            query = Department.find({ _id: { $in: deptIds } });
+        }
+        const departments = await query
             .populate("headAdmin", "name email staffId")
             .sort({ name: 1 });
-        await setCache("departments:all", departments);
+        await setCache(cacheKey, departments);
         res.json(departments);
     } catch (err) { next(err); }
 });

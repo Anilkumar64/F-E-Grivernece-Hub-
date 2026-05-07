@@ -26,7 +26,7 @@ export default function AllAdmins() {
     const load = async () => {
         setLoading(true);
         try {
-            const [adminRes, deptRes] = await Promise.all([api.get("/admin/all"), api.get("/departments")]);
+            const [adminRes, deptRes] = await Promise.all([api.get("/admin/all"), api.get("/departments?hasCourses=true")]);
             setAdmins(adminRes.data.admins || []);
             setDepartments(deptRes.data || []);                                          // ← bare array now
         } catch (error) {
