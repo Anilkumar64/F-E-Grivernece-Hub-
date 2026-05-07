@@ -25,13 +25,9 @@ export const AuthProvider = ({ children }) => {
         setAuthUser(user);
         setAccessToken(token);
         setMemToken(token);   // FIX B1: sync token into axios in-memory store
-        localStorage.setItem("authUser", JSON.stringify(user));
-        if (token) localStorage.setItem("accessToken", token);
     }, []);
 
     const clearAuth = useCallback(() => {
-        localStorage.removeItem("authUser");
-        localStorage.removeItem("accessToken");
         setMemToken(null);  // FIX B1: clear in-memory token
         setAuthUser(null);
         setAccessToken(null);
@@ -39,20 +35,11 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const bootstrap = async () => {
-            const token = localStorage.getItem("accessToken");
-            if (!token) {
-                clearAuth();
-                setLoading(false);
-                return;
-            }
-
             try {
-                const res = await api.get("/auth/me", { skipAuthRefresh: true });
-                persist(res.data.user, token);
+                // Session restore after hard reload relies on refresh cookie (httpOnly).
+                const res = await api.post("/auth/refresh", {}, { skipAuthRefresh: true });
+                persist(res.data.user, res.data.accessToken);
             } catch (err) {
-                // ✅ FIX MO-08: on 401 (expired/invalid token) clear immediately.
-                // For any other error (network down, 500) we still clear to be safe,
-                // but log it so developers can diagnose issues.
                 if (!isTokenExpiredError(err)) {
                     console.warn("Auth bootstrap failed:", err?.message || err);
                 }
@@ -66,14 +53,9 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const revalidateSession = async () => {
-            const token = localStorage.getItem("accessToken");
-            if (!token) {
-                clearAuth();
-                return;
-            }
             try {
-                const res = await api.get("/auth/me", { skipAuthRefresh: true });
-                persist(res.data.user, token);
+                const res = await api.post("/auth/refresh", {}, { skipAuthRefresh: true });
+                persist(res.data.user, res.data.accessToken);
             } catch {
                 clearAuth();
             }
@@ -135,7 +117,6 @@ export const AuthProvider = ({ children }) => {
     const updateAuthUser = useCallback((nextUser) => {
         if (!nextUser) return;
         setAuthUser(nextUser);
-        localStorage.setItem("authUser", JSON.stringify(nextUser));
     }, []);
 
     const value = useMemo(() => ({

@@ -7,16 +7,17 @@ const variants = {
 };
 
 export default function Button({
-  as: Component = "button",
+  as: As = "button",
   variant = "primary",
   className = "",
   children,
   ...props
 }) {
   const variantClass = variants[variant] || variants.primary;
-  return (
-    <Component className={`${variantClass} ${className}`.trim()} {...props}>
-      {children}
-    </Component>
+  const Comp = As;
+  return React.createElement(
+    Comp,
+    { className: `${variantClass} ${className}`.trim(), ...props },
+    children
   );
 }

@@ -3,6 +3,7 @@ import AuditLog from "../models/AuditLog.js";
 import User from "../models/User.js";
 import { guardSuperAdmin } from "../middleware/guards.js";
 import { authenticate } from "../middleware/authMiddleware.js";
+import { writeAuditLog } from "../utils/audit.js";
 
 const router = express.Router();
 
@@ -86,16 +87,16 @@ router.post("/activity", authenticate, async (req, res, next) => {
         const { path } = req.body;
         if (!path || typeof path !== "string") return res.status(400).json({ message: "Path is required" });
 
-        await AuditLog.create({
-            action: "PAGE_VISIT",
-            performedBy: req.userId || null,
-            targetEntity: "Page",
-            metadata: {
+        await writeAuditLog(
+            req,
+            "PAGE_VISIT",
+            "Page",
+            null,
+            {
                 path: path.slice(0, 200),
                 userAgent: (req.headers["user-agent"] || "").slice(0, 300),
-            },
-            ipAddress: req.ip,
-        });
+            }
+        );
 
         res.status(204).end();
     } catch (err) {

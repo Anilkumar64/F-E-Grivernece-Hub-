@@ -37,7 +37,10 @@ export default function AdminGrievances({ fixedStatus }) {
             .finally(() => setLoading(false));
     }, [committed, filters]);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        const t = window.setTimeout(load, 0);
+        return () => window.clearTimeout(t);
+    }, [load]);
 
     // cleanup debounce on unmount
     useEffect(() => () => clearTimeout(debounceRef.current), []);

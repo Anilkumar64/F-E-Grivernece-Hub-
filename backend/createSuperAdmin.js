@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import crypto from "crypto";
 import User from "./src/models/User.js";
 
 dotenv.config();
@@ -16,7 +15,10 @@ const run = async () => {
         process.exit(0);
     }
 
-    const password = process.env.SUPERADMIN_PASSWORD || crypto.randomBytes(16).toString("hex");
+    const password = process.env.SUPERADMIN_PASSWORD;
+    if (!password || password.length < 12) {
+        throw new Error("SUPERADMIN_PASSWORD is required and must be at least 12 characters");
+    }
     await User.create({
         name: process.env.SUPERADMIN_NAME || "Super Admin",
         email,
@@ -28,7 +30,7 @@ const run = async () => {
 
     console.log("Super admin created");
     console.log(`Email: ${email}`);
-    console.log(`Password: ${password}`);
+    console.log("Password was read from SUPERADMIN_PASSWORD and was not printed.");
     await mongoose.connection.close();
 };
 

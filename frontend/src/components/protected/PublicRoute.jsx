@@ -10,7 +10,6 @@ const homePath = (role) => {
 
 export default function PublicRoute() {
     const { authUser, loading } = useContext(AuthContext);
-    const hasToken = Boolean(localStorage.getItem("accessToken"));
 
     if (loading) {
         return (
@@ -20,7 +19,7 @@ export default function PublicRoute() {
         );
     }
 
-    if (authUser && hasToken) {
+    if (authUser) {
         return <Navigate to={homePath(authUser.role)} replace />;
     }
 

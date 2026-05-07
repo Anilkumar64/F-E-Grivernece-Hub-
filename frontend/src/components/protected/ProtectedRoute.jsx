@@ -17,7 +17,6 @@ const homePath = (role) => {
 export default function ProtectedRoute({ allowedRoles = [] }) {
     const location = useLocation();
     const { authUser, loading } = useContext(AuthContext);
-    const hasToken = Boolean(localStorage.getItem("accessToken"));
 
     // Still bootstrapping — show skeleton, don't redirect yet
     if (loading) {
@@ -29,7 +28,7 @@ export default function ProtectedRoute({ allowedRoles = [] }) {
     }
 
     // Not logged in → send to the correct login page, remembering where they came from
-    if (!authUser || !hasToken) {
+    if (!authUser) {
         return <Navigate to={loginPath(allowedRoles)} state={{ from: location }} replace />;
     }
 

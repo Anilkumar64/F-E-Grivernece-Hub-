@@ -46,7 +46,7 @@ const Signup = () => {
         }
         setLoading(true);
         try {
-            const { confirmPassword, ...body } = form;
+            const { confirmPassword: _confirmPassword, ...body } = form;
             await api.post("/auth/student/register", body);   // ← was /users/register
             toast.success("Account created! Please log in.");
             navigate("/login");

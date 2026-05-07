@@ -25,7 +25,10 @@ export default function SuperAdminSettings() {
         }
     };
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => {
+        const t = window.setTimeout(load, 0);
+        return () => window.clearTimeout(t);
+    }, []);
 
     const saveSecurity = async (e) => {
         e.preventDefault();

@@ -32,29 +32,32 @@ export default function CreateGrievance() {
 
     useEffect(() => {
         let active = true;
-        setLoadingCategories(true);
-        const departmentId = authUser?.department?._id || authUser?.department || "";
-        const url = departmentId ? `/categories?department=${departmentId}` : "/categories";
-        api.get(url)
-            .then(async (res) => {
-                const list = Array.isArray(res.data) ? res.data : (res.data.categories || []);
-                if (!active) return;
-                if (list.length > 0 || !departmentId) {
-                    setCategories(list);
-                    return;
-                }
-                // Fallback: if department-specific categories are empty, load all categories.
-                const allRes = await api.get("/categories");
-                const allList = Array.isArray(allRes.data) ? allRes.data : (allRes.data.categories || []);
-                if (active) setCategories(allList);
-            })
-            .catch(() => toast.error("Unable to load categories"))
-            .finally(() => {
-                if (active) setLoadingCategories(false);
-            });
+        const t = window.setTimeout(() => {
+            setLoadingCategories(true);
+            const departmentId = authUser?.department?._id || authUser?.department || "";
+            const url = departmentId ? `/categories?department=${departmentId}` : "/categories";
+            api.get(url)
+                .then(async (res) => {
+                    const list = Array.isArray(res.data) ? res.data : (res.data.categories || []);
+                    if (!active) return;
+                    if (list.length > 0 || !departmentId) {
+                        setCategories(list);
+                        return;
+                    }
+                    // Fallback: if department-specific categories are empty, load all categories.
+                    const allRes = await api.get("/categories");
+                    const allList = Array.isArray(allRes.data) ? allRes.data : (allRes.data.categories || []);
+                    if (active) setCategories(allList);
+                })
+                .catch(() => toast.error("Unable to load categories"))
+                .finally(() => {
+                    if (active) setLoadingCategories(false);
+                });
+        }, 0);
 
         return () => {
             active = false;
+            window.clearTimeout(t);
         };
     }, [authUser?.department]);
 
@@ -69,17 +72,20 @@ export default function CreateGrievance() {
             const fallback = fallbackRaw ? JSON.parse(fallbackRaw) : null;
             const draft = selected || fallback;
             if (!draft || typeof draft !== "object") return;
-            setActiveDraftId(draft.id || null);
-            setForm((prev) => ({
-                ...prev,
-                title: draft.title || "",
-                description: draft.description || "",
-                category: draft.category || "",
-                priority: draft.priority || "Medium",
-                isAcademicUrgent: Boolean(draft.isAcademicUrgent),
-                urgentReason: draft.urgentReason || "",
-            }));
-            toast.success("Loaded saved grievance draft");
+            const t = window.setTimeout(() => {
+                setActiveDraftId(draft.id || null);
+                setForm((prev) => ({
+                    ...prev,
+                    title: draft.title || "",
+                    description: draft.description || "",
+                    category: draft.category || "",
+                    priority: draft.priority || "Medium",
+                    isAcademicUrgent: Boolean(draft.isAcademicUrgent),
+                    urgentReason: draft.urgentReason || "",
+                }));
+                toast.success("Loaded saved grievance draft");
+            }, 0);
+            return () => window.clearTimeout(t);
         } catch {
             // ignore malformed draft
         }

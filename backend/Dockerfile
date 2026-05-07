@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:20.19-alpine3.22
 
 WORKDIR /app
 ENV NODE_ENV=production
@@ -6,9 +6,8 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-COPY . .
-
 RUN addgroup -S app && adduser -S app -G app
+COPY --chown=app:app . .
 USER app
 
 EXPOSE 5000

@@ -22,6 +22,14 @@ const errorHandler = (err, req, res, next) => {
         details = Object.entries(err.errors)
             .map(([field, error]) => `${field}: ${error.message}`)
             .join(", ");
+    } else if (err.name === "MulterError") {
+        statusCode = 400;
+        if (err.code === "LIMIT_FILE_SIZE") message = "File too large";
+        else if (err.code === "LIMIT_FILE_COUNT") message = "Too many files uploaded";
+        else message = err.message || "File upload error";
+    } else if (typeof err.message === "string" && err.message.toLowerCase().includes("only pdf")) {
+        statusCode = 400;
+        message = err.message;
     } else if ((err.name === "MongoError" || err.name === "MongoServerError") && err.code === 11000) {
         statusCode = 409;
         const field = Object.keys(err.keyPattern)[0];

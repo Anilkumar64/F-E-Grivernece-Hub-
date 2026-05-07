@@ -64,7 +64,10 @@ export default function SuperAdminControlCenter() {
         }
     };
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => {
+        const t = window.setTimeout(load, 0);
+        return () => window.clearTimeout(t);
+    }, []);
 
     const runStepUpAware = async (fn) => {
         try {

@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import User from "../models/User.js";
 import Admin from "../models/Admin.js"; // Bug #1 fix: import Admin for fallback lookup
 
@@ -24,7 +25,9 @@ export const signAccessToken = (user) =>
 
 export const signRefreshToken = (user) =>
     jwt.sign(
-        { _id: user._id.toString(), role: user.role, tokenType: "refresh" },
+        // Include a random jti so refresh rotation always produces a new token,
+        // even when called within the same second.
+        { _id: user._id.toString(), role: user.role, tokenType: "refresh", jti: crypto.randomUUID() },
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d", algorithm: "HS256" }
     );

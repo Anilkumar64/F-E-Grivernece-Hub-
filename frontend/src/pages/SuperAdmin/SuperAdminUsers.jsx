@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import api from "../../api/axiosInstance";
 import Skeleton from "../../components/common/Skeleton";
@@ -16,7 +16,7 @@ export default function SuperAdminUsers() {
     const [stepUpOpen, setStepUpOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState(null);
 
-    const load = async () => {
+    const load = useCallback(async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams({ page: "1", limit: "50" });
@@ -37,9 +37,12 @@ export default function SuperAdminUsers() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filters]);
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => {
+        const t = window.setTimeout(load, 0);
+        return () => window.clearTimeout(t);
+    }, [load]);
 
     const runProtected = async (action) => {
         try {
