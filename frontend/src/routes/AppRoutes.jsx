@@ -43,10 +43,12 @@ import SuperAdminControlCenter from "../pages/SuperAdmin/SuperAdminControlCenter
 import SuperAdminLandingPage from "../pages/Landing/SuperAdminLandingPage";
 import LandingEditor from "../pages/SuperAdmin/LandingEditor";
 import AuditLogs from "../pages/SuperAdmin/AuditLogs";
+import AiInsightsDashboard from "../pages/SuperAdmin/AiInsightsDashboard";
 import ProtectedRoute from "../components/protected/ProtectedRoute";
 import PublicRoute from "../components/protected/PublicRoute";
 import AppLayout from "../components/common/AppLayout";
 import NotificationsPage from "../pages/Shared/NotificationsPage";
+import AiChatbot from "../components/common/AiChatbot";
 
 export default function AppRoutes() {
     return (
@@ -79,6 +81,8 @@ export default function AppRoutes() {
                     <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/profile" element={<Profile />} />
                 </Route>
+                {/* Floating AI chatbot visible on all student pages */}
+                <Route path="*" element={<AiChatbot />} />
             </Route>
 
             {/* ── Admin ── */}
@@ -111,6 +115,7 @@ export default function AppRoutes() {
                     <Route path="/superadmin/settings" element={<SuperAdminSettings />} />
                     <Route path="/superadmin/control-center" element={<SuperAdminControlCenter />} />
                     <Route path="/superadmin/audit-logs" element={<AuditLogs />} />
+                    <Route path="/superadmin/ai-insights" element={<AiInsightsDashboard />} />
                     <Route path="/superadmin/notifications" element={<NotificationsPage />} />
                     <Route path="/superadmin/profile" element={<AdminProfile />} />
                     <Route path="/superadmin/grievance/:id" element={<AdminGrievanceDetails />} />

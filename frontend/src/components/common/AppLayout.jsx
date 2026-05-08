@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
-    Bell, BookOpen, Building2, CheckCircle2, ClipboardList,
+    Bell, BookOpen, Brain, Building2, CheckCircle2, ClipboardList,
     FileBarChart, FileText, Home, Image, LayoutDashboard,
     LogOut, Menu, MessageSquare, PlusCircle, Search,
     ShieldAlert, User, Users, GraduationCap,
@@ -44,6 +44,7 @@ const navItems = {
         { label: "Complaint Categories", path: "/superadmin/categories", icon: BookOpen },
         { label: "Landing Page Editor", path: "/superadmin/landing-editor", icon: Image },
         { label: "Reports & Analytics", path: "/superadmin/reports", icon: FileBarChart },
+        { label: "AI Insights",         path: "/superadmin/ai-insights", icon: Brain },
         { label: "Audit Logs", path: "/superadmin/audit-logs", icon: FileText },
         { label: "Security Settings", path: "/superadmin/settings", icon: Settings },
         { label: "Control Center", path: "/superadmin/control-center", icon: ShieldCheck },
