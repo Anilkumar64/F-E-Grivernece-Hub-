@@ -67,6 +67,23 @@ const grievanceSchema = new mongoose.Schema(
         isEscalated: { type: Boolean, default: false, index: true },
         escalatedAt: { type: Date, default: null },
         escalationReason: { type: String, trim: true, default: "" },
+        /* ── AI metadata (populated by Python AI service) ── */
+        aiMetadata: {
+            suggestedCategory:  { type: String, default: "" },
+            suggestedPriority:  { type: String, default: "" },
+            summary:            { type: String, default: "" },
+            urgencyFlags:       { type: [String], default: [] },
+            sentiment:          { type: String, default: "" },
+            urgencyLevel:       { type: String, default: "" },
+            keyIssue:           { type: String, default: "" },
+            contentFlags:       { type: [String], default: [] },
+            spamScore:          { type: Number, default: null },
+            mentalHealthRisk:   { type: String, default: "none" },
+            suggestedResponse:  { type: String, default: "" },
+            embedding:          { type: [Number], default: [] },   // 384-dim MiniLM vector
+            analyzedAt:         { type: Date, default: null },
+            embeddedAt:         { type: Date, default: null },
+        },
     },
     { timestamps: true }
 );

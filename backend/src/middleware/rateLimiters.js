@@ -28,3 +28,12 @@ export const uploadLimiter = rateLimit({
     legacyHeaders: false,
     message: { message: "Too many uploads. Try again later." },
 });
+
+export const aiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: isTest ? 10_000 : 20,
+    keyGenerator,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Too many AI requests. Try again in a moment." },
+});
