@@ -12,15 +12,14 @@ export default function SuperAdminUsers() {
     const [departments, setDepartments] = useState([]);
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState({ role: "", isActive: "", q: "" });
+    const [filters, setFilters] = useState({ isActive: "", q: "" });
     const [stepUpOpen, setStepUpOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState(null);
 
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const params = new URLSearchParams({ page: "1", limit: "50" });
-            if (filters.role) params.set("role", filters.role);
+            const params = new URLSearchParams({ page: "1", limit: "50", role: "student" });
             if (filters.isActive !== "") params.set("isActive", String(filters.isActive));
             if (filters.q) params.set("q", filters.q);
 
@@ -90,19 +89,11 @@ export default function SuperAdminUsers() {
             <div className="space-y-1">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-gray-900">User Lifecycle Management</h1>
-                    <p className="text-sm text-gray-600">Search users, suspend/reactivate accounts, reset passwords, and manage assignments.</p>
+                    <p className="text-sm text-gray-600">Search students, suspend/reactivate accounts, reset passwords, and manage department/course assignments.</p>
                 </div>
             </div>
 
-            <Card className="grid gap-3 md:grid-cols-3">
-                <label className="grid gap-2 text-sm font-medium text-gray-700">Role
-                    <select className="ui-input" value={filters.role} onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}>
-                        <option value="">All roles</option>
-                        <option value="student">Student</option>
-                        <option value="admin">Admin</option>
-                        <option value="superadmin">Super Admin</option>
-                    </select>
-                </label>
+            <Card className="grid gap-3 md:grid-cols-2">
                 <label className="grid gap-2 text-sm font-medium text-gray-700">Status
                     <select className="ui-input" value={filters.isActive} onChange={(e) => setFilters((f) => ({ ...f, isActive: e.target.value }))}>
                         <option value="">All</option>
@@ -128,7 +119,6 @@ export default function SuperAdminUsers() {
                             <tr>
                                 <th>Name</th>
                                 <th>Email</th>
-                                <th>Role</th>
                                 <th>Department</th>
                                 <th>Course</th>
                                 <th>Status</th>
@@ -140,7 +130,6 @@ export default function SuperAdminUsers() {
                                 <tr key={user._id}>
                                     <td>{user.name}</td>
                                     <td>{user.email}</td>
-                                    <td>{user.role}</td>
                                     <td>
                                         <select className="ui-input"
                                             value={user.department?._id || ""}

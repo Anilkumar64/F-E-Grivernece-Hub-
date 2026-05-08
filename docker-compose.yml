@@ -1,6 +1,8 @@
 services:
   backend:
     build: ./backend
+    env_file:
+      - ./backend/.env
     ports:
       - "5000:5000"
     depends_on:
@@ -17,11 +19,6 @@ services:
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-change-me-refresh-token-secret-32-chars-minimum}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-      SMTP_HOST: ${SMTP_HOST:-smtp.example.com}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-replace-me}
-      SMTP_PASS: ${SMTP_PASS:-replace-me}
-      SMTP_FROM: ${SMTP_FROM:-no-reply@example.com}
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s

@@ -26,7 +26,7 @@ export default function AllAdmins() {
     const load = async () => {
         setLoading(true);
         try {
-            const [adminRes, deptRes] = await Promise.all([api.get("/admin/all"), api.get("/departments?hasCourses=true")]);
+            const [adminRes, deptRes] = await Promise.all([api.get("/admin/all"), api.get("/departments")]);
             setAdmins(adminRes.data.admins || []);
             setDepartments(deptRes.data || []);                                          // ← bare array now
         } catch (error) {
@@ -164,7 +164,13 @@ export default function AllAdmins() {
                         <label className="grid gap-2 text-sm font-medium text-gray-700">Full Name<Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
                         <label className="grid gap-2 text-sm font-medium text-gray-700">Email<Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
                         <div className="grid gap-3 md:grid-cols-2">
-                            <label className="grid gap-2 text-sm font-medium text-gray-700">Staff ID<Input value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} required /></label>
+                            {editing ? (
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Staff ID<Input value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} required /></label>
+                            ) : (
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Staff ID
+                                    <Input value="Auto-generated on create" disabled />
+                                </label>
+                            )}
                             <label className="grid gap-2 text-sm font-medium text-gray-700">Department
                                 <select className="ui-input" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} required>
                                     <option value="">Select department</option>

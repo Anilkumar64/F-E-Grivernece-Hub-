@@ -1,6 +1,7 @@
 import express from "express";
 import GrievanceCategory from "../models/GrievanceCategory.js";
 import Grievance from "../models/Grievance.js";
+import Department from "../models/Department.js";
 import { guardSuperAdmin } from "../middleware/guards.js";
 import { writeAuditLog } from "../utils/audit.js";
 import { delCache, getCache, setCache } from "../utils/cache.js";
@@ -14,8 +15,36 @@ const ALLOWED_UPDATE_FIELDS = ["name", "description", "slaHours", "isActive"];
 const pick = (obj, keys) =>
     Object.fromEntries(Object.entries(obj).filter(([k]) => keys.includes(k)));
 
+const DEFAULT_CATEGORY_TEMPLATES = [
+    { name: "Academic Issue", description: "Exam, attendance, timetable, marks, or academic process issue.", slaHours: 72 },
+    { name: "Infrastructure", description: "Classroom, lab, hostel, transport, or facility issue.", slaHours: 96 },
+    { name: "Administrative", description: "Fees, certificates, approvals, records, or office workflow issue.", slaHours: 72 },
+];
+
+const ensureDefaultCategories = async () => {
+    const departments = await Department.find({ isActive: true }, { _id: 1 }).lean();
+    if (!departments.length) return;
+
+    const operations = [];
+    departments.forEach((department) => {
+        DEFAULT_CATEGORY_TEMPLATES.forEach((template) => {
+            operations.push({
+                updateOne: {
+                    filter: { department: department._id, name: template.name },
+                    update: { $setOnInsert: { ...template, department: department._id } },
+                    upsert: true,
+                },
+            });
+        });
+    });
+    if (operations.length) {
+        await GrievanceCategory.bulkWrite(operations, { ordered: false });
+    }
+};
+
 router.get("/", async (req, res, next) => {
     try {
+        await ensureDefaultCategories();
         const filter = req.query.department ? { department: req.query.department } : {};
         const cacheKey = `categories:${req.query.department || "all"}`;
         const cached = await getCache(cacheKey);

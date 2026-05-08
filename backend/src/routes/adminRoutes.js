@@ -8,6 +8,7 @@ import { authorizePermission } from "../middleware/rbac.js";
 import { requireStepUp } from "../middleware/stepUp.js";
 import { writeAuditLog } from "../utils/audit.js";
 import sendEmail from "../utils/sendEmail.js";
+import { generateDepartmentStaffId } from "../utils/staffId.js";
 
 const router = express.Router();
 
@@ -29,23 +30,28 @@ const ensureApproval = async ({ approvalId, actorId, actionType }) => {
 /* ── Create admin (superadmin-initiated, immediately active) ── */
 router.post("/create", authorizePermission("admin.create"), requireStepUp(), async (req, res, next) => {
     try {
-        const { name, email, staffId, department, isActive = true } = req.body;
+        const { name, email, department, isActive = true } = req.body;
         const password = req.body.autoGeneratePassword
             ? crypto.randomBytes(9).toString("base64url")
             : req.body.password;
 
-        if (!name || !email || !staffId || !department || !password)
-            return res.status(400).json({ message: "Name, email, staff ID, department, and password are required" });
+        if (!name || !email || !department || !password)
+            return res.status(400).json({ message: "Name, email, department, and password are required" });
 
         const dept = await Department.findById(department);
         if (!dept) return res.status(400).json({ message: "Department not found" });
 
+        const staffId = await generateDepartmentStaffId(User, dept.code);
         const admin = await User.create({
             name, email, password, staffId, department,
             role: "admin",
             isActive,
             isVerified: true,
         });
+        await Department.updateOne(
+            { _id: department, $or: [{ headAdmin: null }, { headAdmin: { $exists: false } }] },
+            { $set: { headAdmin: admin._id } }
+        );
 
         await writeAuditLog(req, "ADMIN_CREATED", "User", admin._id, { department });
 

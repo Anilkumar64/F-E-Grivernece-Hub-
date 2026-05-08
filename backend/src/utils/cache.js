@@ -47,13 +47,13 @@ export const delCache = async (pattern) => {
 
     const batchSize = Number(process.env.REDIS_SCAN_BATCH) || 100;
     const toDelete = [];
-    let cursor = 0;
+    let cursor = "0";
 
     do {
         const reply = await client.scan(cursor, { MATCH: pattern, COUNT: batchSize });
         cursor = reply.cursor;
         toDelete.push(...reply.keys);
-    } while (cursor !== 0);
+    } while (cursor !== "0");
 
     // DEL accepts multiple keys in one round-trip; no need to loop
     if (toDelete.length) await client.del(toDelete);

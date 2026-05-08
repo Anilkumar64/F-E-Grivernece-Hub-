@@ -81,9 +81,11 @@ const run = async () => {
         name: SUPER_NAME,
         email: SUPER_EMAIL.toLowerCase(),
         password: hashed,
+        staffId: process.env.SUPERADMIN_STAFF_ID || "SA-HQ-0001",
         role: "superadmin",
         isActive: true,
         isVerified: true,
+        department: null,
     });
 
     console.log("\n✅  SuperAdmin created successfully!");

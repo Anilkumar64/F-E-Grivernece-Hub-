@@ -56,14 +56,14 @@ export default function LandingPage() {
             <nav className="sticky top-0 z-40 border-b border-gray-100 bg-white/80 backdrop-blur">
                 <div className="app-container flex h-16 items-center justify-between">
                     <strong className="flex items-center gap-3 text-sm font-semibold tracking-tight text-gray-900">
-                        <BrandMark />
+                        <BrandMark logoSizeClass="h-12 w-12" nameClassName="text-base font-semibold tracking-tight text-gray-900" />
                     </strong>
                     <div className="hidden items-center gap-6 text-sm font-medium text-gray-600 md:flex">
                         <a href="#home" className="transition-all duration-200 hover:text-indigo-600">Home</a>
                         <a href="#about" className="transition-all duration-200 hover:text-indigo-600">About</a>
                         <a href="#contact" className="transition-all duration-200 hover:text-indigo-600">Contact Us</a>
-                        <Button as={Link} variant="outline" to="/login">User Login</Button>
-                        <Button as={Link} to="/signup">User Signup</Button>
+                        <Button as={Link} variant="outline" to="/login">Student Login</Button>
+                        <Button as={Link} to="/signup">Student Signup</Button>
                     </div>
                 </div>
             </nav>
@@ -74,7 +74,7 @@ export default function LandingPage() {
                             <img
                                 src={resolveBrandAsset(config.universityLogo)}
                                 alt={`${config.universityName} logo`}
-                                className="h-14 w-14 rounded-xl border border-gray-200 bg-white object-cover"
+                                className="h-20 w-20 rounded-xl border border-gray-200 bg-white object-cover shadow-sm"
                             />
                         )}
                         {activeAnnouncements.length > 0 && <Badge>{activeAnnouncements[0].title}</Badge>}
@@ -146,7 +146,7 @@ export default function LandingPage() {
             <footer className="border-t border-gray-100 bg-white">
                 <div className="app-container flex items-center justify-between py-6 text-sm text-gray-500">
                     <div className="flex items-center gap-3">
-                        <BrandMark />
+                        <BrandMark logoSizeClass="h-11 w-11" nameClassName="text-base font-semibold tracking-tight text-gray-900" />
                     </div>
                     <span>Home · About · Contact · {new Date().getFullYear()}</span>
                 </div>

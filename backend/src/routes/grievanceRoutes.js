@@ -92,19 +92,40 @@ router.post(
                 title,
                 description,
                 category,
+                department,
                 priority = "Medium",
                 isAcademicUrgent = "false",
                 urgentReason = "",
             } = req.body;
 
-            if (!title || !description || !category)
-                return res.status(400).json({ message: "Title, description, and category are required" });
+            if (!title || !description || (!category && !department))
+                return res.status(400).json({ message: "Title, description, and department are required" });
 
             if (!GRIEVANCE_PRIORITIES.includes(priority))
                 return res.status(400).json({ message: `Invalid priority. Valid: ${GRIEVANCE_PRIORITIES.join(", ")}` });
 
-            const categoryDoc = await GrievanceCategory.findById(category);
-            if (!categoryDoc) return res.status(400).json({ message: "Category not found" });
+            let categoryDoc = null;
+            if (category) {
+                categoryDoc = await GrievanceCategory.findById(category);
+                if (!categoryDoc) return res.status(400).json({ message: "Category not found" });
+            } else {
+                if (!mongoose.Types.ObjectId.isValid(department)) {
+                    return res.status(400).json({ message: "Invalid department selected" });
+                }
+                const departmentDoc = await Department.findById(department).select("_id name isActive");
+                if (!departmentDoc || departmentDoc.isActive === false) {
+                    return res.status(400).json({ message: "Department not found or inactive" });
+                }
+                categoryDoc = await GrievanceCategory.findOne({ department: departmentDoc._id }).sort({ createdAt: 1 });
+                if (!categoryDoc) {
+                    categoryDoc = await GrievanceCategory.create({
+                        name: "General",
+                        description: `General grievance for ${departmentDoc.name}`,
+                        department: departmentDoc._id,
+                        slaHours: 72,
+                    });
+                }
+            }
 
             const urgent = String(isAcademicUrgent) === "true" || isAcademicUrgent === true;
             const effectiveSlaHours = urgent
@@ -123,6 +144,7 @@ router.post(
                 isAcademicUrgent: urgent,
                 urgentReason: urgent ? String(urgentReason || "").trim().slice(0, 300) : "",
                 submittedBy: req.userId,
+                category: categoryDoc._id,
                 department: categoryDoc.department,
                 attachments, slaDeadline,
                 timeline: [{
@@ -135,6 +157,16 @@ router.post(
             const deptAdmins = await User.find({
                 role: "admin", department: categoryDoc.department, isActive: true,
             }).select("_id");
+            const autoAssignedAdmin = deptAdmins[0]?._id || null;
+            if (autoAssignedAdmin) {
+                grievance.assignedTo = autoAssignedAdmin;
+                grievance.timeline.push({
+                    status: grievance.status,
+                    message: "Auto-assigned to department admin",
+                    updatedBy: autoAssignedAdmin,
+                });
+                await grievance.save();
+            }
 
             await Notification.insertMany([
                 {

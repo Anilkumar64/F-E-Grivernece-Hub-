@@ -23,9 +23,10 @@ const run = async () => {
         name: process.env.SUPERADMIN_NAME || "Super Admin",
         email,
         password,
-        staffId: process.env.SUPERADMIN_STAFF_ID || "SA001",
+        staffId: process.env.SUPERADMIN_STAFF_ID || "SA-HQ-0001",
         role: "superadmin",
         isActive: true,
+        department: null,
     });
 
     console.log("Super admin created");

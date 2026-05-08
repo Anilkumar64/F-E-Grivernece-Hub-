@@ -2,6 +2,7 @@ import express from "express";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Department from "../models/Department.js";
 import SiteConfig from "../models/SiteConfig.js";
 import Notification from "../models/Notification.js"; // Bug #6 fix: needed for superadmin alerts
 import SecurityEvent from "../models/SecurityEvent.js";
@@ -14,6 +15,7 @@ import { authLimiter } from "../middleware/rateLimiters.js";
 import { writeAuditLog } from "../utils/audit.js";
 import sendEmail from "../utils/sendEmail.js"; // Bug #6 fix: email superadmins
 import userUploads from "../middleware/userUploads.js"; // FIX B3: parse multipart/form-data from admin signup
+import { generateDepartmentStaffId } from "../utils/staffId.js";
 
 const router = express.Router();
 const hashToken = (t) => crypto.createHash("sha256").update(t).digest("hex");
@@ -92,6 +94,11 @@ const loginForRole = (role) => async (req, res, next) => {
         if (role === "admin" && !user.isVerified) {
             return res.status(403).json({ message: "Admin account not yet approved by SuperAdmin" });
         }
+        if (role === "superadmin") {
+            // Superadmin is global head role; keep department empty and ensure a stable staff identifier.
+            if (user.department) user.department = null;
+            if (!user.staffId) user.staffId = "SA-HQ-0001";
+        }
 
         const accessToken = signAccessToken(user);
         const refreshToken = signRefreshToken(user);
@@ -159,13 +166,16 @@ router.post("/student/register", authLimiter, async (req, res, next) => {
 /* ── Public: admin self-registration ── */
 router.post("/admin/register", authLimiter, userUploads.single("idCardFile"), async (req, res, next) => {
     try {
-        const { name, email, staffId, department, password } = req.body;
-        if (!name || !email || !staffId || !department || !password)
+        const { name, email, department, password } = req.body;
+        if (!name || !email || !department || !password)
             return res.status(400).json({ message: "All fields are required" });
 
-        const existing = await User.findOne({ $or: [{ email: email.toLowerCase().trim() }, { staffId }] });
+        const dept = await Department.findById(department).select("code");
+        if (!dept) return res.status(400).json({ message: "Department not found" });
+        const generatedStaffId = await generateDepartmentStaffId(User, dept.code);
+        const existing = await User.findOne({ email: email.toLowerCase().trim() });
         if (existing)
-            return res.status(409).json({ message: "Admin already registered with this email or staff ID" });
+            return res.status(409).json({ message: "Admin already registered with this email" });
 
         const idCardFile = req.file
             ? `/uploads/user_idcards/${req.file.filename}`
@@ -174,7 +184,7 @@ router.post("/admin/register", authLimiter, userUploads.single("idCardFile"), as
         const admin = await User.create({
             name,
             email: email.toLowerCase().trim(),
-            staffId,
+            staffId: generatedStaffId,
             department,
             password,
             role: "admin",
@@ -194,7 +204,7 @@ router.post("/admin/register", authLimiter, userUploads.single("idCardFile"), as
                     recipient: sa._id,
                     type: "info",
                     title: "New admin registration pending approval",
-                    message: `${name} (${email}, Staff ID: ${staffId}) has self-registered as an admin and is awaiting your approval.`,
+                    message: `${name} (${email}, Staff ID: ${generatedStaffId}) has self-registered as an admin and is awaiting your approval.`,
                 }))
             );
 
@@ -204,7 +214,7 @@ router.post("/admin/register", authLimiter, userUploads.single("idCardFile"), as
                     sa.email,
                     "Action Required – New Admin Registration",
                     `Hello ${sa.name},\n\nA new admin has registered and requires your approval:\n\n` +
-                    `  Name:     ${name}\n  Email:    ${email}\n  Staff ID: ${staffId}\n\n` +
+                    `  Name:     ${name}\n  Email:    ${email}\n  Staff ID: ${generatedStaffId}\n\n` +
                     `Please log in to the SuperAdmin portal to review and approve or reject this request.`
                 ).catch(() => { /* non-fatal */ });
             });
@@ -294,13 +304,24 @@ router.post("/step-up/request", ...guardAny, async (req, res, next) => {
         actor.stepUpVerifiedAt = null;
         await actor.save({ validateBeforeSave: false });
 
-        await sendEmail(
-            req.user.email,
-            "E-Grievance Step-Up Verification Code",
-            `Your verification code is ${code}. It expires in 10 minutes.`
-        );
+        let emailSent = true;
+        try {
+            await sendEmail(
+                req.user.email,
+                "E-Grievance Step-Up Verification Code",
+                `Your verification code is ${code}. It expires in 10 minutes.`
+            );
+        } catch (emailError) {
+            emailSent = false;
+            console.warn("Step-up email delivery failed:", emailError.message);
+        }
         await writeAuditLog(req, "STEP_UP_CODE_REQUESTED", "User", req.user._id);
-        return res.json({ message: "Step-up code sent to your email" });
+        return res.json({
+            message: emailSent
+                ? "Step-up code sent to your email"
+                : "Verification code generated, but email delivery failed. Please contact superadmin support.",
+            emailSent,
+        });
     } catch (err) {
         next(err);
     }

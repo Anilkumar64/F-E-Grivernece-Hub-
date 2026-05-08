@@ -16,42 +16,33 @@ export default function CreateGrievance() {
     const navigate = useNavigate();
     const location = useLocation();
     const { authUser } = React.useContext(AuthContext);
-    const [categories, setCategories] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [form, setForm] = useState({
         title: "",
         description: "",
-        category: "",
+        department: "",
         priority: "Medium",
         isAcademicUrgent: false,
         urgentReason: "",
     });
     const [files, setFiles] = useState([]);
     const [submitted, setSubmitted] = useState(null);
-    const [loadingCategories, setLoadingCategories] = useState(false);
+    const [loadingDepartments, setLoadingDepartments] = useState(false);
     const [activeDraftId, setActiveDraftId] = useState(null);
 
     useEffect(() => {
         let active = true;
         const t = window.setTimeout(() => {
-            setLoadingCategories(true);
-            const departmentId = authUser?.department?._id || authUser?.department || "";
-            const url = departmentId ? `/categories?department=${departmentId}` : "/categories";
-            api.get(url)
-                .then(async (res) => {
-                    const list = Array.isArray(res.data) ? res.data : (res.data.categories || []);
+            setLoadingDepartments(true);
+            api.get("/departments")
+                .then((res) => {
                     if (!active) return;
-                    if (list.length > 0 || !departmentId) {
-                        setCategories(list);
-                        return;
-                    }
-                    // Fallback: if department-specific categories are empty, load all categories.
-                    const allRes = await api.get("/categories");
-                    const allList = Array.isArray(allRes.data) ? allRes.data : (allRes.data.categories || []);
-                    if (active) setCategories(allList);
+                    const list = Array.isArray(res.data) ? res.data : [];
+                    setDepartments(list.filter((d) => d.isActive !== false));
                 })
-                .catch(() => toast.error("Unable to load categories"))
+                .catch(() => toast.error("Unable to load departments"))
                 .finally(() => {
-                    if (active) setLoadingCategories(false);
+                    if (active) setLoadingDepartments(false);
                 });
         }, 0);
 
@@ -78,7 +69,7 @@ export default function CreateGrievance() {
                     ...prev,
                     title: draft.title || "",
                     description: draft.description || "",
-                    category: draft.category || "",
+                    department: draft.department || "",
                     priority: draft.priority || "Medium",
                     isAcademicUrgent: Boolean(draft.isAcademicUrgent),
                     urgentReason: draft.urgentReason || "",
@@ -98,7 +89,7 @@ export default function CreateGrievance() {
                 JSON.stringify({
                     title: form.title,
                     description: form.description,
-                    category: form.category,
+                    department: form.department,
                     priority: form.priority,
                     isAcademicUrgent: form.isAcademicUrgent,
                     urgentReason: form.urgentReason,
@@ -110,25 +101,8 @@ export default function CreateGrievance() {
     }, [form]);
 
     const descriptionCount = form.description.length;
-    const suggestedCategory = useMemo(() => {
-        if (!categories.length || form.category) return null;
-        const haystack = `${form.title} ${form.description}`.toLowerCase().trim();
-        if (!haystack) return null;
-
-        const scored = categories
-            .map((c) => {
-                const name = `${c.name || ""} ${c.description || ""} ${c.department?.name || ""}`.toLowerCase();
-                const tokens = name.split(/[^a-z0-9]+/).filter((t) => t.length > 2);
-                const score = tokens.reduce((acc, token) => (haystack.includes(token) ? acc + 1 : acc), 0);
-                return { category: c, score };
-            })
-            .sort((a, b) => b.score - a.score);
-
-        return scored[0]?.score > 0 ? scored[0].category : null;
-    }, [categories, form.title, form.description, form.category]);
-
     const valid = useMemo(
-        () => form.title.trim().length > 0 && form.title.length <= 100 && descriptionCount >= 50 && form.category,
+        () => form.title.trim().length > 0 && form.title.length <= 100 && descriptionCount >= 50 && form.department,
         [form, descriptionCount]
     );
 
@@ -142,7 +116,7 @@ export default function CreateGrievance() {
     const validations = [
         { label: "Title", ok: Boolean(form.title.trim()) },
         { label: "Description (50+ chars)", ok: form.description.length >= 50 },
-        { label: "Category", ok: Boolean(form.category) },
+        { label: "Department", ok: Boolean(form.department) },
         { label: "Urgency reason", ok: !form.isAcademicUrgent || Boolean(form.urgentReason.trim()) },
     ];
 
@@ -150,7 +124,7 @@ export default function CreateGrievance() {
         e.preventDefault();
         if (!form.title.trim()) return toast.error("Title is required");
         if (form.description.length < 50) return toast.error("Description must be at least 50 characters");
-        if (!form.category) return toast.error("Please select a category");
+        if (!form.department) return toast.error("Please select a department");
         if (form.isAcademicUrgent && !form.urgentReason.trim()) return toast.error("Urgency reason is required for urgent grievances");
         const data = new FormData();
         Object.entries(form).forEach(([key, value]) => data.append(key, value));
@@ -177,7 +151,7 @@ export default function CreateGrievance() {
             id,
             title: form.title,
             description: form.description,
-            category: form.category,
+            department: form.department,
             priority: form.priority,
             isAcademicUrgent: form.isAcademicUrgent,
             urgentReason: form.urgentReason,
@@ -199,7 +173,7 @@ export default function CreateGrievance() {
         setForm({
             title: "",
             description: "",
-            category: "",
+            department: "",
             priority: "Medium",
             isAcademicUrgent: false,
             urgentReason: "",
@@ -257,23 +231,15 @@ export default function CreateGrievance() {
                     <label className="grid gap-2 text-sm font-medium text-gray-700">Description<textarea className="ui-input min-h-28" minLength={50} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required /></label>
                     <p className={descriptionCount < 50 ? "text-sm text-gray-500" : "inline-flex w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"}>{descriptionCount}/50 minimum characters</p>
                     <div className="grid gap-3 md:grid-cols-2">
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Category
-                            <select className="ui-input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required>
-                                <option value="">Select category</option>
-                                {categories.map((c) => <option key={c._id} value={c._id}>{c.name} - {c.department?.name}</option>)}
+                        <label className="grid gap-2 text-sm font-medium text-gray-700">Department
+                            <select className="ui-input" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} required>
+                                <option value="">Select department</option>
+                                {departments.map((d) => <option key={d._id} value={d._id}>{d.name}</option>)}
                             </select>
-                            {suggestedCategory && (
+                            {loadingDepartments && <small className="text-xs text-gray-500">Loading departments...</small>}
+                            {!departments.length && (
                                 <small className="text-xs text-gray-500">
-                                    Suggested category: <strong>{suggestedCategory.name}</strong>{" "}
-                                    <button type="button" className="ml-1 text-indigo-600 hover:text-indigo-500" onClick={() => setForm({ ...form, category: suggestedCategory._id })}>
-                                        Use Suggestion
-                                    </button>
-                                </small>
-                            )}
-                            {loadingCategories && <small className="text-xs text-gray-500">Loading categories...</small>}
-                            {!categories.length && (
-                                <small className="text-xs text-gray-500">
-                                    No categories found for your department. Please contact admin/superadmin to add complaint categories.
+                                    No departments found. Please contact admin/superadmin.
                                 </small>
                             )}
                         </label>

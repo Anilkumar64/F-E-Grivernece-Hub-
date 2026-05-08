@@ -20,6 +20,7 @@ export default function Profile() {
     const [departments, setDepartments] = useState([]);
     const [courses, setCourses] = useState([]);
     const [removingPhoto, setRemovingPhoto] = useState(false);
+    const [courseSearch, setCourseSearch] = useState("");
 
     useEffect(() => {
         // BUG FIX #1: /students/profile was throwing 404 because server.js never mounted
@@ -52,6 +53,16 @@ export default function Profile() {
         const url = departmentId ? `/courses?department=${departmentId}` : "/courses";
         api.get(url).then((res) => setCourses(res.data?.courses || [])).catch(() => setCourses([]));
     }, [form.department]);
+
+    useEffect(() => {
+        setCourseSearch("");
+    }, [form.department]);
+
+    const visibleCourses = courses.filter((course) => {
+        if (!courseSearch.trim()) return true;
+        const hay = `${course.name || ""} ${course.code || ""}`.toLowerCase();
+        return hay.includes(courseSearch.toLowerCase().trim());
+    });
 
     const save = async (e) => {
         e.preventDefault();
@@ -120,39 +131,68 @@ export default function Profile() {
                 </Card>
             </div>
             <Modal open={editing} onClose={() => setEditing(false)}>
-                    <form className="space-y-3" onSubmit={save}>
-                        <div className="flex items-center justify-between gap-3"><h2 className="text-xl font-semibold tracking-tight text-gray-900">Edit Profile</h2><Button type="button" variant="ghost" onClick={() => setEditing(false)}>Close</Button></div>
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Profile Photo<Input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files[0])} /></label>
-                        <div className="flex justify-end">
+                    <form className="space-y-4" onSubmit={save}>
+                        <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-3">
+                            <div>
+                                <h2 className="text-xl font-semibold tracking-tight text-gray-900">Edit Profile</h2>
+                                <p className="text-xs text-gray-500">Update your academic and contact information.</p>
+                            </div>
+                            <Button type="button" variant="ghost" onClick={() => setEditing(false)}>Close</Button>
+                        </div>
+                        <div className="max-h-[72vh] space-y-4 overflow-y-auto pr-1">
+                            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                                <p className="mb-2 text-sm font-semibold text-gray-900">Profile Photo</p>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">
+                                    Upload New Photo
+                                    <Input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files[0])} />
+                                </label>
+                            </div>
+                            <div className="flex justify-end">
                             <Button type="button" variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50" onClick={removePhoto} disabled={removingPhoto || !profile?.profilePhoto}>
                                 {removingPhoto ? "Removing..." : "Remove Profile Photo"}
                             </Button>
+                            </div>
+                            <div className="grid gap-3 md:grid-cols-2">
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Roll Number<Input value={form.rollNumber} onChange={(e) => setForm({ ...form, rollNumber: e.target.value })} /></label>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Student ID<Input value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} /></label>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Department
+                                    <select className="ui-input" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}>
+                                        <option value="">Select Department</option>
+                                        {departments.map((dept) => (
+                                            <option key={dept._id} value={dept._id}>{dept.name} ({dept.code})</option>
+                                        ))}
+                                    </select>
+                                </label>
+                                <div className="grid gap-2">
+                                    <label className="text-sm font-medium text-gray-700">Find Course</label>
+                                    <Input
+                                        placeholder="Search course name/code..."
+                                        value={courseSearch}
+                                        onChange={(e) => setCourseSearch(e.target.value)}
+                                    />
+                                </div>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700 md:col-span-2">Course
+                                    <select className="ui-input" value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })}>
+                                        <option value="">Select Course</option>
+                                        {visibleCourses.map((course) => (
+                                            <option key={course._id} value={course._id}>{course.name} ({course.code})</option>
+                                        ))}
+                                    </select>
+                                    <small className="text-xs text-gray-500">
+                                        Showing {visibleCourses.length} of {courses.length} courses.
+                                    </small>
+                                </label>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Year<Input value={form.yearOfStudy} onChange={(e) => setForm({ ...form, yearOfStudy: e.target.value })} /></label>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Admission Year<Input value={form.admissionYear} onChange={(e) => setForm({ ...form, admissionYear: e.target.value })} /></label>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Contact Number<Input value={form.contactNumber} onChange={(e) => setForm({ ...form, contactNumber: e.target.value })} /></label>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Alternate Email<Input value={form.alternateEmail} onChange={(e) => setForm({ ...form, alternateEmail: e.target.value })} /></label>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700">Class<Input value={form.class} onChange={(e) => setForm({ ...form, class: e.target.value })} /></label>
+                                <label className="grid gap-2 text-sm font-medium text-gray-700 md:col-span-2">Address<textarea className="ui-input min-h-20" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></label>
+                            </div>
                         </div>
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Roll Number<Input value={form.rollNumber} onChange={(e) => setForm({ ...form, rollNumber: e.target.value })} /></label>
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Student ID<Input value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} /></label>
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Department
-                            <select className="ui-input" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}>
-                                <option value="">Select Department</option>
-                                {departments.map((dept) => (
-                                    <option key={dept._id} value={dept._id}>{dept.name} ({dept.code})</option>
-                                ))}
-                            </select>
-                        </label>
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Course
-                            <select className="ui-input" value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })}>
-                                <option value="">Select Course</option>
-                                {courses.map((course) => (
-                                    <option key={course._id} value={course._id}>{course.name} ({course.code})</option>
-                                ))}
-                            </select>
-                        </label>
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Year<Input value={form.yearOfStudy} onChange={(e) => setForm({ ...form, yearOfStudy: e.target.value })} /></label>
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Admission Year<Input value={form.admissionYear} onChange={(e) => setForm({ ...form, admissionYear: e.target.value })} /></label>
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Contact Number<Input value={form.contactNumber} onChange={(e) => setForm({ ...form, contactNumber: e.target.value })} /></label>
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Alternate Email<Input value={form.alternateEmail} onChange={(e) => setForm({ ...form, alternateEmail: e.target.value })} /></label>
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Class<Input value={form.class} onChange={(e) => setForm({ ...form, class: e.target.value })} /></label>
-                        <label className="grid gap-2 text-sm font-medium text-gray-700">Address<textarea className="ui-input min-h-20" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></label>
-                        <Button>Save Changes</Button>
+                        <div className="flex justify-end border-t border-gray-100 pt-3">
+                            <Button>Save Changes</Button>
+                        </div>
                     </form>
             </Modal>
         </section>

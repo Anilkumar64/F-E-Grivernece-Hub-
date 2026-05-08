@@ -1,7 +1,12 @@
 import React from "react";
 import { resolveBrandAsset, useBranding } from "../../hooks/useBranding";
 
-export default function BrandMark({ showName = true, className = "" }) {
+export default function BrandMark({
+    showName = true,
+    className = "",
+    logoSizeClass = "h-9 w-9",
+    nameClassName = "text-sm font-semibold tracking-tight text-gray-900",
+}) {
     const { universityName, universityLogo } = useBranding();
     const logoUrl = resolveBrandAsset(universityLogo);
     const initials = (universityName || "KU")
@@ -14,11 +19,11 @@ export default function BrandMark({ showName = true, className = "" }) {
     return (
         <span className={`inline-flex items-center gap-3 ${className}`}>
             {logoUrl ? (
-                <img src={logoUrl} alt={`${universityName} logo`} className="h-9 w-9 rounded-lg border border-gray-200 object-cover" />
+                <img src={logoUrl} alt={`${universityName} logo`} className={`${logoSizeClass} rounded-lg border border-gray-200 object-cover`} />
             ) : (
                 <span className="ku-logo">{initials}</span>
             )}
-            {showName && <span className="text-sm font-semibold tracking-tight text-gray-900">{universityName}</span>}
+            {showName && <span className={nameClassName}>{universityName}</span>}
         </span>
     );
 }

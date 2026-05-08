@@ -123,9 +123,10 @@ export default function ManageDepartments() {
                         <label className="grid gap-2 text-sm font-medium text-gray-700">Description<textarea className="ui-input min-h-24" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
                         <label className="grid gap-2 text-sm font-medium text-gray-700">Head Admin
                             <select className="ui-input" value={form.headAdmin} onChange={(e) => setForm({ ...form, headAdmin: e.target.value })}>
-                                <option value="">Select admin</option>
+                                <option value="">No head admin (remove assignment)</option>
                                 {admins.map((a) => <option key={a._id} value={a._id}>{a.name}</option>)}
                             </select>
+                            <small className="text-xs text-gray-500">When selected, this admin is automatically assigned to this department.</small>
                         </label>
                         <div className="flex justify-end gap-3">
                             <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>

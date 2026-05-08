@@ -99,8 +99,8 @@ export default function AppLayout({ role }) {
     return (
         <div className="min-h-screen bg-gray-50">
             <RouteTracker />
-            <aside className={`fixed inset-y-0 left-0 z-40 w-72 transform bg-slate-900 text-white transition-transform duration-200 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
-                <div className="border-b border-slate-800 px-6 py-5" onClick={() => navigate(dashboardPath[role])}>
+            <aside className={`fixed inset-y-0 left-0 z-40 flex h-screen w-72 transform flex-col bg-slate-900 text-white transition-transform duration-200 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+                <div className="shrink-0 border-b border-slate-800 px-6 py-5" onClick={() => navigate(dashboardPath[role])}>
                     <div className="flex cursor-pointer items-center gap-3">
                         {universityLogo ? (
                             <img src={resolveBrandAsset(universityLogo)} alt={`${universityName} logo`} className="h-10 w-10 rounded-lg object-cover" />
@@ -116,7 +116,7 @@ export default function AppLayout({ role }) {
                     </div>
                 </div>
 
-                <div className="m-4 rounded-2xl border border-slate-800 bg-slate-800/60 p-3">
+                <div className="m-4 shrink-0 rounded-2xl border border-slate-800 bg-slate-800/60 p-3">
                     <div className="flex items-center gap-3">
                         {profilePhotoSrc ? (
                             <img
@@ -140,7 +140,7 @@ export default function AppLayout({ role }) {
                     </div>
                 </div>
 
-                <nav className="space-y-1 px-3 pb-6">
+                <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-6">
                     {items.map(({ label, path, icon: Icon, badge }) => (
                         <NavLink key={path + label} to={path} onClick={() => setOpen(false)}
                             className={({ isActive }) =>
