@@ -26,6 +26,7 @@ import siteRoutes           from "./src/routes/siteRoutes.js";
 import landingConfigRoutes  from "./src/routes/landingConfigRoutes.js";
 import studentRoutes        from "./src/routes/studentRoutes.js";
 import courseRoutes         from "./src/routes/courseRoutes.js";
+import aiRoutes             from "./src/routes/aiRoutes.js";
 import { apiLimiter }       from "./src/middleware/rateLimiters.js";
 import { authenticate }     from "./src/middleware/authMiddleware.js";
 import { notFound, errorHandler } from "./src/middleware/errorHandler.js";
@@ -173,6 +174,7 @@ app.use("/api/categories",    apiLimiter, categoryRoutes);
 app.use("/api/notifications", apiLimiter, notificationRoutes);
 app.use("/api/audit-logs",    apiLimiter, auditLogRoutes);
 app.use("/api/reports",       apiLimiter, reportRoutes);
+app.use("/api/ai",            aiRoutes);
 
 app.get("/", (_req, res) => res.json({ status: "ok", service: "University E-Grievance API" }));
 
