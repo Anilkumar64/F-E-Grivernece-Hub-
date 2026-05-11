@@ -20,6 +20,8 @@ import crypto from "crypto";
 const router = express.Router();
 router.use(...verifySuperAdmin);
 
+const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /* ─── Dashboard stats ─── */
 router.get("/stats", async (req, res, next) => {
     try {
@@ -154,7 +156,7 @@ router.get("/reports/filtered", authorizePermission("reports.read"), async (req,
         }
         const grievances = await Grievance.find(query)
             .populate("department", "name code")
-            .populate("createdBy", "name email role")
+            .populate("submittedBy", "name email role studentId")
             .sort({ createdAt: -1 })
             .limit(500);
         return res.json({ count: grievances.length, grievances });
@@ -301,11 +303,12 @@ router.get("/users", authorizePermission("users.read"), async (req, res, next) =
         if (role) query.role = role;
         if (typeof isActive !== "undefined") query.isActive = isActive === "true";
         if (q) {
+            const pattern = new RegExp(escapeRegex(q), "i");
             query.$or = [
-                { name: { $regex: q, $options: "i" } },
-                { email: { $regex: q, $options: "i" } },
-                { studentId: { $regex: q, $options: "i" } },
-                { staffId: { $regex: q, $options: "i" } },
+                { name: pattern },
+                { email: pattern },
+                { studentId: pattern },
+                { staffId: pattern },
             ];
         }
         const skip = (Number(page) - 1) * Number(limit);

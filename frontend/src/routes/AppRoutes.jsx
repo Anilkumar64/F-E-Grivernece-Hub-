@@ -48,7 +48,6 @@ import ProtectedRoute from "../components/protected/ProtectedRoute";
 import PublicRoute from "../components/protected/PublicRoute";
 import AppLayout from "../components/common/AppLayout";
 import NotificationsPage from "../pages/Shared/NotificationsPage";
-import AiChatbot from "../components/common/AiChatbot";
 
 export default function AppRoutes() {
     return (
@@ -81,8 +80,6 @@ export default function AppRoutes() {
                     <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/profile" element={<Profile />} />
                 </Route>
-                {/* Floating AI chatbot visible on all student pages */}
-                <Route path="*" element={<AiChatbot />} />
             </Route>
 
             {/* ── Admin ── */}

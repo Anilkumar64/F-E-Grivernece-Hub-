@@ -12,6 +12,7 @@ import { useNotifications } from "../../hooks/useNotifications";
 import RouteTracker from "./RouteTracker";
 import Badge from "../ui/Badge";
 import { resolveBrandAsset, useBranding } from "../../hooks/useBranding";
+import AiChatbot from "./AiChatbot";
 
 const iconSize = 20;
 
@@ -240,6 +241,8 @@ export default function AppLayout({ role }) {
                     <Outlet />
                 </main>
             </div>
+            {/* AI chatbot — student-only, floats above all content */}
+            {role === "student" && <AiChatbot />}
         </div>
     );
 }

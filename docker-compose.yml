@@ -1,8 +1,66 @@
 services:
+  # ── MongoDB ─────────────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── Redis ───────────────────────────────────────────────────
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── AI Service (Python/FastAPI) ─────────────────────────────
+  ai-service:
+    build: ./ai-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      MONGODB_URL: ${MONGODB_URL:-mongodb://mongo:27017/EgrievanceHub}
+      MONGODB_DB: ${MONGODB_DB:-EgrievanceHub}
+      AI_SERVICE_SECRET: ${AI_SERVICE_SECRET:-change-me-ai-service-secret-min-32-chars}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
+      LOG_DIR: /app/logs
+      PRELOAD_EMBEDDING_MODEL: ${PRELOAD_EMBEDDING_MODEL:-false}
+      EMBEDDING_MODEL: all-MiniLM-L6-v2
+      SIMILARITY_THRESHOLD: "0.75"
+      MAX_SIMILAR_RESULTS: "5"
+      HOST: 0.0.0.0
+      PORT: "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    volumes:
+      - ai-logs-data:/app/logs
+
+  # ── Backend (Node.js/Express) ───────────────────────────────
   backend:
     build: ./backend
-    env_file:
-      - ./backend/.env
+    restart: unless-stopped
     ports:
       - "5000:5000"
     depends_on:
@@ -10,50 +68,61 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      ai-service:
+        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 5000
-      MONGODB_URL: mongodb://mongo:27017/EgrievanceHub
+      MONGODB_URL: ${MONGODB_URL:-mongodb://mongo:27017/EgrievanceHub}
       REDIS_URL: redis://redis:6379
-      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-change-me-access-token-secret-32-chars-minimum}
-      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-change-me-refresh-token-secret-32-chars-minimum}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-change-me-access-token-secret-min-32-chars}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-change-me-refresh-token-secret-min-32-chars}
+      ACCESS_TOKEN_EXPIRY: ${ACCESS_TOKEN_EXPIRY:-1h}
+      REFRESH_TOKEN_EXPIRY: ${REFRESH_TOKEN_EXPIRY:-7d}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      JSON_BODY_LIMIT: 1mb
+      FORM_BODY_LIMIT: 1mb
+      # Email
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
+      EMAIL_PORT: ${EMAIL_PORT:-465}
+      EMAIL_SECURE: ${EMAIL_SECURE:-true}
+      EMAIL_USER: ${EMAIL_USER:-}
+      EMAIL_PASS: ${EMAIL_PASS:-}
+      EMAIL_FROM: ${EMAIL_FROM:-E-Grievance Hub <no-reply@example.com>}
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      # AI Service connection
+      AI_SERVICE_URL: http://ai-service:8000
+      AI_SERVICE_SECRET: ${AI_SERVICE_SECRET:-change-me-ai-service-secret-min-32-chars}
+      AI_TIMEOUT_MS: "15000"
+      AI_RETRY_ATTEMPTS: "3"
+      LOG_DIR: /app/logs
+    volumes:
+      - uploads-data:/app/uploads
+      - backend-logs-data:/app/logs
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 15s
 
+  # ── Frontend (Vite Dev Server) ──────────────────────────────
   frontend:
     build: ./frontend
+    restart: unless-stopped
     ports:
       - "5173:5173"
     depends_on:
       backend:
-        condition: service_started
+        condition: service_healthy
     environment:
       VITE_PROXY_TARGET: http://backend:5000
       VITE_API_URL: ""
-    command: npm run frontend -- --host 0.0.0.0 --port 5173
-
-  mongo:
-    image: mongo:7.0
-    volumes:
-      - mongo-data:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7.4-alpine
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
+    command: ["npm", "run", "frontend", "--", "--host", "0.0.0.0", "--port", "5173"]
 
 volumes:
   mongo-data:
+  uploads-data:
+  backend-logs-data:
+  ai-logs-data:

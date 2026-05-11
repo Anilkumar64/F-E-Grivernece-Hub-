@@ -52,10 +52,10 @@ class AnalyzeResponse(BaseModel):
     available: bool = True
     suggested_category: str = "Other"
     suggested_priority: str = "Medium"
-    urgency_flags: list[str] = []
+    urgency_flags: list[str] = Field(default_factory=list)
     sentiment: str = "neutral"
     summary: str = ""
-    content_flags: list[str] = []
+    content_flags: list[str] = Field(default_factory=list)
     spam_score: float = 0.0
     mental_health_risk: str = "none"
     reasoning: str = ""

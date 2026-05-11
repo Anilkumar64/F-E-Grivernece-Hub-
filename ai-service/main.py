@@ -3,13 +3,16 @@ FastAPI AI Microservice — E-Griverence
 Exposes ML-powered endpoints consumed by the Node.js backend.
 """
 import logging
+import os
 from contextlib import asynccontextmanager
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from config import get_settings
-from services.db_service import connect_db, close_db
+from services.db_service import connect_db, close_db, is_db_connected
 from services.embedding_service import load_embedding_model
 
 from routers import (
@@ -18,10 +21,33 @@ from routers import (
     search, insights, sla_risk, chat,
 )
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
+def configure_logging() -> None:
+    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    root = logging.getLogger()
+    root.setLevel(log_level)
+    root.handlers.clear()
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    root.addHandler(console_handler)
+
+    log_dir = Path(os.getenv("LOG_DIR", "logs"))
+    try:
+        log_dir.mkdir(parents=True, exist_ok=True)
+        app_handler = RotatingFileHandler(log_dir / "ai-service.log", maxBytes=5_000_000, backupCount=5)
+        app_handler.setFormatter(formatter)
+        root.addHandler(app_handler)
+
+        error_handler = RotatingFileHandler(log_dir / "ai-service-error.log", maxBytes=5_000_000, backupCount=5)
+        error_handler.setLevel(logging.ERROR)
+        error_handler.setFormatter(formatter)
+        root.addHandler(error_handler)
+    except OSError as exc:
+        root.warning("File logging disabled: %s", exc)
+
+
+configure_logging()
 logger = logging.getLogger("ai-service")
 settings = get_settings()
 
@@ -31,7 +57,13 @@ async def lifespan(app: FastAPI):
     """Startup: connect DB + pre-load embedding model."""
     logger.info("Starting AI service …")
     await connect_db()
-    load_embedding_model()          # warm-up; cached after first call
+    if os.getenv("PRELOAD_EMBEDDING_MODEL", "false").lower() == "true":
+        try:
+            load_embedding_model()          # warm-up; cached after first call
+        except Exception as exc:
+            logger.error("Embedding model unavailable; similarity endpoints will be disabled: %s", exc)
+    else:
+        logger.info("Embedding model preload disabled; similarity model will lazy-load on first use")
     logger.info("AI service ready ✅")
     yield
     logger.info("Shutting down AI service …")
@@ -90,13 +122,33 @@ app.include_router(chat.router,             prefix="/chat",             tags=["C
 # ── Health ───────────────────────────────────────────────────────────────────
 @app.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok", "service": "E-Griverence AI"}
+    return {
+        "status": "ok" if is_db_connected() else "degraded",
+        "service": "E-Griverence AI",
+        "db_connected": is_db_connected(),
+        "gemini_configured": bool(settings.gemini_api_key),
+    }
+
+
+@app.get("/ready", tags=["Health"])
+async def ready():
+    return {
+        "status": "ready" if is_db_connected() else "degraded",
+        "service": "E-Griverence AI",
+        "db_connected": is_db_connected(),
+        "gemini_configured": bool(settings.gemini_api_key),
+    }
 
 
 # ── Global exception handler ─────────────────────────────────────────────────
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error("Unhandled error: %s", exc, exc_info=True)
+    if "Database not connected" in str(exc):
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "AI database unavailable", "available": False},
+        )
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal AI service error", "available": False},

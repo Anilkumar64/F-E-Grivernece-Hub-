@@ -7,7 +7,7 @@ No Gemini needed - purely statistical, fast.
 import logging
 from datetime import datetime
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from services.db_service import get_collection
 
@@ -29,7 +29,7 @@ class SlaRiskItem(BaseModel):
 
 class SlaRiskResponse(BaseModel):
     available: bool = True
-    items: list[SlaRiskItem] = []
+    items: list[SlaRiskItem] = Field(default_factory=list)
     total_at_risk: int = 0
 
 

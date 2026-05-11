@@ -38,7 +38,7 @@ class DuplicateMatch(BaseModel):
 
 class DuplicateResponse(BaseModel):
     available: bool = True
-    matches: list[DuplicateMatch] = []
+    matches: list[DuplicateMatch] = Field(default_factory=list)
 
 
 @router.post("", response_model=DuplicateResponse)

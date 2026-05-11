@@ -1,7 +1,5 @@
 import nodemailer from "nodemailer";
 
-const EMAIL_ENABLED = process.env.EMAIL_ENABLED !== "false";
-
 // ✅ FIX MI-12: original code called nodemailer.createTransport() inside every
 // sendEmail() invocation. Nodemailer transports maintain a connection pool;
 // recreating them on every call throws away that pool, forcing a fresh TCP/TLS
@@ -38,7 +36,7 @@ export default async function sendEmail(toOrOptions, subject, text) {
 
     const { to } = mail;
 
-    if (!EMAIL_ENABLED) {
+    if (process.env.EMAIL_ENABLED === "false") {
         console.log(`[EMAIL DISABLED] Would send to ${to}: "${mail.subject}"`);
         return;
     }

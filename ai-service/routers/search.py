@@ -57,8 +57,8 @@ class SearchHit(BaseModel):
 class SearchResponse(BaseModel):
     available: bool = True
     mode: str
-    hits: list[SearchHit] = []
-    mongo_filter: dict = {}
+    hits: list[SearchHit] = Field(default_factory=list)
+    mongo_filter: dict = Field(default_factory=dict)
 
 
 @router.post("", response_model=SearchResponse)

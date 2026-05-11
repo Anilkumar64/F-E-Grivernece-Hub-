@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EmptyState from "../../components/common/EmptyState";
 import Card from "../../components/ui/Card";
@@ -6,24 +6,24 @@ import Button from "../../components/ui/Button";
 
 const DRAFTS_KEY = "student_grievance_drafts_v2";
 
+const readDrafts = () => {
+    try {
+        const raw = localStorage.getItem(DRAFTS_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)) : [];
+    } catch {
+        return [];
+    }
+};
+
 export default function MyDrafts() {
     const navigate = useNavigate();
-    const [version, setVersion] = useState(0);
-
-    const drafts = useMemo(() => {
-        try {
-            const raw = localStorage.getItem(DRAFTS_KEY);
-            const parsed = raw ? JSON.parse(raw) : [];
-            return Array.isArray(parsed) ? parsed.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)) : [];
-        } catch {
-            return [];
-        }
-    }, [version]);
+    const [drafts, setDrafts] = useState(readDrafts);
 
     const removeDraft = (id) => {
         const next = drafts.filter((d) => d.id !== id);
         localStorage.setItem(DRAFTS_KEY, JSON.stringify(next));
-        setVersion((v) => v + 1);
+        setDrafts(next);
     };
 
     return (

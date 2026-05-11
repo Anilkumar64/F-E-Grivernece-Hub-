@@ -4,6 +4,14 @@ node_modules
 !.env.example
 uploads
 backend/uploads
+backend
 coverage
+logs
 *.log
 npm-debug.log*
+*.mp4
+*.mov
+*.avi
+*.jpg
+*.jpeg
+*.png

@@ -30,6 +30,8 @@ const paginate = (query) => {
     return { page, limit, skip: (page - 1) * limit };
 };
 
+const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const canView = (req, grievance) => {
     if (req.role === "superadmin") return true;
     if (req.role === "student") {
@@ -63,11 +65,12 @@ const buildFilter = async (req) => {
     }
 
     if (req.query.search) {
-        const q = req.query.search.trim();
-        const students = await User.find({ name: new RegExp(q, "i"), role: "student" }).select("_id");
+        const q = String(req.query.search).trim();
+        const pattern = new RegExp(escapeRegex(q), "i");
+        const students = await User.find({ name: pattern, role: "student" }).select("_id");
         filter.$or = [
-            { grievanceId: new RegExp(q, "i") },
-            { title: new RegExp(q, "i") },
+            { grievanceId: pattern },
+            { title: pattern },
             { submittedBy: { $in: students.map((s) => s._id) } },
         ];
     }
@@ -140,7 +143,7 @@ router.post(
             }));
 
             const grievance = await Grievance.create({
-                title, description, category, priority,
+                title, description, priority,
                 isAcademicUrgent: urgent,
                 urgentReason: urgent ? String(urgentReason || "").trim().slice(0, 300) : "",
                 submittedBy: req.userId,

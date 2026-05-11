@@ -7,7 +7,7 @@ import logging
 from datetime import datetime
 import numpy as np
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from bson import ObjectId
 
 from services.embedding_service import embed, cosine_similarity_matrix
@@ -30,7 +30,7 @@ class SimilarGrievance(BaseModel):
 
 class SimilarResponse(BaseModel):
     available: bool = True
-    similar: list[SimilarGrievance] = []
+    similar: list[SimilarGrievance] = Field(default_factory=list)
 
 
 @router.get("/{grievance_mongo_id}", response_model=SimilarResponse)

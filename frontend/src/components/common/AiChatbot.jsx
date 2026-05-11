@@ -25,15 +25,15 @@ export default function AiChatbot() {
     const bottomRef = useRef(null);
     const inputRef = useRef(null);
 
-    // Only show for students
-    if (authUser?.role && authUser.role !== "student") return null;
-
     useEffect(() => {
         if (open) {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });
             inputRef.current?.focus();
         }
     }, [open, messages]);
+
+    // Only show for students
+    if (authUser?.role && authUser.role !== "student") return null;
 
     const send = async (text) => {
         const msg = (text || input).trim();

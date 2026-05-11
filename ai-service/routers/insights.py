@@ -10,10 +10,9 @@ from collections import defaultdict
 
 import numpy as np
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from services.db_service import get_collection
-from services.gemini_client import generate_json
 from ml.clustering import cluster_grievances
 from ml.anomaly_detection import detect_anomalies
 from ml.forecasting import forecast_volume
@@ -33,7 +32,7 @@ class Cluster(BaseModel):
 
 class ClustersResponse(BaseModel):
     available: bool = True
-    clusters: list[Cluster] = []
+    clusters: list[Cluster] = Field(default_factory=list)
     total_analyzed: int = 0
 
 
@@ -63,16 +62,14 @@ async def get_clusters():
         sample_titles = [d.get("title", "") for d in group_docs[:4]]
         sample_text = " | ".join(sample_titles[:3])
 
-        # Ask Gemini to label this cluster
+        # Ask Gemini to label this cluster with a short phrase
+        from services.gemini_client import generate_text
         label_prompt = f"""
 These university student grievances were grouped together by topic similarity.
 Sample titles: {sample_text}
 In 5 words or fewer, give a label for this group (e.g. "Wi-Fi connectivity issues").
 Return only the label text.
 """
-        label = await generate_json(label_prompt) or {}
-        # generate_json expects JSON — use generate_text for plain text
-        from services.gemini_client import generate_text
         raw_label = await generate_text(label_prompt, temperature=0.2, max_tokens=20)
         cluster_label = (raw_label or f"Issue Group {cid + 1}").strip()
 
@@ -107,7 +104,7 @@ class Anomaly(BaseModel):
 
 class AnomalyResponse(BaseModel):
     available: bool = True
-    anomalies: list[Anomaly] = []
+    anomalies: list[Anomaly] = Field(default_factory=list)
 
 
 @router.get("/anomalies", response_model=AnomalyResponse)
@@ -159,7 +156,7 @@ class ForecastPoint(BaseModel):
 
 class ForecastResponse(BaseModel):
     available: bool = True
-    forecast: list[ForecastPoint] = []
+    forecast: list[ForecastPoint] = Field(default_factory=list)
     trend: str = "stable"   # "rising" | "falling" | "stable"
 
 
@@ -203,7 +200,7 @@ class AdminScore(BaseModel):
 
 class AdminScoresResponse(BaseModel):
     available: bool = True
-    scores: list[AdminScore] = []
+    scores: list[AdminScore] = Field(default_factory=list)
 
 
 @router.get("/admin-scores", response_model=AdminScoresResponse)

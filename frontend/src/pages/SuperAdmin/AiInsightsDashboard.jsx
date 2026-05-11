@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Brain, TrendingUp, AlertTriangle, Users, RefreshCw, Loader2, Layers, Activity } from "lucide-react";
 import api from "../../api/axiosInstance";

@@ -4,6 +4,7 @@ import helmet        from "helmet";
 import path          from "path";
 import cors          from "cors";
 import morgan        from "morgan";
+import fs            from "fs";
 import cookieParser  from "cookie-parser";
 import mongoSanitize from "express-mongo-sanitize";
 import hpp           from "hpp";
@@ -48,6 +49,40 @@ const PORT       = process.env.PORT || 5000;
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const isProd     = process.env.NODE_ENV === "production";
 
+const configureFileLogging = () => {
+    if (process.env.NODE_ENV === "test" || process.env.VITEST) return null;
+    try {
+        const logDir = path.resolve(process.env.LOG_DIR || path.join(__dirname, "logs"));
+        fs.mkdirSync(logDir, { recursive: true });
+        const appLog = fs.createWriteStream(path.join(logDir, "backend.log"), { flags: "a" });
+        const errorLog = fs.createWriteStream(path.join(logDir, "backend-error.log"), { flags: "a" });
+        const accessLog = fs.createWriteStream(path.join(logDir, "backend-access.log"), { flags: "a" });
+        const original = {
+            log: console.log.bind(console),
+            warn: console.warn.bind(console),
+            error: console.error.bind(console),
+        };
+        const write = (stream, level, args) => {
+            stream.write(`${new Date().toISOString()} [${level}] ${args.map((arg) => (
+                arg instanceof Error ? arg.stack || arg.message : typeof arg === "string" ? arg : JSON.stringify(arg)
+            )).join(" ")}\n`);
+        };
+        console.log = (...args) => { write(appLog, "INFO", args); original.log(...args); };
+        console.warn = (...args) => { write(appLog, "WARN", args); original.warn(...args); };
+        console.error = (...args) => {
+            write(appLog, "ERROR", args);
+            write(errorLog, "ERROR", args);
+            original.error(...args);
+        };
+        return accessLog;
+    } catch (err) {
+        console.warn("File logging disabled:", err.message);
+        return null;
+    }
+};
+
+const accessLogStream = configureFileLogging();
+
 /* ── CORS ── */
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173,http://localhost:5174")
     .split(",").map((o) => o.trim()).filter(Boolean);
@@ -79,6 +114,7 @@ app.use(cors({
     },
     credentials: true,
 }));
+app.use(cookieParser());
 if (isProd) {
     // Extra CSRF guard for cookie-authenticated state-changing requests.
     app.use((req, res, next) => {
@@ -105,10 +141,10 @@ if (isProd) {
 }
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: process.env.FORM_BODY_LIMIT || "1mb" }));
-app.use(cookieParser());
 app.use(mongoSanitize());
 app.use(hpp());
 if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
+if (accessLogStream) app.use(morgan("combined", { stream: accessLogStream }));
 
 // Keep auth/token responses out of intermediary caches.
 app.use((req, res, next) => {
@@ -198,11 +234,6 @@ const shutdown = async (signal) => {
     }
 };
 
-process.on("SIGTERM", () => shutdown("SIGTERM"));
-process.on("SIGINT",  () => shutdown("SIGINT"));
-process.on("uncaughtException",  (err) => { console.error("Uncaught exception:", err); shutdown("uncaughtException"); });
-process.on("unhandledRejection", (err) => { console.error("Unhandled rejection:", err); shutdown("unhandledRejection"); });
-
 /* ── Startup ── */
 const startServer = async () => {
     await ConnectDB();
@@ -211,7 +242,18 @@ const startServer = async () => {
     serverInstance = app.listen(PORT, () => console.log(`✅ Server running on port ${PORT} [${process.env.NODE_ENV || "development"}]`));
 };
 
-startServer().catch((err) => {
-    console.error("Server startup failed:", err);
-    process.exit(1);
-});
+const isMainModule = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isMainModule) {
+    process.on("SIGTERM", () => shutdown("SIGTERM"));
+    process.on("SIGINT",  () => shutdown("SIGINT"));
+    process.on("uncaughtException",  (err) => { console.error("Uncaught exception:", err); shutdown("uncaughtException"); });
+    process.on("unhandledRejection", (err) => { console.error("Unhandled rejection:", err); shutdown("unhandledRejection"); });
+
+    startServer().catch((err) => {
+        console.error("Server startup failed:", err);
+        process.exit(1);
+    });
+}
+
+export { app, startServer };
