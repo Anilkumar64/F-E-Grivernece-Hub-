@@ -1,126 +1,70 @@
 import mongoose from "mongoose";
-import jwt from "jsonwebtoken";
-import bcryptjs from "bcryptjs";
+import bcrypt from "bcryptjs";
 
 const adminSchema = new mongoose.Schema(
     {
-        name: {
-            type: String,
-            required: [true, "Admin name is required"],
-            trim: true,
-        },
+        name: { type: String, required: true, trim: true, maxlength: 120 },
         email: {
             type: String,
-            required: [true, "Email is required"],
+            required: true,
             unique: true,
             lowercase: true,
             trim: true,
-            validate: {
-                validator: function (value) {
-                    // ✅ FIX MO-01: Original regex /^[\w-\.]+@[\w-]+\.(ac\.in)$/ rejected valid
-                    // international college emails like admin@cs.university.ac.in (multiple subdomains)
-                    // or admin@university.edu.in. Broadened to allow any subdomain depth ending in .ac.in
-                    // while still keeping it a reasonable college-domain check.
-                    return /^[\w.+-]+@([\w-]+\.)+ac\.in$/.test(value);
-                },
-                message: "Email must be a valid college email (.ac.in)",
-            },
+            match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"],
         },
-        staffId: {
-            type: String,
-            required: [true, "Staff ID is required"],
-            unique: true,
-            trim: true,
-        },
-        department: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Department",
-            required: function () {
-                return this.role !== "superadmin";
-            },
-            default: null,
-        },
-        role: {
-            type: String,
-            enum: ["superadmin", "departmentadmin"],
-            default: "departmentadmin",
-        },
-        password: {
-            type: String,
-            required: [true, "Password is required"],
-            minlength: [8, "Password must be at least 8 characters long"],
-        },
-        idCardFile: {
-            type: String,
-        },
-        refreshToken: {
-            type: String,
-            default: null,
-        },
-        refreshTokenHash: {
-            type: String,
-            default: null,
+        password: { type: String, required: true, minlength: 8, select: false },
+        role: { type: String, enum: ["admin"], default: "admin", immutable: true, index: true },
+        staffId: { type: String, required: true, trim: true, unique: true, sparse: true },
+        department: { type: mongoose.Schema.Types.ObjectId, ref: "Department", required: true, index: true },
+        phone: { type: String, trim: true, default: "" },
+        contactNumber: { type: String, trim: true, default: "" },
+        alternateEmail: { type: String, trim: true, default: "" },
+        address: { type: String, trim: true, default: "" },
+        avatar: { type: String, default: "" },
+        profilePhoto: { type: String, default: "" },
+        idCardFile: { type: String, default: null },
+        isActive: { type: Boolean, default: true, index: true },
+        isVerified: { type: Boolean, default: false, index: true },
+        refreshTokenHash: { type: String, select: false, default: null },
+        resetToken: { type: String, select: false, default: null },
+        resetTokenExpire: { type: Date, select: false, default: null },
+        permissions: { type: [String], default: [] },
+        skills: { type: [String], default: [] },
+        isCounselor: { type: Boolean, default: false },
+        lastAssignedAt: { type: Date, default: null },
+        loginAttempts: { type: Number, default: 0, select: false },
+        lockUntil: { type: Date, default: null, select: false },
+        lastFailedLoginAt: { type: Date, default: null, select: false },
+        stepUpCodeHash: { type: String, default: null, select: false },
+        stepUpCodeExpiresAt: { type: Date, default: null, select: false },
+        stepUpVerifiedAt: { type: Date, default: null, select: false },
+        activeSessions: {
+            type: [{
+                sessionId: { type: String, required: true },
+                userAgent: { type: String, default: "" },
+                ipAddress: { type: String, default: "" },
+                lastSeenAt: { type: Date, default: Date.now },
+                createdAt: { type: Date, default: Date.now },
+            }],
+            default: [],
             select: false,
         },
-        verified: {
-            type: Boolean,
-            default: false,
-        },
     },
-    { timestamps: true }
+    { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-// 🔒 Encrypt password before saving
 adminSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();
-    this.password = await bcryptjs.hash(this.password, 10);
+    this.password = await bcrypt.hash(this.password, 12);
     next();
 });
 
-// 🔍 Compare passwords
-adminSchema.methods.isPasswordCorrect = async function (password) {
-    return await bcryptjs.compare(password, this.password);
+adminSchema.methods.comparePassword = function (password) {
+    return bcrypt.compare(password, this.password);
 };
 
-// 🔑 Generate access token
-adminSchema.methods.generateAccessToken = function () {
-    if (!process.env.ACCESS_TOKEN_SECRET || process.env.ACCESS_TOKEN_SECRET.length < 32) {
-        throw new Error("ACCESS_TOKEN_SECRET must be at least 32 characters");
-    }
-
-    return jwt.sign(
-        {
-            _id: this._id,
-            email: this.email,
-            role: this.role,
-            // tokenType omitted intentionally — access tokens are identified by their short expiry
-        },
-        process.env.ACCESS_TOKEN_SECRET,
-        // ✅ FIX MI-11: provide a safe default so the token never gets infinite expiry
-        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m" }
-    );
+adminSchema.methods.matchPassword = function (password) {
+    return this.comparePassword(password);
 };
 
-// 🔑 Generate refresh token
-adminSchema.methods.generateRefreshToken = function () {
-    if (!process.env.REFRESH_TOKEN_SECRET || process.env.REFRESH_TOKEN_SECRET.length < 32) {
-        throw new Error("REFRESH_TOKEN_SECRET must be at least 32 characters");
-    }
-
-    return jwt.sign(
-        {
-            _id: this._id,
-            email: this.email,
-            role: this.role,
-            // ✅ FIX C-03: legacy generateRefreshToken omitted tokenType claim.
-            // Adding it lets authMiddleware distinguish refresh tokens from access tokens
-            // and reject refresh tokens presented as access tokens (and vice-versa).
-            tokenType: "refresh",
-        },
-        process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d" }
-    );
-};
-
-const Admin = mongoose.model("Admin", adminSchema);
-export default Admin;
+export default mongoose.model("Admin", adminSchema);

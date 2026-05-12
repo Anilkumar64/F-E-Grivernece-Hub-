@@ -37,15 +37,16 @@ export default function AiChatbot() {
 
     const send = async (text) => {
         const msg = (text || input).trim();
-        if (!msg) return;
+        if (!msg || loading) return;
         setInput("");
 
         const userMsg = { role: "user", content: msg };
+        const nextMessages = [...messages, userMsg];
         setMessages((prev) => [...prev, userMsg]);
         setLoading(true);
 
         try {
-            const history = messages.slice(-8).map((m) => ({
+            const history = nextMessages.slice(-8, -1).map((m) => ({
                 role: m.role === "assistant" ? "assistant" : "user",
                 content: m.content,
             }));
@@ -108,7 +109,7 @@ export default function AiChatbot() {
                                 <p className="text-xs text-indigo-200">{unavailable ? "Offline" : "Online · AI powered"}</p>
                             </div>
                         </div>
-                        <button onClick={() => setOpen(false)} className="rounded-lg p-1 text-white/70 hover:text-white">
+                        <button onClick={() => setOpen(false)} className="rounded-lg p-1 text-white/70 hover:text-white" aria-label="Close AI assistant">
                             <X size={18} />
                         </button>
                     </div>
@@ -151,6 +152,7 @@ export default function AiChatbot() {
                                 <button
                                     key={q}
                                     onClick={() => send(q)}
+                                    disabled={loading}
                                     className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700 hover:bg-indigo-100 transition-colors"
                                 >
                                     {q}
@@ -174,6 +176,7 @@ export default function AiChatbot() {
                         <button
                             onClick={() => send()}
                             disabled={!input.trim() || loading}
+                            aria-label="Send message"
                             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm disabled:opacity-50 hover:bg-indigo-700 transition-colors"
                         >
                             {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}

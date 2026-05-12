@@ -206,7 +206,7 @@ class AdminScoresResponse(BaseModel):
 @router.get("/admin-scores", response_model=AdminScoresResponse)
 async def get_admin_scores():
     grievances_col = get_collection("grievances")
-    users_col = get_collection("users")
+    admins_col = get_collection("admins")
     cutoff = datetime.utcnow() - timedelta(days=90)
 
     pipeline = [
@@ -238,7 +238,7 @@ async def get_admin_scores():
     rows = await grievances_col.aggregate(pipeline).to_list(length=20)
 
     admin_ids = [row["_id"] for row in rows]
-    admin_docs = await users_col.find(
+    admin_docs = await admins_col.find(
         {"_id": {"$in": admin_ids}},
         {"name": 1},
     ).to_list(length=20)

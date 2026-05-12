@@ -42,7 +42,7 @@ const siteConfigSchema = new mongoose.Schema(
             stepUpWindowMinutes: { type: Number, default: 10 },
         },
         audit: {
-            retentionDays: { type: Number, default: 365 },
+            retentionDays: { type: Number, default: 21 },
             integrityChainEnabled: { type: Boolean, default: true },
         },
         reporting: {

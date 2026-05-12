@@ -5,6 +5,8 @@ import Grievance, { GRIEVANCE_PRIORITIES, GRIEVANCE_STATUSES, TERMINAL_STATUSES 
 import GrievanceCategory from "../models/GrievanceCategory.js";
 import Notification from "../models/Notification.js";
 import User from "../models/User.js";
+import Admin from "../models/Admin.js";
+import SuperAdmin from "../models/SuperAdmin.js";
 import Department from "../models/Department.js";
 import { guardStudent, guardAdmin, guardAny } from "../middleware/guards.js";
 import upload from "../middleware/upload.js";
@@ -157,12 +159,11 @@ router.post(
                 }],
             });
 
-            const deptAdmins = await User.find({
-                role: "admin", department: categoryDoc.department, isActive: true,
-            }).select("_id");
+            const deptAdmins = await Admin.find({ department: categoryDoc.department, isActive: true }).select("_id");
             const autoAssignedAdmin = deptAdmins[0]?._id || null;
             if (autoAssignedAdmin) {
                 grievance.assignedTo = autoAssignedAdmin;
+                grievance.assignedToModel = "Admin";
                 grievance.timeline.push({
                     status: grievance.status,
                     message: "Auto-assigned to department admin",
@@ -420,7 +421,8 @@ router.patch("/:id/assign", ...guardAdmin, async (req, res, next) => {
         if (!mongoose.Types.ObjectId.isValid(assignedTo))
             return res.status(400).json({ message: "Invalid admin ID" });
 
-        const assignee = await User.findOne({ _id: assignedTo, role: { $in: ["admin", "superadmin"] }, isActive: true });
+        const assignee = await Admin.findOne({ _id: assignedTo, isActive: true })
+            || await SuperAdmin.findOne({ _id: assignedTo, isActive: true });
         if (!assignee) return res.status(400).json({ message: "Admin not found or inactive" });
 
         const grievance = await Grievance.findById(req.params.id);
@@ -432,6 +434,7 @@ router.patch("/:id/assign", ...guardAdmin, async (req, res, next) => {
         }
 
         grievance.assignedTo = assignedTo;
+        grievance.assignedToModel = assignee.role === "superadmin" ? "SuperAdmin" : "Admin";
         grievance.timeline.push({ status: grievance.status, message: `Assigned to ${assignee.name}`, updatedBy: req.userId });
         await grievance.save();
 
@@ -482,7 +485,7 @@ router.post("/:id/comments", ...guardAny, async (req, res, next) => {
 
         let recipientId;
         if (req.role === "student") {
-            const admin = await User.findOne({ role: "admin", department: grievance.department, isActive: true }).select("_id");
+            const admin = await Admin.findOne({ department: grievance.department, isActive: true }).select("_id");
             recipientId = admin?._id;
         } else {
             recipientId = grievance.submittedBy;
@@ -581,11 +584,7 @@ router.patch("/:id/reopen-request", ...guardStudent, async (req, res, next) => {
         });
         await grievance.save();
 
-        const deptAdmins = await User.find({
-            role: "admin",
-            department: grievance.department,
-            isActive: true,
-        }).select("_id");
+        const deptAdmins = await Admin.find({ department: grievance.department, isActive: true }).select("_id");
         if (deptAdmins.length) {
             await Notification.insertMany(deptAdmins.map((a) => ({
                 recipient: a._id,
@@ -703,7 +702,7 @@ router.patch("/:id/escalate", ...guardAdmin, async (req, res, next) => {
         grievance.timeline.push({ status: "Escalated", message: reason, updatedBy: req.userId });
         await grievance.save();
 
-        const superAdmins = await User.find({ role: "superadmin", isActive: true }).select("_id");
+        const superAdmins = await SuperAdmin.find({ isActive: true }).select("_id");
         await Notification.insertMany(superAdmins.map((a) => ({
             recipient: a._id,
             type: "grievance_escalated",

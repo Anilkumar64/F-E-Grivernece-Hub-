@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "frontend": "vite",
+    "frontend:dev": "node scripts/wait-for-backend.mjs && vite",
     "backend": "cd ../backend && nodemon server.js",
-    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "ai-service": "cd ../ai-service && AI_REQUIRE_DB=false python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload",
+    "dev": "concurrently -n frontend,backend,ai-service -c cyan,green,magenta \"npm run frontend:dev\" \"npm run backend\" \"npm run ai-service\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

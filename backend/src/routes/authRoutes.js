@@ -2,6 +2,8 @@ import express from "express";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Admin from "../models/Admin.js";
+import SuperAdmin from "../models/SuperAdmin.js";
 import Department from "../models/Department.js";
 import SiteConfig from "../models/SiteConfig.js";
 import Notification from "../models/Notification.js"; // Bug #6 fix: needed for superadmin alerts
@@ -16,26 +18,13 @@ import { writeAuditLog } from "../utils/audit.js";
 import sendEmail from "../utils/sendEmail.js"; // Bug #6 fix: email superadmins
 import userUploads from "../middleware/userUploads.js"; // FIX B3: parse multipart/form-data from admin signup
 import { generateDepartmentStaffId } from "../utils/staffId.js";
+import { findActiveSuperAdmins, findAccountByIdAndRole, getAccountModel, publicAccount } from "../utils/accounts.js";
 
 const router = express.Router();
 const hashToken = (t) => crypto.createHash("sha256").update(t).digest("hex");
 const hashValue = (v) => crypto.createHash("sha256").update(v).digest("hex");
 const allowBodyRefreshToken =
     process.env.ALLOW_BODY_REFRESH_TOKEN === "true" || process.env.NODE_ENV !== "production";
-
-const publicUser = (user) => ({
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    studentId: user.studentId,
-    staffId: user.staffId,
-    department: user.department,
-    isActive: user.isActive,
-    isVerified: user.isVerified,
-    profilePhoto: user.profilePhoto,
-    avatar: user.avatar,
-});
 
 /* ── login factory ── */
 const loginForRole = (role) => async (req, res, next) => {
@@ -45,7 +34,10 @@ const loginForRole = (role) => async (req, res, next) => {
             return res.status(400).json({ message: "Email and password are required" });
 
         const normalizedEmail = email.toLowerCase().trim();
-        const user = await User.findOne({ email: normalizedEmail, role })
+        let user;
+
+        const AccountModel = getAccountModel(role);
+        user = await AccountModel.findOne({ email: normalizedEmail })
             .select("+password +refreshTokenHash +loginAttempts +lockUntil +lastFailedLoginAt")
             .populate("department", "name code");
         const config = await SiteConfig.findOne({ key: "global" }).select("security");
@@ -56,8 +48,9 @@ const loginForRole = (role) => async (req, res, next) => {
             return res.status(423).json({ message: "Account temporarily locked. Try again later." });
         }
 
-        // FIX B4: check credentials first, then isVerified — prevents info leak and wrong error
-        if (!user || !user.isActive || !(await user.comparePassword(password))) {
+        const passwordMatch = user ? await user.comparePassword(password) : false;
+
+        if (!user || user.isActive === false || !passwordMatch) {
             if (user) {
                 const attempts = (user.loginAttempts || 0) + 1;
                 user.loginAttempts = attempts;
@@ -73,7 +66,7 @@ const loginForRole = (role) => async (req, res, next) => {
                         createdBy: null,
                     });
                     if (role === "admin" || role === "superadmin") {
-                        const superAdmins = await User.find({ role: "superadmin", isActive: true }).select("_id");
+                        const superAdmins = await findActiveSuperAdmins("_id");
                         if (superAdmins.length) {
                             await Notification.insertMany(
                                 superAdmins.map((sa) => ({
@@ -91,18 +84,31 @@ const loginForRole = (role) => async (req, res, next) => {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        if (role === "admin" && !user.isVerified) {
-            return res.status(403).json({ message: "Admin account not yet approved by SuperAdmin" });
+        if (role === "admin") {
+            if (!user.isVerified) {
+                return res.status(403).json({ message: "Admin account not yet approved by SuperAdmin" });
+            }
+        }
+        if (role === "student") {
+            if (user.isActive === undefined) user.isActive = true;
+            if (user.isVerified === undefined) user.isVerified = true;
         }
         if (role === "superadmin") {
             // Superadmin is global head role; keep department empty and ensure a stable staff identifier.
             if (user.department) user.department = null;
             if (!user.staffId) user.staffId = "SA-HQ-0001";
+            if (!user.isVerified) user.isVerified = true;
         }
 
         const accessToken = signAccessToken(user);
         const refreshToken = signRefreshToken(user);
         const sessionId = crypto.randomUUID();
+
+        // Store refresh token in MongoDB for rotation tracking.
+        const tokenBlacklistService = (await import("../services/tokenBlacklistService.js")).default;
+        const decodedRefresh = jwt.decode(refreshToken);
+        await tokenBlacklistService.storeRefreshToken(user._id.toString(), decodedRefresh.jti, 60 * 60 * 24 * 7);
+
         user.refreshTokenHash = hashToken(refreshToken);
         user.loginAttempts = 0;
         user.lockUntil = null;
@@ -122,7 +128,7 @@ const loginForRole = (role) => async (req, res, next) => {
         req.user = user;
         await writeAuditLog(req, "LOGIN", "User", user._id, { role });
 
-        return res.json({ message: "Login successful", accessToken, user: publicUser(user) });
+        return res.json({ message: "Login successful", accessToken, user: publicAccount(user) });
     } catch (err) {
         next(err);
     }
@@ -138,10 +144,20 @@ router.post("/student/register", authLimiter, async (req, res, next) => {
         if (!name || !email || !password || !studentId)
             return res.status(400).json({ message: "Name, email, password, and student ID are required" });
 
+        const normalizedEmail = email.toLowerCase().trim();
+        const [existingStudent, existingAdmin, existingSuperAdmin] = await Promise.all([
+            User.findOne({ email: normalizedEmail }),
+            Admin.findOne({ email: normalizedEmail }),
+            SuperAdmin.findOne({ email: normalizedEmail }),
+        ]);
+        if (existingStudent || existingAdmin || existingSuperAdmin) {
+            return res.status(409).json({ message: "Account already registered with this email" });
+        }
+
         // FIX B5: lowercase email before saving so login lookup always matches
         const user = await User.create({
             name,
-            email: email.toLowerCase().trim(),
+            email: normalizedEmail,
             password,
             studentId,
             rollNumber: rollNumber || "",
@@ -172,16 +188,20 @@ router.post("/admin/register", authLimiter, userUploads.single("idCardFile"), as
 
         const dept = await Department.findById(department).select("code");
         if (!dept) return res.status(400).json({ message: "Department not found" });
-        const generatedStaffId = await generateDepartmentStaffId(User, dept.code);
-        const existing = await User.findOne({ email: email.toLowerCase().trim() });
-        if (existing)
+        const generatedStaffId = await generateDepartmentStaffId(Admin, dept.code);
+        const [existingUser, existingAdmin, existingSuperAdmin] = await Promise.all([
+            User.findOne({ email: email.toLowerCase().trim() }),
+            Admin.findOne({ email: email.toLowerCase().trim() }),
+            SuperAdmin.findOne({ email: email.toLowerCase().trim() }),
+        ]);
+        if (existingUser || existingAdmin || existingSuperAdmin)
             return res.status(409).json({ message: "Admin already registered with this email" });
 
         const idCardFile = req.file
             ? `/uploads/user_idcards/${req.file.filename}`
             : null;
 
-        const admin = await User.create({
+        const admin = await Admin.create({
             name,
             email: email.toLowerCase().trim(),
             staffId: generatedStaffId,
@@ -195,7 +215,7 @@ router.post("/admin/register", authLimiter, userUploads.single("idCardFile"), as
         await writeAuditLog(req, "ADMIN_SELF_REGISTERED", "User", admin._id);
 
         /* ── Bug #6 fix: alert all active superadmins ── */
-        const superAdmins = await User.find({ role: "superadmin", isActive: true }).select("_id email name");
+        const superAdmins = await findActiveSuperAdmins("_id email name");
 
         if (superAdmins.length) {
             // In-app notifications (bulk insert for efficiency)
@@ -253,18 +273,35 @@ router.post("/refresh", async (req, res, next) => {
             return res.status(403).json({ message: "Invalid or expired refresh token" });
         }
 
-        const user = await User.findById(decoded._id).select("+refreshTokenHash");
-        if (!user || !user.isActive || user.refreshTokenHash !== hashToken(token)) {
+        // Validate refresh token hasn't been revoked
+        const tokenBlacklistService = (await import("../services/tokenBlacklistService.js")).default;
+        const isValidRefreshToken = await tokenBlacklistService.isRefreshTokenValid(decoded._id, decoded.jti);
+        if (!isValidRefreshToken) {
+            return res.status(403).json({ message: "Refresh token revoked" });
+        }
+
+        const user = await findAccountByIdAndRole(decoded._id, decoded.role)?.select("+refreshTokenHash");
+
+        if (!user || (user.isActive !== undefined && !user.isActive) || user.refreshTokenHash !== hashToken(token)) {
             return res.status(403).json({ message: "Invalid refresh token" });
         }
 
+        // Blacklist old refresh token
+        await tokenBlacklistService.blacklistToken(token, 60 * 60 * 24 * 7); // 7 days
+        await tokenBlacklistService.revokeRefreshToken(decoded._id, decoded.jti);
+
         const accessToken = signAccessToken(user);
         const refreshToken = signRefreshToken(user);
+
+        // Store new refresh token
+        const newDecoded = jwt.decode(refreshToken);
+        await tokenBlacklistService.storeRefreshToken(user._id.toString(), newDecoded.jti, 60 * 60 * 24 * 7);
+
         user.refreshTokenHash = hashToken(refreshToken);
         await user.save({ validateBeforeSave: false });
         setAuthCookies(res, user, accessToken, refreshToken);
 
-        return res.json({ accessToken, user: publicUser(user) });
+        return res.json({ accessToken, user: publicAccount(user) });
     } catch (err) {
         next(err);
     }
@@ -273,7 +310,22 @@ router.post("/refresh", async (req, res, next) => {
 /* ── Protected: logout (any logged-in user) ── */
 router.post("/logout", ...guardAny, async (req, res, next) => {
     try {
-        await User.findByIdAndUpdate(req.userId, { refreshTokenHash: null, activeSessions: [] });
+        const tokenBlacklistService = (await import("../services/tokenBlacklistService.js")).default;
+
+        // Blacklist current access token
+        const token = req.headers.authorization?.replace("Bearer ", "") ||
+            req.cookies?.studentAccessToken ||
+            req.cookies?.adminAccessToken ||
+            req.cookies?.superadminAccessToken;
+        if (token) {
+            await tokenBlacklistService.blacklistToken(token, 60 * 60); // 1 hour
+        }
+
+        // Blacklist all user's refresh tokens
+        await tokenBlacklistService.blacklistUserTokens(req.userId);
+
+        const AccountModel = getAccountModel(req.role);
+        await AccountModel.findByIdAndUpdate(req.userId, { refreshTokenHash: null, activeSessions: [] });
         await writeAuditLog(req, "LOGOUT", "User", req.userId);
         clearAuthCookies(res);
         return res.json({ message: "Logged out successfully" });
@@ -284,6 +336,17 @@ router.post("/logout", ...guardAny, async (req, res, next) => {
 
 /* ── Protected: current user (any logged-in user) ── */
 router.get("/me", ...guardAny, (req, res) => res.json({ user: publicUser(req.user) }));
+
+/* ── Protected: CSRF token endpoint ── */
+router.get("/csrf-token", ...guardAny, async (req, res, next) => {
+    try {
+        const { generateCSRFToken } = await import("../middleware/csrfProtection.js");
+        const token = await generateCSRFToken(req, res);
+        res.json({ csrfToken: token });
+    } catch (err) {
+        next(err);
+    }
+});
 
 /* ── Protected: role-check helpers ── */
 router.get("/role-check/student", ...guardStudent, (_req, res) => res.json({ ok: true }));
@@ -296,7 +359,7 @@ router.post("/step-up/request", ...guardAny, async (req, res, next) => {
         if (!["admin", "superadmin"].includes(req.user.role)) {
             return res.status(403).json({ message: "Step-up is only available for privileged roles" });
         }
-        const actor = await User.findById(req.userId).select("+stepUpCodeHash +stepUpCodeExpiresAt +stepUpVerifiedAt");
+        const actor = await findAccountByIdAndRole(req.userId, req.role)?.select("+stepUpCodeHash +stepUpCodeExpiresAt +stepUpVerifiedAt");
         if (!actor) return res.status(404).json({ message: "User not found" });
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         actor.stepUpCodeHash = hashValue(code);
@@ -306,21 +369,26 @@ router.post("/step-up/request", ...guardAny, async (req, res, next) => {
 
         let emailSent = true;
         try {
-            await sendEmail(
+            const emailResult = await sendEmail(
                 req.user.email,
                 "E-Grievance Step-Up Verification Code",
                 `Your verification code is ${code}. It expires in 10 minutes.`
             );
+            emailSent = emailResult?.sent !== false;
         } catch (emailError) {
             emailSent = false;
             console.warn("Step-up email delivery failed:", emailError.message);
         }
         await writeAuditLog(req, "STEP_UP_CODE_REQUESTED", "User", req.user._id);
+        if (!emailSent) {
+            return res.status(502).json({
+                message: "Step-up email delivery failed. Please verify email settings and try again.",
+                emailSent: false,
+            });
+        }
         return res.json({
-            message: emailSent
-                ? "Step-up code sent to your email"
-                : "Verification code generated, but email delivery failed. Please contact superadmin support.",
-            emailSent,
+            message: "Step-up code sent to your email",
+            emailSent: true,
         });
     } catch (err) {
         next(err);
@@ -331,7 +399,7 @@ router.post("/step-up/verify", ...guardAny, async (req, res, next) => {
     try {
         const code = req.body?.code?.trim();
         if (!code) return res.status(400).json({ message: "Code is required" });
-        const actor = await User.findById(req.userId).select("+stepUpCodeHash +stepUpCodeExpiresAt +stepUpVerifiedAt");
+        const actor = await findAccountByIdAndRole(req.userId, req.role)?.select("+stepUpCodeHash +stepUpCodeExpiresAt +stepUpVerifiedAt");
         if (!actor) return res.status(404).json({ message: "User not found" });
         const expected = actor.stepUpCodeHash;
         const isExpired = !actor.stepUpCodeExpiresAt || actor.stepUpCodeExpiresAt < new Date();

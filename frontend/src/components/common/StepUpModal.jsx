@@ -15,8 +15,12 @@ export default function StepUpModal({ open, onClose, onVerified }) {
     const requestCode = async () => {
         setSending(true);
         try {
-            await api.post("/auth/step-up/request");
-            toast.success("Verification code sent to your email");
+            const res = await api.post("/auth/step-up/request");
+            if (res?.data?.emailSent === false) {
+                toast.error(res?.data?.message || "Unable to send verification code");
+                return;
+            }
+            toast.success(res?.data?.message || "Verification code sent to your email");
         } catch (error) {
             toast.error(error?.response?.data?.message || "Unable to send code");
         } finally {

@@ -3,48 +3,16 @@ import Course from "../models/Course.js";
 import User from "../models/User.js";
 import { guardSuperAdmin } from "../middleware/guards.js";
 import { writeAuditLog } from "../utils/audit.js";
+import { ensureAcademicCatalog } from "../utils/academicCatalog.js";
 
 const router = express.Router();
-
-const DEFAULT_COURSES = [
-    { name: "B.Tech (Bachelor of Technology)", code: "BTECH", durationYears: 4 },
-    { name: "BBA (Bachelor of Business Administration)", code: "BBA", durationYears: 3 },
-    { name: "LLB (Bachelor of Laws)", code: "LLB", durationYears: 3 },
-    { name: "MBBS (Bachelor of Medicine and Bachelor of Surgery)", code: "MBBS", durationYears: 5 },
-    { name: "B.Sc (Bachelor of Science)", code: "BSC", durationYears: 3 },
-    { name: "B.Com (Bachelor of Commerce)", code: "BCOM", durationYears: 3 },
-    { name: "BA (Bachelor of Arts)", code: "BA", durationYears: 3 },
-    { name: "BCA (Bachelor of Computer Applications)", code: "BCA", durationYears: 3 },
-    { name: "B.Arch (Bachelor of Architecture)", code: "BARCH", durationYears: 5 },
-    { name: "B.Pharm (Bachelor of Pharmacy)", code: "BPHARM", durationYears: 4 },
-];
-
-const ensureDefaultCourses = async () => {
-    // Upsert each default course so defaults are always available
-    // even when some custom courses already exist.
-    await Promise.all(
-        DEFAULT_COURSES.map((course) =>
-            Course.updateOne(
-                { code: course.code, department: null },
-                {
-                    $setOnInsert: {
-                        ...course,
-                        department: null,
-                        isActive: true,
-                    },
-                },
-                { upsert: true }
-            )
-        )
-    );
-};
 
 // Public: list active courses, optionally filtered by department
 router.get("/", async (req, res, next) => {
     try {
-        await ensureDefaultCourses();
+        await ensureAcademicCatalog();
         const filter = req.query.department
-            ? { isActive: true, $or: [{ department: req.query.department }, { department: null }] }
+            ? { isActive: true, department: req.query.department }
             : { isActive: true };
         const courses = await Course.find(filter)
             .populate("department", "name code")

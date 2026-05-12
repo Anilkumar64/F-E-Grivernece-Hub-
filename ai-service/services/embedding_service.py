@@ -18,6 +18,10 @@ settings = get_settings()
 _embedder: Optional[SentenceTransformer] = None
 
 
+def is_embedding_model_loaded() -> bool:
+    return _embedder is not None
+
+
 def load_embedding_model() -> SentenceTransformer:
     """Load (or return cached) embedding model."""
     global _embedder

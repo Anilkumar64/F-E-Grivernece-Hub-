@@ -10,13 +10,17 @@ let _transporter = null;
 const getTransporter = () => {
     if (_transporter) return _transporter;
 
+    // Gmail app passwords are often copied in 4-char groups with spaces.
+    // Normalize to the raw token so SMTP auth does not fail.
+    const normalizedPass = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
+
     _transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST,
         port: Number(process.env.EMAIL_PORT) || 587,
         secure: process.env.EMAIL_SECURE === "true",
         auth: {
             user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
+            pass: normalizedPass,
         },
     });
 
@@ -38,14 +42,14 @@ export default async function sendEmail(toOrOptions, subject, text) {
 
     if (process.env.EMAIL_ENABLED === "false") {
         console.log(`[EMAIL DISABLED] Would send to ${to}: "${mail.subject}"`);
-        return;
+        return { sent: false, skipped: true, reason: "EMAIL_ENABLED_FALSE" };
     }
 
     if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         const error = new Error("Email configuration is incomplete");
         if (process.env.NODE_ENV === "production") throw error;
         console.warn(error.message);
-        return;
+        return { sent: false, skipped: true, reason: "EMAIL_CONFIG_INCOMPLETE" };
     }
 
     try {
@@ -53,12 +57,13 @@ export default async function sendEmail(toOrOptions, subject, text) {
             from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
             ...mail,
         });
+        return { sent: true };
     } catch (error) {
         // If the transporter is in a bad state, reset it so the next call gets a fresh one
         resetTransporter();
         console.error("Email sending failed:", error);
         if (process.env.NODE_ENV !== "production") {
-            return;
+            return { sent: false, error: error.message };
         }
         throw new Error("Email sending failed");
     }

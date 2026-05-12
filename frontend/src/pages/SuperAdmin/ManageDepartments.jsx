@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Edit, Plus, Power } from "lucide-react";
+import { Edit, Plus, Power, Trash2 } from "lucide-react";
 import api from "../../api/axiosInstance";
 import EmptyState from "../../components/common/EmptyState";
 import Skeleton from "../../components/common/Skeleton";
@@ -10,11 +10,13 @@ import Modal from "../../components/ui/Modal";
 import Input from "../../components/ui/Input";
 import Badge from "../../components/ui/Badge";
 
-const initialForm = { name: "", code: "", description: "", headAdmin: "" };
+const initialForm = { name: "", code: "", description: "", headAdmin: "", courseIds: [], newCourses: [] };
+const emptyCourse = { name: "", code: "", durationYears: 4 };
 
 export default function ManageDepartments() {
     const [departments, setDepartments] = useState([]);
     const [admins, setAdmins] = useState([]);
+    const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editing, setEditing] = useState(null);
@@ -23,9 +25,14 @@ export default function ManageDepartments() {
     const load = async () => {
         setLoading(true);
         try {
-            const [deptRes, adminRes] = await Promise.all([api.get("/departments"), api.get("/admin/all")]);
+            const [deptRes, adminRes, courseRes] = await Promise.all([
+                api.get("/departments"),
+                api.get("/admin/all"),
+                api.get("/courses"),
+            ]);
             setDepartments(deptRes.data || []);                                          // ← bare array now
             setAdmins((adminRes.data.admins || []).filter((a) => a.role === "admin" && a.isActive));
+            setCourses(courseRes.data?.courses || []);
         } catch (error) {
             toast.error(error?.response?.data?.message || "Unable to load departments");
         } finally {
@@ -44,8 +51,35 @@ export default function ManageDepartments() {
             code: department.code || "",
             description: department.description || "",
             headAdmin: department.headAdmin?._id || "",
+            courseIds: courses.filter((course) => course.department?._id === department._id).map((course) => course._id),
+            newCourses: [],
         });
         setShowForm(true);
+    };
+
+    const toggleCourse = (courseId) => {
+        setForm((current) => ({
+            ...current,
+            courseIds: current.courseIds.includes(courseId)
+                ? current.courseIds.filter((id) => id !== courseId)
+                : [...current.courseIds, courseId],
+        }));
+    };
+
+    const addCourseRow = () => setForm((current) => ({ ...current, newCourses: [...current.newCourses, emptyCourse] }));
+
+    const updateNewCourse = (index, key, value) => {
+        setForm((current) => ({
+            ...current,
+            newCourses: current.newCourses.map((course, i) => i === index ? { ...course, [key]: value } : course),
+        }));
+    };
+
+    const removeNewCourse = (index) => {
+        setForm((current) => ({
+            ...current,
+            newCourses: current.newCourses.filter((_, i) => i !== index),
+        }));
     };
 
     const submit = async (e) => {
@@ -104,6 +138,15 @@ export default function ManageDepartments() {
                                 <div><span className="text-xs text-gray-500">Head Admin</span><p className="text-sm font-semibold text-gray-900">{department.headAdmin?.name || "-"}</p></div>
                                 <div><span className="text-xs text-gray-500">Active Grievances</span><p className="text-sm font-semibold text-gray-900">{department.grievanceCount || 0}</p></div>
                             </div>
+                            <div className="space-y-2">
+                                <span className="text-xs font-medium text-gray-500">Courses</span>
+                                <div className="flex flex-wrap gap-2">
+                                    {courses.filter((course) => course.department?._id === department._id).slice(0, 6).map((course) => (
+                                        <Badge key={course._id} className="bg-indigo-50 text-indigo-700">{course.code}</Badge>
+                                    ))}
+                                    {!courses.some((course) => course.department?._id === department._id) && <span className="text-sm text-gray-500">No courses linked.</span>}
+                                </div>
+                            </div>
                             <div className="flex gap-3">
                                 <Button variant="outline" onClick={() => openEdit(department)}><Edit size={16} /> Edit</Button>
                                 {department.isActive !== false && <Button variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50" onClick={() => deactivate(department._id)}><Power size={16} /> Deactivate</Button>}
@@ -128,6 +171,32 @@ export default function ManageDepartments() {
                             </select>
                             <small className="text-xs text-gray-500">When selected, this admin is automatically assigned to this department.</small>
                         </label>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between gap-3">
+                                <label className="text-sm font-medium text-gray-700">Courses in this department</label>
+                                <Button type="button" variant="outline" onClick={addCourseRow}><Plus size={16} /> New Course</Button>
+                            </div>
+                            <div className="grid max-h-56 gap-2 overflow-auto rounded-lg border border-gray-200 p-3 md:grid-cols-2">
+                                {courses.map((course) => (
+                                    <label key={course._id} className="flex items-start gap-2 rounded-md px-2 py-1 text-sm text-gray-700 hover:bg-gray-50">
+                                        <input
+                                            type="checkbox"
+                                            checked={form.courseIds.includes(course._id)}
+                                            onChange={() => toggleCourse(course._id)}
+                                        />
+                                        <span>{course.name} <span className="text-xs text-gray-500">({course.code})</span></span>
+                                    </label>
+                                ))}
+                            </div>
+                            {form.newCourses.map((course, index) => (
+                                <div className="grid gap-2 rounded-lg border border-gray-200 p-3 md:grid-cols-[1fr_130px_110px_auto]" key={index}>
+                                    <Input placeholder="Course name" value={course.name} onChange={(e) => updateNewCourse(index, "name", e.target.value)} />
+                                    <Input placeholder="Code" value={course.code} onChange={(e) => updateNewCourse(index, "code", e.target.value.toUpperCase())} />
+                                    <Input type="number" min="1" max="8" value={course.durationYears} onChange={(e) => updateNewCourse(index, "durationYears", Number(e.target.value))} />
+                                    <Button type="button" variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50" onClick={() => removeNewCourse(index)}><Trash2 size={16} /></Button>
+                                </div>
+                            ))}
+                        </div>
                         <div className="flex justify-end gap-3">
                             <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
                             <Button>{editing ? "Save Changes" : "Create Department"}</Button>

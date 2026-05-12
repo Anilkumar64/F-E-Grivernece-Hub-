@@ -43,8 +43,11 @@ api.interceptors.response.use(
     async (error) => {
         const original = error.config;
         const url = `${original?.baseURL || ""}${original?.url || ""}`;
+        const isExpiredAccessToken =
+            error?.response?.status === 403 &&
+            error?.response?.data?.code === "TOKEN_EXPIRED";
         const shouldTryRefresh =
-            error?.response?.status === 401 &&
+            (error?.response?.status === 401 || isExpiredAccessToken) &&
             original &&
             !original._retry &&
             !original.skipAuthRefresh &&

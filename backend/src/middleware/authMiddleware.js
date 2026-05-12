@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import User from "../models/User.js";
-import Admin from "../models/Admin.js"; // Bug #1 fix: import Admin for fallback lookup
+import tokenBlacklistService from "../services/tokenBlacklistService.js";
+import { findAccountByIdAndRole } from "../utils/accounts.js";
 
 /* ── Cookie names per role ── */
 export const cookieNames = {
@@ -20,7 +20,7 @@ export const signAccessToken = (user) =>
     jwt.sign(
         { _id: user._id.toString(), email: user.email, role: user.role },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m", algorithm: "HS256" }
+        { expiresIn: "15m", algorithm: "HS256" }
     );
 
 export const signRefreshToken = (user) =>
@@ -72,48 +72,39 @@ const extractToken = (req) => {
     );
 };
 
-/* ── Bug #1 fix: normalise a legacy Admin document into the shape req.user expects ── */
-const normalizeAdminDoc = (admin) => ({
-    _id: admin._id,
-    name: admin.name,
-    email: admin.email,
-    // Admin model uses "departmentadmin"; map to the canonical "admin" role used everywhere else
-    role: admin.role === "departmentadmin" ? "admin" : admin.role,
-    department: admin.department ?? null,
-    staffId: admin.staffId,
-    isActive: true,          // Admin model has no isActive field — presence implies active
-    isVerified: admin.verified ?? false,
-});
-
 /* ── authenticate middleware ── */
 export const authenticate = async (req, res, next) => {
     try {
+        if (req.method === "OPTIONS") return next();
         const token = extractToken(req);
         if (!token) return res.status(401).json({ message: "Unauthorized: token missing" });
+
+        // Check if token is blacklisted
+        const isBlacklisted = await tokenBlacklistService.isTokenBlacklisted(token);
+        if (isBlacklisted) {
+            return res.status(401).json({ message: "Unauthorized: token revoked" });
+        }
 
         let decoded;
         try {
             decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] });
         } catch (err) {
-            const msg = err.name === "TokenExpiredError" ? "Token expired" : "Invalid token";
-            return res.status(401).json({ message: `Unauthorized: ${msg}` });
+            if (err.name === "TokenExpiredError") {
+                // Blacklist expired tokens
+                await tokenBlacklistService.blacklistToken(token, 60 * 60); // 1 hour
+                return res.status(403).json({ code: "TOKEN_EXPIRED", message: "Token expired" });
+            }
+            return res.status(401).json({ message: "Unauthorized: Invalid token" });
         }
 
-        // Primary lookup — unified User collection
-        let user = await User.findById(decoded._id).select("-password -refreshTokenHash");
+        const user = await findAccountByIdAndRole(decoded._id, decoded.role);
+        if (user) {
+            user.password = undefined;
+            user.refreshTokenHash = undefined;
+        }
 
         if (!user || !user.isActive) {
-            // Bug #1 fix: fall back to the legacy Admin collection so admins seeded
-            // via Admin.js (before the User-consolidation migration) can still authenticate.
-            const admin = await Admin.findById(decoded._id);
-            if (!admin) {
-                return res.status(401).json({ message: "Unauthorized: account unavailable" });
-            }
-            const normalized = normalizeAdminDoc(admin);
-            req.user = normalized;
-            req.userId = admin._id.toString();
-            req.role = normalized.role;
-            return next();
+            return res.status(401).json({ message: "Unauthorized: account unavailable" });
         }
 
         req.user = user;

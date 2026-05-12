@@ -4,6 +4,7 @@ import AppRoutes from './routes/AppRoutes'
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { UserProvider } from "./context/UserContext";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 
 function App() {
   return (
@@ -12,7 +13,9 @@ function App() {
         <AuthProvider>
           <UserProvider>
             <NotificationProvider>
-              <AppRoutes></AppRoutes>
+              <ErrorBoundary>
+                <AppRoutes></AppRoutes>
+              </ErrorBoundary>
               <Toaster position="bottom-right" toastOptions={{ duration: 4000 }} />
             </NotificationProvider>
           </UserProvider>

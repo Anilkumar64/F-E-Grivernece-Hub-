@@ -17,7 +17,12 @@ _connected = False
 async def connect_db() -> None:
     global _client, _db, _connected
     logger.info("Connecting to MongoDB …")
+    logger.info(f"MONGODB_URL: {settings.mongodb_url}")
+    logger.info(f"MONGODB_DB: {settings.mongodb_db}")
+    logger.info(f"AI_REQUIRE_DB: {settings.ai_require_db}")
     try:
+        if not settings.mongodb_url:
+            raise ValueError("MONGODB_URL is empty")
         _client = AsyncIOMotorClient(settings.mongodb_url, serverSelectionTimeoutMS=5000)
         _db = _client[settings.mongodb_db]
         # Ping to confirm connection
@@ -31,6 +36,8 @@ async def connect_db() -> None:
         _client = None
         _db = None
         logger.error("MongoDB unavailable; DB-backed AI endpoints will be disabled: %s", exc)
+        if settings.ai_require_db:
+            raise
 
 
 async def close_db() -> None:

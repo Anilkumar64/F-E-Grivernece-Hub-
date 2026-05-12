@@ -4,7 +4,7 @@ pydantic==2.7.1
 pydantic-settings==2.2.1
 
 # Google Gemini (new SDK)
-google-genai>=1.0.0
+google-genai==1.0.0
 
 # Async MongoDB
 motor==3.4.0

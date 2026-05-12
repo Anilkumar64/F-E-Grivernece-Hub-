@@ -1,6 +1,7 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,14 +16,18 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-        const unique = Date.now() + "-" + Math.round(Math.random() * 1e4);
-        cb(null, unique + path.extname(file.originalname).toLowerCase());
+        cb(null, `${crypto.randomUUID()}${path.extname(file.originalname).toLowerCase()}`);
     },
 });
 
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
-    if (allowedTypes.includes(file.mimetype)) cb(null, true);
+    const allowedTypes = new Set(["image/jpeg", "image/png", "application/pdf"]);
+    const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".pdf"]);
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ext === ".svg" || file.mimetype === "image/svg+xml") {
+        return cb(new Error("SVG uploads are not allowed"), false);
+    }
+    if (allowedTypes.has(file.mimetype) && allowedExtensions.has(ext)) cb(null, true);
     else cb(new Error("Only JPG, PNG or PDF files are allowed"), false);
 };
 

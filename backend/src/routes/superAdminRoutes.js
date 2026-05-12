@@ -2,6 +2,8 @@ import express   from "express";
 import mongoose  from "mongoose";
 import Grievance from "../models/Grievance.js";
 import User      from "../models/User.js";
+import Admin     from "../models/Admin.js";
+import SuperAdmin from "../models/SuperAdmin.js";
 import Department from "../models/Department.js";
 import GrievanceCategory from "../models/GrievanceCategory.js";
 import SiteConfig from "../models/SiteConfig.js";
@@ -36,8 +38,8 @@ router.get("/stats", async (req, res, next) => {
             Grievance.countDocuments({ status: "Resolved" }),
             Grievance.countDocuments({ isEscalated: true }),
             User.countDocuments({ role: "student", isActive: true }),
-            User.countDocuments({ role: "admin", isActive: true, isVerified: true }),
-            User.countDocuments({ role: "admin", isVerified: false }),
+            Admin.countDocuments({ isActive: true, isVerified: true }),
+            Admin.countDocuments({ isVerified: false }),
         ]);
 
         // Average resolution time (hours)
@@ -300,7 +302,10 @@ router.get("/users", authorizePermission("users.read"), async (req, res, next) =
     try {
         const { role, isActive, q, page = 1, limit = 20 } = req.query;
         const query = {};
-        if (role) query.role = role;
+        if (role && role !== "student") {
+            return res.status(400).json({ message: "Use /api/admin/all for admins; /api/superadmin/users lists students only." });
+        }
+        query.role = "student";
         if (typeof isActive !== "undefined") query.isActive = isActive === "true";
         if (q) {
             const pattern = new RegExp(escapeRegex(q), "i");
@@ -330,7 +335,7 @@ router.patch("/users/:id/status", authorizePermission("users.manage"), requireSt
     try {
         const { isActive } = req.body;
         if (typeof isActive !== "boolean") return res.status(400).json({ message: "isActive boolean is required" });
-        const user = await User.findByIdAndUpdate(req.params.id, { isActive }, { new: true })
+        const user = await User.findOneAndUpdate({ _id: req.params.id, role: "student" }, { isActive }, { new: true })
             .select("-password -refreshTokenHash -resetToken -resetTokenExpire")
             .populate("department", "name code");
         if (!user) return res.status(404).json({ message: "User not found" });
@@ -341,8 +346,8 @@ router.patch("/users/:id/status", authorizePermission("users.manage"), requireSt
 
 router.post("/users/:id/force-logout", authorizePermission("users.manage"), requireStepUp(), async (req, res, next) => {
     try {
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
+        const user = await User.findOneAndUpdate(
+            { _id: req.params.id, role: "student" },
             { refreshTokenHash: null, activeSessions: [] },
             { new: true }
         ).select("-password -refreshTokenHash -resetToken -resetTokenExpire");
@@ -362,8 +367,8 @@ router.post("/users/:id/force-logout", authorizePermission("users.manage"), requ
 
 router.post("/users/:id/unlock", authorizePermission("users.manage"), async (req, res, next) => {
     try {
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
+        const user = await User.findOneAndUpdate(
+            { _id: req.params.id, role: "student" },
             { lockUntil: null, loginAttempts: 0, isActive: true },
             { new: true }
         ).select("-password -refreshTokenHash -resetToken -resetTokenExpire");
@@ -384,7 +389,7 @@ router.post("/users/:id/unlock", authorizePermission("users.manage"), async (req
 router.patch("/users/:id/reset-password", authorizePermission("users.manage"), requireStepUp(), async (req, res, next) => {
     try {
         const temporaryPassword = req.body.password || crypto.randomBytes(8).toString("base64url");
-        const user = await User.findById(req.params.id).select("+password");
+        const user = await User.findOne({ _id: req.params.id, role: "student" }).select("+password");
         if (!user) return res.status(404).json({ message: "User not found" });
         user.password = temporaryPassword;
         user.refreshTokenHash = null;
@@ -398,7 +403,7 @@ router.patch("/users/:id/assignments", authorizePermission("users.manage"), asyn
     try {
         const allowed = ["department", "course"];
         const update = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
-        const user = await User.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true })
+        const user = await User.findOneAndUpdate({ _id: req.params.id, role: "student" }, update, { new: true, runValidators: true })
             .select("-password -refreshTokenHash -resetToken -resetTokenExpire")
             .populate("department", "name code")
             .populate("course", "name code");
@@ -430,8 +435,10 @@ router.put("/rbac/templates", authorizePermission("settings.update"), async (req
 router.patch("/rbac/users/:id/permissions", authorizePermission("users.manage"), async (req, res, next) => {
     try {
         const permissions = Array.isArray(req.body?.permissions) ? req.body.permissions : [];
-        const user = await User.findByIdAndUpdate(req.params.id, { permissions }, { new: true })
-            .select("-password -refreshTokenHash -resetToken -resetTokenExpire");
+        const user =
+            await Admin.findByIdAndUpdate(req.params.id, { permissions }, { new: true }).select("-password -refreshTokenHash -resetToken -resetTokenExpire")
+            || await SuperAdmin.findByIdAndUpdate(req.params.id, { permissions }, { new: true }).select("-password -refreshTokenHash -resetToken -resetTokenExpire")
+            || await User.findOneAndUpdate({ _id: req.params.id, role: "student" }, { permissions }, { new: true }).select("-password -refreshTokenHash -resetToken -resetTokenExpire");
         if (!user) return res.status(404).json({ message: "User not found" });
         await writeAuditLog(req, "USER_PERMISSIONS_UPDATED", "User", user._id, { permissions });
         return res.json({ message: "Permissions updated", user });
@@ -524,9 +531,10 @@ router.patch("/incidents/:id/status", authorizePermission("users.manage"), async
 /* ─── Session/device management ─── */
 router.get("/sessions", authorizePermission("users.read"), async (_req, res, next) => {
     try {
-        const users = await User.find({ role: { $in: ["admin", "superadmin"] } })
-            .select("name email role activeSessions")
-            .sort({ updatedAt: -1 });
+        const users = [
+            ...(await SuperAdmin.find({}).select("name email role activeSessions").sort({ updatedAt: -1 })),
+            ...(await Admin.find({}).select("name email role activeSessions").sort({ updatedAt: -1 })),
+        ];
         return res.json({
             sessions: users.flatMap((u) =>
                 (u.activeSessions || []).map((s) => ({

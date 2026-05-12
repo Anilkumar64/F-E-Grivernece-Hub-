@@ -1,6 +1,6 @@
 import express from "express";
 import crypto from "crypto";
-import User from "../models/User.js";
+import Admin from "../models/Admin.js";
 import Department from "../models/Department.js";
 import ApprovalRequest from "../models/ApprovalRequest.js";
 import { guardSuperAdmin } from "../middleware/guards.js";
@@ -41,8 +41,8 @@ router.post("/create", authorizePermission("admin.create"), requireStepUp(), asy
         const dept = await Department.findById(department);
         if (!dept) return res.status(400).json({ message: "Department not found" });
 
-        const staffId = await generateDepartmentStaffId(User, dept.code);
-        const admin = await User.create({
+        const staffId = await generateDepartmentStaffId(Admin, dept.code);
+        const admin = await Admin.create({
             name, email, password, staffId, department,
             role: "admin",
             isActive,
@@ -55,10 +55,18 @@ router.post("/create", authorizePermission("admin.create"), requireStepUp(), asy
 
         await writeAuditLog(req, "ADMIN_CREATED", "User", admin._id, { department });
 
+        sendEmail(
+            admin.email,
+            "Your Admin Account Credentials – E-Grievance",
+            `Hello ${admin.name},\n\nYour admin account has been created successfully.\n\nLogin email: ${admin.email}\nTemporary password: ${password}\n\nPlease log in and change your password immediately.\n\nRegards,\nE-Grievance Team`
+        ).catch((emailErr) => {
+            console.warn(`Admin welcome email failed for ${admin.email}:`, emailErr.message);
+        });
+
         return res.status(201).json({
             message: "Admin created",
             temporaryPassword: req.body.autoGeneratePassword ? password : undefined,
-            admin: await User.findById(admin._id).select(adminProjection).populate("department", "name code"),
+            admin: await Admin.findById(admin._id).select(adminProjection).populate("department", "name code"),
         });
     } catch (err) { next(err); }
 });
@@ -66,7 +74,7 @@ router.post("/create", authorizePermission("admin.create"), requireStepUp(), asy
 /* ── List all admins ── */
 router.get("/all", async (req, res, next) => {
     try {
-        const admins = await User.find({ role: { $in: ["admin", "superadmin"] } })
+        const admins = await Admin.find({})
             .select(adminProjection)
             .populate("department", "name code")
             .sort({ createdAt: -1 });
@@ -77,7 +85,7 @@ router.get("/all", async (req, res, next) => {
 /* ── Pending admins (self-registered, awaiting approval) ── */
 router.get("/pending", async (req, res, next) => {
     try {
-        const pending = await User.find({ role: "admin", isVerified: false })
+        const pending = await Admin.find({ isVerified: false })
             .select("name email staffId department idCardFile createdAt")
             .populate("department", "name code");
         res.json({ pending });
@@ -87,8 +95,8 @@ router.get("/pending", async (req, res, next) => {
 /* ── Approve a self-registered admin ── */
 router.patch("/:id/approve", authorizePermission("admin.approve"), async (req, res, next) => {
     try {
-        const admin = await User.findOneAndUpdate(
-            { _id: req.params.id, role: "admin" },
+        const admin = await Admin.findOneAndUpdate(
+            { _id: req.params.id },
             { isVerified: true, isActive: true },
             { new: true }
         ).select(adminProjection).populate("department", "name code");
@@ -110,7 +118,7 @@ router.patch("/:id/approve", authorizePermission("admin.approve"), async (req, r
 /* ── Reject (delete) a self-registered admin ── */
 router.delete("/:id/reject", authorizePermission("admin.reject"), async (req, res, next) => {
     try {
-        const admin = await User.findOneAndDelete({ _id: req.params.id, role: "admin", isVerified: false });
+        const admin = await Admin.findOneAndDelete({ _id: req.params.id, isVerified: false });
         if (!admin) return res.status(404).json({ message: "Pending admin not found" });
 
         await writeAuditLog(req, "ADMIN_REJECTED", "User", admin._id);
@@ -130,8 +138,8 @@ router.patch("/:id", authorizePermission("admin.update"), async (req, res, next)
     try {
         const allowed = ["name", "email", "staffId", "department", "isActive", "permissions"];
         const update = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
-        const admin = await User.findOneAndUpdate(
-            { _id: req.params.id, role: "admin" },
+        const admin = await Admin.findOneAndUpdate(
+            { _id: req.params.id },
             update,
             { new: true, runValidators: true }
         ).select(adminProjection).populate("department", "name code");
@@ -153,7 +161,7 @@ router.patch("/:id/reset-password", authorizePermission("admin.resetPassword"), 
         });
         if (!approval.ok) return res.status(400).json({ message: approval.message });
         const temporaryPassword = req.body.password || crypto.randomBytes(8).toString("base64url");
-        const admin = await User.findOne({ _id: req.params.id, role: "admin" }).select("+password");
+        const admin = await Admin.findOne({ _id: req.params.id }).select("+password");
         if (!admin) return res.status(404).json({ message: "Admin not found" });
 
         admin.password = temporaryPassword;
@@ -173,8 +181,8 @@ router.delete("/:id", authorizePermission("admin.deactivate"), requireStepUp(), 
             actionType: "admin.deactivate",
         });
         if (!approval.ok) return res.status(400).json({ message: approval.message });
-        const admin = await User.findOneAndUpdate(
-            { _id: req.params.id, role: "admin" },
+        const admin = await Admin.findOneAndUpdate(
+            { _id: req.params.id },
             { isActive: false },
             { new: true }
         ).select(adminProjection);

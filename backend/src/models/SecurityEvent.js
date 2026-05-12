@@ -4,7 +4,7 @@ const securityEventSchema = new mongoose.Schema(
     {
         type: {
             type: String,
-            enum: ["account_locked", "repeated_failed_login", "unusual_activity", "force_logout", "temporary_block"],
+            enum: ["account_locked", "repeated_failed_login", "unusual_activity", "force_logout", "temporary_block", "unauthorized_access", "forbidden_access", "rate_limit_exceeded", "input_validation_failure", "failed_login", "suspicious_input"],
             required: true,
             index: true,
         },

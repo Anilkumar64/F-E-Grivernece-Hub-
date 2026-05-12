@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import Grievance from "../models/Grievance.js";
 import Notification from "../models/Notification.js";
-import User from "../models/User.js";
+import SuperAdmin from "../models/SuperAdmin.js";
 import AuditLog from "../models/AuditLog.js";
 
 export const runSlaEscalation = async () => {
@@ -14,7 +14,7 @@ export const runSlaEscalation = async () => {
 
     if (!overdue.length) return;
 
-    const superAdmins = await User.find({ role: "superadmin", isActive: true }).select("_id");
+    const superAdmins = await SuperAdmin.find({ isActive: true }).select("_id");
 
     for (const grievance of overdue) {
         grievance.status = "Escalated";

@@ -5,6 +5,12 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "migrate:role-collections": "node scripts/migrateAccountsToRoleCollections.js",
+    "reset:accounts": "node scripts/resetAccounts.js",
+    "reset:dev-passwords": "node scripts/resetDevPasswords.js --confirm",
+    "seed:superadmin": "node src/seed/createSuperAdmin.js",
+    "seed:department-admins": "node src/seed/seedDepartmentAdmins.js",
+    "seed:students": "node src/seed/seedStudentsByDepartment.js",
     "test": "vitest run --reporter=verbose --passWithNoTests",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
@@ -32,7 +38,8 @@
     "nodemailer": "^8.0.7",
     "pdfkit": "^0.18.0",
     "react-router-dom": "^7.14.2",
-    "redis": "^5.12.1",
+    "twilio": "^5.0.0",
+    "web-push": "^3.6.6",
     "zod": "^4.4.1"
   },
   "main": "server.js",

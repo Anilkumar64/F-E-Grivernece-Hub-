@@ -8,6 +8,7 @@ import { writeAuditLog } from "../utils/audit.js";
 import sendEmail from "../utils/sendEmail.js";
 import { generateOTP } from "../utils/generateOTP.js";
 import userUploads from "../middleware/userUploads.js";
+import { getAccountModel } from "../utils/accounts.js";
 
 const router = express.Router();
 const hashValue = (v) => crypto.createHash("sha256").update(v).digest("hex");
@@ -106,7 +107,8 @@ router.patch("/me/avatar", authenticate, authorize("admin", "superadmin"), userU
             return res.status(400).json({ message: "Please select an image to upload" });
         }
         const nextPhoto = shouldRemove ? "" : `/uploads/user_idcards/${req.file.filename}`;
-        const user = await User.findByIdAndUpdate(
+        const AccountModel = getAccountModel(req.role);
+        const user = await AccountModel.findByIdAndUpdate(
             req.userId,
             { profilePhoto: nextPhoto },
             { new: true }

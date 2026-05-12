@@ -5,8 +5,8 @@ const isTest = process.env.NODE_ENV === "test";
 const keyGenerator = (req) => req.userId || ipKeyGenerator(req.ip);
 
 export const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: isTest ? 10_000 : 10,
+    windowMs: 60 * 1000,
+    limit: isTest ? 10_000 : 5,
     standardHeaders: true,
     legacyHeaders: false,
     message: { message: "Too many authentication attempts. Try again later." },

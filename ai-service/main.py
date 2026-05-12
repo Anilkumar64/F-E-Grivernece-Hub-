@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 
 from config import get_settings
 from services.db_service import connect_db, close_db, is_db_connected
-from services.embedding_service import load_embedding_model
+from services.embedding_service import load_embedding_model, is_embedding_model_loaded
 
 from routers import (
     analyze, improve, duplicates,
@@ -56,7 +56,16 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     """Startup: connect DB + pre-load embedding model."""
     logger.info("Starting AI service …")
-    await connect_db()
+    if not settings.ai_service_secret or len(settings.ai_service_secret) < 32:
+        raise RuntimeError("AI_SERVICE_SECRET must be set and at least 32 characters")
+    if not settings.gemini_api_key or settings.gemini_api_key == "your-gemini-api-key-here":
+        logger.warning("GEMINI_API_KEY is not configured; Gemini-backed AI endpoints will run in degraded mode")
+    try:
+        await connect_db()
+    except Exception as exc:
+        if settings.ai_require_db:
+            raise
+        logger.warning("AI service continuing without MongoDB in degraded mode: %s", exc)
     if os.getenv("PRELOAD_EMBEDDING_MODEL", "false").lower() == "true":
         try:
             load_embedding_model()          # warm-up; cached after first call
@@ -82,7 +91,7 @@ app = FastAPI(
 # Allow only the Node.js backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],    # tightened via AI_SERVICE_SECRET header check below
+    allow_origins=[os.getenv("BACKEND_ORIGIN", "http://localhost:5000")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -122,21 +131,29 @@ app.include_router(chat.router,             prefix="/chat",             tags=["C
 # ── Health ───────────────────────────────────────────────────────────────────
 @app.get("/health", tags=["Health"])
 async def health():
+    ok = is_db_connected()
     return {
-        "status": "ok" if is_db_connected() else "degraded",
-        "service": "E-Griverence AI",
-        "db_connected": is_db_connected(),
-        "gemini_configured": bool(settings.gemini_api_key),
+        "status": "ok" if ok else "degraded",
+        "timestamp": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+        "services": {
+            "database": "connected" if is_db_connected() else "disconnected",
+            "aiModel": "loaded" if is_embedding_model_loaded() else "lazy",
+            "gemini": "configured" if bool(settings.gemini_api_key) else "missing",
+        },
     }
 
 
 @app.get("/ready", tags=["Health"])
 async def ready():
+    ok = is_db_connected()
     return {
-        "status": "ready" if is_db_connected() else "degraded",
-        "service": "E-Griverence AI",
-        "db_connected": is_db_connected(),
-        "gemini_configured": bool(settings.gemini_api_key),
+        "status": "ok" if ok else "degraded",
+        "timestamp": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+        "services": {
+            "database": "connected" if is_db_connected() else "disconnected",
+            "aiModel": "loaded" if is_embedding_model_loaded() else "lazy",
+            "gemini": "configured" if bool(settings.gemini_api_key) else "missing",
+        },
     }
 
 

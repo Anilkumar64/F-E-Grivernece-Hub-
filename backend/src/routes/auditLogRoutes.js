@@ -1,6 +1,8 @@
 import express from "express";
 import AuditLog from "../models/AuditLog.js";
 import User from "../models/User.js";
+import Admin from "../models/Admin.js";
+import SuperAdmin from "../models/SuperAdmin.js";
 import { guardSuperAdmin } from "../middleware/guards.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { writeAuditLog } from "../utils/audit.js";
@@ -27,6 +29,10 @@ const ACTION_CATEGORIES = {
     NAVIGATION: ["PAGE_VISIT"],
 };
 
+router.get("/categories", ...guardSuperAdmin, (_req, res) => {
+    res.json({ categories: ACTION_CATEGORIES });
+});
+
 /* ── GET / — list audit logs (superadmin only) ── */
 router.get("/", ...guardSuperAdmin, async (req, res, next) => {
     try {
@@ -50,16 +56,39 @@ router.get("/", ...guardSuperAdmin, async (req, res, next) => {
         }
 
         if (search || role) {
-            const userQuery = {};
+            const accountQuery = {};
             if (search) {
-                userQuery.$or = [
+                accountQuery.$or = [
                     { name: { $regex: search, $options: "i" } },
                     { email: { $regex: search, $options: "i" } },
                 ];
             }
-            if (role) userQuery.role = role;
-            const users = await User.find(userQuery).select("_id");
-            filter.performedBy = { $in: users.map((u) => u._id) };
+
+            const modelEntries = [
+                { role: "student", model: User },
+                { role: "admin", model: Admin },
+                { role: "superadmin", model: SuperAdmin },
+            ].filter((entry) => !role || entry.role === role);
+
+            const accountMatches = await Promise.all(
+                modelEntries.map(async ({ role: accountRole, model }) => {
+                    const accounts = await model.find(accountQuery).select("_id").lean();
+                    return accounts.map((account) => ({
+                        performedBy: account._id,
+                        performedByModel: accountRole === "student" ? "User" : accountRole === "admin" ? "Admin" : "SuperAdmin",
+                    }));
+                })
+            );
+            const actorFilters = accountMatches.flat();
+
+            filter.$or = [
+                ...actorFilters,
+                ...(search ? [
+                    { "actor.name": { $regex: search, $options: "i" } },
+                    { "actor.email": { $regex: search, $options: "i" } },
+                ] : []),
+                ...(role ? [{ "actor.role": role }] : []),
+            ];
         }
 
         const pageNum = Math.max(1, parseInt(page, 10));

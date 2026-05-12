@@ -1,10 +1,10 @@
-import User from "../models/User.js";
 import SiteConfig from "../models/SiteConfig.js";
+import { findAccountByIdAndRole } from "../utils/accounts.js";
 
 export const requireStepUp = (maxAgeMinutes = 10) => async (req, res, next) => {
     try {
         if (!req.user) return res.status(401).json({ message: "Unauthorized" });
-        const actor = await User.findById(req.userId).select("+stepUpVerifiedAt");
+        const actor = await findAccountByIdAndRole(req.userId, req.role)?.select("+stepUpVerifiedAt");
         if (!actor) return res.status(401).json({ message: "Unauthorized" });
         const verifiedAt = actor.stepUpVerifiedAt ? new Date(actor.stepUpVerifiedAt) : null;
         if (!verifiedAt) return res.status(403).json({ message: "Step-up verification required" });
