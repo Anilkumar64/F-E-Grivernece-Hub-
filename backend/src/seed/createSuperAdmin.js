@@ -1,60 +1,26 @@
-/**
- * createSuperAdmin.js
- *
- * Run ONCE to seed the first SuperAdmin user into the database.
- *
- * Usage:
- *   node src/seed/createSuperAdmin.js
- *
- * Or with custom credentials via env vars:
- *   SUPER_EMAIL=admin@uni.ac.in SUPER_PASSWORD=MyStr0ngPass node src/seed/createSuperAdmin.js
- */
-
 import dotenv from "dotenv";
-dotenv.config();
-
+import path from "path";
+import { fileURLToPath } from "url";
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
+import SuperAdmin from "../models/SuperAdmin.js";
 
-// ── Inline a minimal schema so we don't hit the pre-validate hook's
-//    staffId/department requirements (which don't apply to superadmin) ──────
-const userSchema = new mongoose.Schema(
-    {
-        name: { type: String, required: true },
-        email: { type: String, required: true, unique: true, lowercase: true },
-        password: { type: String, required: true },
-        role: { type: String, default: "superadmin" },
-        isActive: { type: Boolean, default: true },
-        isVerified: { type: Boolean, default: true },
-        refreshTokenHash: { type: String, default: null },
-        resetToken: { type: String, default: null },
-        resetTokenExpire: { type: Date, default: null },
-        studentId: { type: String, default: null, sparse: true },
-        staffId: { type: String, default: null },
-        department: { type: mongoose.Schema.Types.ObjectId, default: null },
-        phone: { type: String, default: "" },
-        address: { type: String, default: "" },
-        yearOfStudy: { type: String, default: "" },
-        avatar: { type: String, default: "" },
-        profilePhoto: { type: String, default: "" },
-    },
-    { timestamps: true }
-);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "..", "..", "..", ".env") });
 
 const SUPER_NAME = process.env.SUPER_NAME || "Super Admin";
-const SUPER_EMAIL = process.env.SUPER_EMAIL || "superadmin@university.ac.in";
+const SUPER_EMAIL = (process.env.SUPER_EMAIL || "superadmin@university.ac.in").toLowerCase().trim();
 const SUPER_PASSWORD = process.env.SUPER_PASSWORD || "SuperAdmin@123";
+const SUPERADMIN_STAFF_ID = process.env.SUPERADMIN_STAFF_ID || "SA-HQ-0001";
 
 const REQUIRED_VARS = ["MONGODB_URL", "ACCESS_TOKEN_SECRET", "REFRESH_TOKEN_SECRET"];
-const missing = REQUIRED_VARS.filter((k) => !process.env[k]);
+const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
 if (missing.length) {
-    console.error(`\n❌  Missing env vars: ${missing.join(", ")}`);
-    console.error("    Copy env.example → .env and fill in the values.\n");
+    console.error(`Missing env vars: ${missing.join(", ")}`);
     process.exit(1);
 }
 
 if (SUPER_PASSWORD.length < 8) {
-    console.error("\n❌  SUPER_PASSWORD must be at least 8 characters.\n");
+    console.error("SUPER_PASSWORD must be at least 8 characters.");
     process.exit(1);
 }
 
@@ -63,40 +29,39 @@ const run = async () => {
         dbName: process.env.MONGODB_DB || "EgrievanceHub",
     });
 
-    console.log("✅  Connected to MongoDB");
+    const existing = await SuperAdmin.findOne({ email: SUPER_EMAIL }).select("+password");
+    let superadmin;
 
-    // Use a raw model (bypass the full User schema's pre-validate hook)
-    const User = mongoose.models.User || mongoose.model("User", userSchema);
-
-    const existing = await User.findOne({ role: "superadmin" });
     if (existing) {
-        console.log(`\n⚠️   A superadmin already exists: ${existing.email}`);
-        console.log("    Delete it first if you want to recreate it.\n");
-        await mongoose.disconnect();
-        return;
+        existing.name = SUPER_NAME;
+        existing.password = SUPER_PASSWORD;
+        existing.staffId = SUPERADMIN_STAFF_ID;
+        existing.role = "superadmin";
+        existing.isActive = true;
+        existing.isVerified = true;
+        existing.department = null;
+        superadmin = await existing.save();
+        console.log("SuperAdmin updated successfully.");
+    } else {
+        superadmin = await SuperAdmin.create({
+            name: SUPER_NAME,
+            email: SUPER_EMAIL,
+            password: SUPER_PASSWORD,
+            staffId: SUPERADMIN_STAFF_ID,
+            role: "superadmin",
+            isActive: true,
+            isVerified: true,
+            department: null,
+        });
+        console.log("SuperAdmin created successfully.");
     }
 
-    const hashed = await bcrypt.hash(SUPER_PASSWORD, 12);
-    await User.create({
-        name: SUPER_NAME,
-        email: SUPER_EMAIL.toLowerCase(),
-        password: hashed,
-        staffId: process.env.SUPERADMIN_STAFF_ID || "SA-HQ-0001",
-        role: "superadmin",
-        isActive: true,
-        isVerified: true,
-        department: null,
-    });
-
-    console.log("\n✅  SuperAdmin created successfully!");
-    console.log(`    Email:    ${SUPER_EMAIL.toLowerCase()}`);
-    console.log(`    Password: ${SUPER_PASSWORD}`);
-    console.log("\n⚠️   Change the password immediately after first login.\n");
+    console.log(`Email: ${superadmin.email}`);
 
     await mongoose.disconnect();
 };
 
 run().catch((err) => {
-    console.error("❌  Seed failed:", err.message);
+    console.error("Seed failed:", err.message);
     process.exit(1);
 });
